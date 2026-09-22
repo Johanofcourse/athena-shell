@@ -56,6 +56,30 @@ per filter field.
 This layer is currently **unverified against the live DeepSeek API** - see
 `ROADMAP.md` Phase 1 and `PRODUCT_REVIEW.md`.
 
+### Guardrails / abuse prevention
+
+The realistic abuse case for an open `/query` endpoint backed by a paid
+LLM call isn't "someone tricks it into writing a PDF" - forced
+`tool_choice` already makes that structurally impossible, since the model
+can only ever return `filter_listings` arguments, never free text, and
+nothing it writes reaches the client directly (`explain_filters()` is our
+own deterministic code, not model output). The real risk is someone
+hammering the endpoint to run up the API bill. Mitigated by:
+
+- `QueryRequest.query` is capped at 300 characters (Pydantic
+  `max_length`) - rejects oversized payloads before they reach the model.
+- `POST /query` is rate-limited to 10 requests/minute per client IP
+  (`slowapi`, in-memory) - verified locally: request 11 in a burst
+  returns `429`.
+
+Known limits of this: in-memory rate limiting doesn't survive a restart
+or scale across multiple backend instances - fine for a single-instance
+deployment, would need a shared store (Redis) if this ever runs
+horizontally scaled. There's also still no auth, and no server-side spend
+cap on the DeepSeek key itself - that has to be set directly in
+DeepSeek's dashboard once a real key exists, it isn't something the app
+can enforce from the outside.
+
 ## API reference
 
 | Method | Path | Description |

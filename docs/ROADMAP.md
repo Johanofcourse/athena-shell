@@ -15,6 +15,11 @@ actually derisks those goals, not by what's easiest to build next.
 
 ## Phase 1 — Prove the NL layer works
 The differentiating part of this project, and currently the least proven.
+- [x] Guardrails ahead of a live key: `/query` input capped at 300 chars,
+      rate-limited to 10 req/min/IP (verified locally - burst of 11
+      returns `429`). Still open: no auth, no spend cap on the DeepSeek
+      key itself (must be set in DeepSeek's own dashboard once the key
+      exists). See `DOCUMENTATION.md` -> Guardrails.
 - [ ] Wire a real `DEEPSEEK_API_KEY` and run `/query` end to end
 - [ ] Build an eval set: ~15-20 representative NL queries with expected
       filter output, scored automatically on every change
