@@ -49,6 +49,8 @@ npm run dev
 
 App runs at `http://localhost:5173`.
 
-## Status
+## Docs
 
-Scaffolded: data model, synthetic data generator, REST endpoints, DeepSeek-backed NL query endpoint, and a working search UI with per-listing history charts. Not yet done: automated tests, deployment config, and a real (non-synthetic) data source.
+- [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) — architecture, data model, API reference, env vars
+- [docs/ROADMAP.md](docs/ROADMAP.md) — what's next, in priority order
+- [docs/PRODUCT_REVIEW.md](docs/PRODUCT_REVIEW.md) — honest read on where the project actually stands
