@@ -70,7 +70,7 @@ class QueryFilters(BaseModel):
 
 
 class QueryRequest(BaseModel):
-    query: str
+    query: str = Field(min_length=1, max_length=300)
 
 
 class QueryResponse(BaseModel):
