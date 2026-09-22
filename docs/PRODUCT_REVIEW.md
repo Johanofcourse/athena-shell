@@ -4,7 +4,7 @@ Honest self-assessment, not a status report dressed up as one. Updated as
 the project moves - see `ROADMAP.md` for what's planned and `git log` for
 what's actually landed since this was last written.
 
-**Last updated:** 2026-09-22 (right after the initial scaffold, PR #1)
+**Last updated:** 2026-09-22 (initial scaffold, PR #1, + first data-sourcing spike)
 
 ## What this is being judged against
 
@@ -35,9 +35,26 @@ review holds the project to both, not just "does it run."
 - **Zero automated tests.** Fine for a fast prototype; undercuts the
   "engineering rigor" half of the pitch if it's still true by the time
   this gets shown to anyone.
-- **Synthetic-only data** is a defensible choice (no ToS/legal risk, full
-  control over edge cases) - but be ready to say that out loud in an
-  interview, because "is this real data" is an obvious first question.
+- **Synthetic-only data** was the starting point; that's now actively
+  changing (see below), so this bullet is closer to resolved than the
+  others.
+
+## Data sourcing (new since first draft)
+
+The original assumption - scrape or search-engine our way to per-listing
+price/relist history - doesn't survive scrutiny: no free source
+backfills individual-listing history, and the sites that have it forbid
+scraping (Craigslist v. PadMapper is directly on point - same product
+idea, same outcome). Pivoted to real, free, legal **aggregate
+market-trend data** (Redfin Data Center, Census ACS) instead of
+per-listing data. This is a genuine product scope change - "any
+address's history" becomes "how a market/segment is moving" - not a
+finishing detail, and it was surfaced and agreed on explicitly rather
+than assumed. Full writeup: `ROADMAP.md` Phase 3.
+
+Currently blocked on two human-only steps (Redfin's download page is
+bot-gated; Census needs a free API key signup) - see ROADMAP for the
+concrete next actions and who owns them.
 
 ## Biggest risk to the job goal specifically
 
