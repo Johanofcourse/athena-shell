@@ -3,4 +3,11 @@
 node_modules/
 __pycache__/
 venv/
+.venv/
 .DS_Store
+*.db
+dist/
+*.egg-info/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
