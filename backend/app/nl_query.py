@@ -1,58 +1,105 @@
 import json
+from datetime import date
 
 from openai import OpenAI
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import Listing, ListingStatus
-from app.schemas import QueryFilters
+from app.models import MarketMetric, Metro
+from app.schemas import MarketMetricPoint, MarketQueryFilters, MetricName
 
-SYSTEM_PROMPT = """You translate a home-buyer's natural-language question about a real estate \
-listing-history dataset into a structured filter call. Always call filter_listings exactly once. \
-Only set fields the question actually implies - leave everything else null. Today's context: the \
-dataset covers the trailing 12 months of listing activity across the covered metro areas."""
+SYSTEM_PROMPT = """You translate a person's natural-language question about real estate market trends \
+(home sale prices, rents, days on market, price drops, relistings, vacancy) into a structured call \
+against a metro-level time-series database covering 50 US metros. Always call query_market_metrics \
+exactly once.
 
-FILTER_LISTINGS_TOOL = {
+Pick ONE metric per call - the one the question is actually about. If the question names specific \
+metros (e.g. "Austin", "Denver vs Seattle"), list them in `metros`. If it's a ranking/comparison \
+question across all metros (e.g. "which metros have the biggest price drops right now"), leave \
+`metros` empty and set sort_by to "value". Otherwise (a trend question about named metros), leave \
+sort_by as "period".
+
+If part of the question can't be answered by this schema - a specific address, school quality, crime, \
+anything not in the metric list - put a short phrase describing it in `unsupported_aspects`. Do not \
+silently drop it and do not invent a filter for it."""
+
+METRIC_DESCRIPTIONS = {
+    MetricName.MEDIAN_SALE_PRICE: "Median home sale price (Redfin)",
+    MetricName.MEDIAN_DAYS_ON_MARKET: "Median days a home sale listing sits on the market (Redfin)",
+    MetricName.HOMES_SOLD: "Count of homes sold (Redfin)",
+    MetricName.NEW_LISTINGS: "Count of new for-sale listings (Redfin)",
+    MetricName.ACTIVE_LISTINGS: "Count of currently active for-sale listings (Redfin)",
+    MetricName.PENDING_SALES: "Count of homes under contract (Redfin)",
+    MetricName.MEDIAN_PRICE_PER_SQFT: "Median new-listing price per square foot (Redfin)",
+    MetricName.PRICE_DROP_COUNT: "Count of for-sale price reductions (Redfin)",
+    MetricName.PRICE_DROP_PCT_AVG: "Average size of for-sale price reductions, as a percent (Redfin)",
+    MetricName.PCT_ACTIVE_WITH_PRICE_DROP: "Percent of active for-sale listings with a price drop (Redfin)",
+    MetricName.HOMES_SOLD_WITH_PRICE_DROP: "Count of sold homes that had a price drop first (Redfin)",
+    MetricName.TOTAL_DELISTINGS: "Count of for-sale listings pulled off the market (Redfin)",
+    MetricName.TOTAL_RELISTINGS: "Count of for-sale listings put back on the market (Redfin)",
+    MetricName.SHARE_DELISTED_PCT: "Percent of for-sale listings delisted (Redfin)",
+    MetricName.SHARE_RELISTED_PCT: "Percent of for-sale listings relisted (Redfin)",
+    MetricName.MEDIAN_RENT: "Median asking rent for a new lease - use bed_size overall/1br/2br (Apartment List)",
+    MetricName.VACANCY_RATE: "Rental vacancy rate, 0-1 (Apartment List)",
+    MetricName.TIME_ON_MARKET_DAYS: "Median days a rental sits vacant before leasing (Apartment List)",
+}
+
+# Short, clean labels for user-facing explanation text - METRIC_DESCRIPTIONS
+# above is tool-schema hint text (includes usage notes, source tags) and
+# isn't fit to show a user directly.
+METRIC_LABELS = {
+    MetricName.MEDIAN_SALE_PRICE: "median sale price",
+    MetricName.MEDIAN_DAYS_ON_MARKET: "median days on market",
+    MetricName.HOMES_SOLD: "homes sold",
+    MetricName.NEW_LISTINGS: "new listings",
+    MetricName.ACTIVE_LISTINGS: "active listings",
+    MetricName.PENDING_SALES: "pending sales",
+    MetricName.MEDIAN_PRICE_PER_SQFT: "median price per sq. ft.",
+    MetricName.PRICE_DROP_COUNT: "price drop count",
+    MetricName.PRICE_DROP_PCT_AVG: "average price drop size",
+    MetricName.PCT_ACTIVE_WITH_PRICE_DROP: "percent of listings with a price drop",
+    MetricName.HOMES_SOLD_WITH_PRICE_DROP: "homes sold after a price drop",
+    MetricName.TOTAL_DELISTINGS: "total delistings",
+    MetricName.TOTAL_RELISTINGS: "total relistings",
+    MetricName.SHARE_DELISTED_PCT: "share of listings delisted",
+    MetricName.SHARE_RELISTED_PCT: "share of listings relisted",
+    MetricName.MEDIAN_RENT: "median rent",
+    MetricName.VACANCY_RATE: "vacancy rate",
+    MetricName.TIME_ON_MARKET_DAYS: "time on market (rentals)",
+}
+
+QUERY_MARKET_METRICS_TOOL = {
     "type": "function",
     "function": {
-        "name": "filter_listings",
-        "description": "Filter and sort the real estate listing-history dataset.",
+        "name": "query_market_metrics",
+        "description": "Query the real estate market-trend database (50 US metros, sale + rent side).",
         "parameters": {
             "type": "object",
             "properties": {
-                "min_price": {"type": "number"},
-                "max_price": {"type": "number"},
-                "city": {"type": "string"},
-                "state": {"type": "string", "description": "Two-letter state code"},
-                "property_type": {
+                "metros": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Metro names mentioned (e.g. ['Austin']). Empty = all metros, for ranking questions.",
+                },
+                "metric": {
                     "type": "string",
-                    "description": "e.g. single_family, condo, townhouse, multi_family",
+                    "enum": [m.value for m in MetricName],
+                    "description": " | ".join(f"{m.value}: {d}" for m, d in METRIC_DESCRIPTIONS.items()),
                 },
-                "bedrooms_min": {"type": "integer"},
-                "bathrooms_min": {"type": "number"},
-                "min_price_drop_pct": {
-                    "type": "number",
-                    "description": "Minimum percent drop from original list price, e.g. 5 for 5%",
-                },
-                "min_price_drop_amount": {"type": "number"},
-                "min_days_on_market": {"type": "integer"},
-                "max_days_on_market": {"type": "integer"},
-                "min_relist_count": {
-                    "type": "integer",
-                    "description": "Minimum number of times the listing was taken off and relisted",
-                },
-                "status": {
-                    "type": "string",
-                    "enum": [s.value for s in ListingStatus],
-                },
-                "sort_by": {
-                    "type": "string",
-                    "enum": ["price", "days_on_market", "price_drop_pct", "relist_count"],
-                },
+                "bed_size": {"type": "string", "enum": ["overall", "1br", "2br"]},
+                "start_period": {"type": "string", "description": "YYYY-MM, inclusive"},
+                "end_period": {"type": "string", "description": "YYYY-MM, inclusive"},
+                "sort_by": {"type": "string", "enum": ["period", "value"]},
                 "sort_order": {"type": "string", "enum": ["asc", "desc"]},
-                "limit": {"type": "integer", "description": "Defaults to 25, max 200"},
+                "limit": {"type": "integer"},
+                "unsupported_aspects": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Parts of the question this schema can't answer - name them, don't drop them.",
+                },
             },
+            "required": ["metric"],
             "additionalProperties": False,
         },
     },
@@ -63,15 +110,15 @@ def _client() -> OpenAI:
     return OpenAI(api_key=settings.deepseek_api_key, base_url=settings.deepseek_base_url)
 
 
-def interpret_query(query: str) -> QueryFilters:
+def interpret_query(query: str) -> MarketQueryFilters:
     response = _client().chat.completions.create(
         model=settings.deepseek_model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": query},
         ],
-        tools=[FILTER_LISTINGS_TOOL],
-        tool_choice={"type": "function", "function": {"name": "filter_listings"}},
+        tools=[QUERY_MARKET_METRICS_TOOL],
+        tool_choice={"type": "function", "function": {"name": "query_market_metrics"}},
         # deepseek-flash runs in "thinking" mode by default, which rejects
         # forced tool_choice outright (400: "Thinking mode does not support
         # this tool_choice") - confirmed by testing directly against the API.
@@ -80,96 +127,149 @@ def interpret_query(query: str) -> QueryFilters:
 
     message = response.choices[0].message
     if not message.tool_calls:
-        return QueryFilters()
+        return MarketQueryFilters(metric=MetricName.MEDIAN_SALE_PRICE, metros=[])
 
     raw_args = message.tool_calls[0].function.arguments
     try:
         parsed = json.loads(raw_args)
     except json.JSONDecodeError:
-        return QueryFilters()
+        return MarketQueryFilters(metric=MetricName.MEDIAN_SALE_PRICE, metros=[])
 
-    return QueryFilters.model_validate(parsed)
-
-
-def explain_filters(filters: QueryFilters) -> str:
-    """Built from the resolved filter object rather than a second model call -
-    deterministic, free, and can't drift from what actually ran."""
-    parts: list[str] = []
-
-    if filters.city or filters.state:
-        location = ", ".join(p for p in [filters.city, filters.state] if p)
-        parts.append(f"in {location}")
-    if filters.property_type:
-        parts.append(f"property type {filters.property_type}")
-    if filters.bedrooms_min:
-        parts.append(f"{filters.bedrooms_min}+ bedrooms")
-    if filters.bathrooms_min:
-        parts.append(f"{filters.bathrooms_min}+ bathrooms")
-    if filters.min_price or filters.max_price:
-        lo = f"${filters.min_price:,.0f}" if filters.min_price else "any"
-        hi = f"${filters.max_price:,.0f}" if filters.max_price else "any"
-        parts.append(f"price between {lo} and {hi}")
-    if filters.min_price_drop_pct:
-        parts.append(f"price dropped at least {filters.min_price_drop_pct:g}%")
-    if filters.min_price_drop_amount:
-        parts.append(f"price dropped at least ${filters.min_price_drop_amount:,.0f}")
-    if filters.min_days_on_market:
-        parts.append(f"on market {filters.min_days_on_market}+ days")
-    if filters.max_days_on_market:
-        parts.append(f"on market under {filters.max_days_on_market} days")
-    if filters.min_relist_count:
-        parts.append(f"relisted {filters.min_relist_count}+ times")
-    if filters.status:
-        parts.append(f"status = {filters.status.value}")
-
-    if not parts:
-        return "No specific filters were detected, showing recent listings."
-
-    summary = "Showing listings " + ", ".join(parts)
-    if filters.sort_by:
-        summary += f", sorted by {filters.sort_by} ({filters.sort_order or 'desc'})"
-    return summary + "."
+    return MarketQueryFilters.model_validate(parsed)
 
 
-def apply_filters(db: Session, filters: QueryFilters) -> list[Listing]:
-    stmt = select(Listing)
+def _resolve_metro(name: str, all_metros: list[Metro]) -> Metro | None:
+    needle = name.strip().lower()
+    for m in all_metros:
+        if m.canonical_name.lower() == needle:
+            return m
+    for m in all_metros:
+        city_part = m.canonical_name.split(",")[0].strip().lower()
+        if city_part == needle or needle in city_part or city_part in needle:
+            return m
+    return None
 
-    if filters.min_price is not None:
-        stmt = stmt.where(Listing.current_price >= filters.min_price)
-    if filters.max_price is not None:
-        stmt = stmt.where(Listing.current_price <= filters.max_price)
-    if filters.city:
-        stmt = stmt.where(Listing.city.ilike(filters.city))
-    if filters.state:
-        stmt = stmt.where(Listing.state.ilike(filters.state))
-    if filters.property_type:
-        stmt = stmt.where(Listing.property_type.ilike(filters.property_type))
-    if filters.bedrooms_min is not None:
-        stmt = stmt.where(Listing.bedrooms >= filters.bedrooms_min)
-    if filters.bathrooms_min is not None:
-        stmt = stmt.where(Listing.bathrooms >= filters.bathrooms_min)
-    if filters.min_price_drop_pct is not None:
-        stmt = stmt.where(Listing.price_drop_pct >= filters.min_price_drop_pct)
-    if filters.min_price_drop_amount is not None:
-        stmt = stmt.where(Listing.price_drop_amount >= filters.min_price_drop_amount)
-    if filters.min_days_on_market is not None:
-        stmt = stmt.where(Listing.days_on_market >= filters.min_days_on_market)
-    if filters.max_days_on_market is not None:
-        stmt = stmt.where(Listing.days_on_market <= filters.max_days_on_market)
-    if filters.min_relist_count is not None:
-        stmt = stmt.where(Listing.relist_count >= filters.min_relist_count)
-    if filters.status is not None:
-        stmt = stmt.where(Listing.status == filters.status)
 
-    sort_column = {
-        "price": Listing.current_price,
-        "days_on_market": Listing.days_on_market,
-        "price_drop_pct": Listing.price_drop_pct,
-        "relist_count": Listing.relist_count,
-    }.get(filters.sort_by or "", Listing.last_event_date)
-    stmt = stmt.order_by(sort_column.desc() if (filters.sort_order or "desc") == "desc" else sort_column.asc())
+def _parse_period(raw: str | None) -> date | None:
+    if not raw:
+        return None
+    year, _, month = raw.partition("-")
+    return date(int(year), int(month), 1)
 
-    limit = max(1, min(filters.limit or 25, 200))
-    stmt = stmt.limit(limit)
 
-    return list(db.execute(stmt).scalars().all())
+def run_market_query(
+    db: Session, filters: MarketQueryFilters
+) -> tuple[list[MarketMetricPoint], list[str], list[str]]:
+    """Returns (results, unmatched_metros, no_data_metros). unmatched_metros
+    are names that don't correspond to any metro we track; no_data_metros
+    are real metros with zero rows for the requested metric (e.g. asking
+    for rent in a metro Apartment List doesn't cover)."""
+
+    all_metros = list(db.execute(select(Metro)).scalars().all())
+
+    unmatched: list[str] = []
+    resolved: list[Metro] = []
+    for name in filters.metros:
+        metro = _resolve_metro(name, all_metros)
+        if metro is None:
+            unmatched.append(name)
+        else:
+            resolved.append(metro)
+
+    start = _parse_period(filters.start_period)
+    end = _parse_period(filters.end_period)
+
+    if filters.sort_by == "value":
+        # Ranking mode: one point per metro at its latest available period
+        # (or the latest period <= end, if given).
+        target_metros = resolved if filters.metros else all_metros
+        no_data: list[str] = []
+        points: list[MarketMetricPoint] = []
+        for metro in target_metros:
+            stmt = select(MarketMetric).where(
+                MarketMetric.metro_id == metro.id,
+                MarketMetric.metric == filters.metric.value,
+            )
+            if filters.bed_size:
+                stmt = stmt.where(MarketMetric.bed_size == filters.bed_size)
+            if end:
+                stmt = stmt.where(MarketMetric.period <= end)
+            stmt = stmt.order_by(MarketMetric.period.desc()).limit(1)
+            row = db.execute(stmt).scalars().first()
+            if row is None:
+                if filters.metros:
+                    no_data.append(metro.canonical_name)
+                continue
+            points.append(MarketMetricPoint(metro=metro.canonical_name, period=row.period, value=row.value))
+
+        points.sort(key=lambda p: p.value, reverse=(filters.sort_order != "asc"))
+        limit = max(1, min(filters.limit or 60, 200))
+        return points[:limit], unmatched, no_data
+
+    # Trend mode: full time series for the named metro(s). Deliberately
+    # does not fall back to "all metros" when none are named - that would
+    # silently dump up to 50 time series instead of prompting for a metro.
+    no_data = []
+    points = []
+    for metro in resolved:
+        stmt = select(MarketMetric).where(
+            MarketMetric.metro_id == metro.id,
+            MarketMetric.metric == filters.metric.value,
+        )
+        if filters.bed_size:
+            stmt = stmt.where(MarketMetric.bed_size == filters.bed_size)
+        if start:
+            stmt = stmt.where(MarketMetric.period >= start)
+        if end:
+            stmt = stmt.where(MarketMetric.period <= end)
+        stmt = stmt.order_by(MarketMetric.period.asc())
+        rows = db.execute(stmt).scalars().all()
+        if not rows:
+            no_data.append(metro.canonical_name)
+            continue
+        points.extend(MarketMetricPoint(metro=metro.canonical_name, period=r.period, value=r.value) for r in rows)
+
+    return points, unmatched, no_data
+
+
+def explain_filters(
+    filters: MarketQueryFilters, unmatched_metros: list[str], no_data_metros: list[str]
+) -> str:
+    """Built from the resolved filter object and query outcome, not a
+    second model call - deterministic, free, and can't say something
+    different from what actually ran."""
+    metric_label = METRIC_LABELS.get(filters.metric, filters.metric.value)
+    parts = [metric_label]
+
+    if filters.bed_size:
+        parts.append(f"({filters.bed_size})")
+
+    if filters.metros:
+        parts.append("for " + ", ".join(filters.metros))
+    elif filters.sort_by == "value":
+        parts.append("across all metros")
+
+    if filters.start_period or filters.end_period:
+        parts.append(f"from {filters.start_period or 'earliest'} to {filters.end_period or 'latest'}")
+
+    if filters.sort_by == "value":
+        parts.append(f"ranked {filters.sort_order}")
+
+    summary = "Showing " + " ".join(parts) + "."
+
+    notes = []
+    if unmatched_metros:
+        notes.append(f"Couldn't find a tracked metro matching: {', '.join(unmatched_metros)}.")
+    if no_data_metros:
+        notes.append(
+            f"No {metric_label.lower()} data available for: {', '.join(no_data_metros)} "
+            "(this metro isn't covered by that data source at this granularity)."
+        )
+    if filters.unsupported_aspects:
+        notes.append(
+            "This system can't evaluate: " + ", ".join(filters.unsupported_aspects) + "."
+        )
+    if not filters.metros and filters.sort_by == "period":
+        notes.append("No metro specified for a trend query - name one or more metros, or ask a ranking question instead.")
+
+    return summary + (" " + " ".join(notes) if notes else "")

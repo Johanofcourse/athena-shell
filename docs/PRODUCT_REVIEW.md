@@ -2,117 +2,97 @@
 
 Honest self-assessment, not a status report dressed up as one. Updated as
 the project moves - see `ROADMAP.md` for what's planned and `git log` for
-what's actually landed since this was last written.
+what's actually landed since this was last written. Rewritten clean at
+this update rather than patched again - the previous version had
+accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-27 (real market schema + ETL built and verified, on top of the data sourcing and first live DeepSeek run from earlier the same day)
+**Last updated:** 2026-09-27 (full cutover to real data + verified NL layer + first real eval)
 
 ## What this is being judged against
 
-Two goals, both real: a genuinely useful listing-history search tool, and
-a portfolio piece for landing a forward-deployed AI engineer role. This
+Two goals, both real: a genuinely useful market-trend tool, and a
+portfolio piece for landing a forward-deployed AI engineer role. This
 review holds the project to both, not just "does it run."
 
 ## Where it actually stands
 
-- **Data model / API** - solid. Verified end-to-end against real seeded
-  data (curl'd endpoints, exercised the filter->SQL path directly with
-  real filter combinations, correct results).
-- **NL query layer** - now verified live against DeepSeek, and it wasn't
-  a clean first try, which is itself worth having on record: the model
-  name was stale (`deepseek-chat` didn't exist under that name anymore),
-  and `deepseek-flash`'s default "thinking" mode flatly rejects forced
-  `tool_choice` - a 400 error DeepSeek's own docs don't document the fix
-  for. Fixed by testing directly against the API rather than more doc
-  reading. Five manual test queries post-fix all parsed into sane,
-  correct filters (price thresholds, property type inference, sort
-  clauses, relist counts). Tool-calling itself is reliable.
-- **But "not hallucinating" isn't the same as "being honest."** One test
-  query ("houses near good schools") proved this concretely: the model
-  correctly avoided inventing a fake schools filter, but it also silently
-  dropped that part of the request and returned unfiltered results with
-  no indication school quality wasn't evaluated. A user could easily read
-  25 results back as "these are near good schools." This is a real gap,
-  not a hypothetical one - see `ROADMAP.md` Phase 1.
-- **No eval set exists yet.** Five manual queries is a smoke test, not
-  a measurement tool. Claiming the NL layer "works" without a repeatable
-  way to score it isn't a credible claim in an FDAIE interview - building
-  and reading evals *is* a large part of that job. This is now the
-  highest-priority gap, above any UI work.
-- **Frontend** - functional (grid, search, detail panel, price chart all
-  render and work), but visually generic: rounded cards, soft blue
-  accent, centered layout. This directly contradicts the project's own
-  stated design bar (`PREFERENCES.md`), and a portfolio piece competing
-  on distinctiveness shouldn't look like a templated SaaS dashboard.
-- **Zero automated tests.** Fine for a fast prototype; undercuts the
-  "engineering rigor" half of the pitch if it's still true by the time
-  this gets shown to anyone.
-- **Synthetic-only data** was the starting point; that's now actively
-  changing (see below), so this bullet is closer to resolved than the
-  others.
+- **Data** - real, not synthetic. Redfin (50 metros, monthly sale-side
+  data, 2012-2026) and Apartment List (rent/vacancy/time-on-market,
+  2017/2019-2026), both independently spot-checked against known
+  real-world market history (Austin's 2012 low, 2022 pandemic-boom peak,
+  2023+ cooldown, and the matching rent/vacancy story) before being
+  trusted. Getting here required abandoning the original plan (scrape or
+  search-engine per-listing history - doesn't survive scrutiny, see
+  `ROADMAP.md` Phase 3) and finding a legally clean alternative instead.
+- **NL query layer** - verified live against DeepSeek, not just
+  architected. Getting a working integration required two real,
+  undocumented fixes (stale model name, a "thinking mode" incompatibility
+  with forced tool-calling) found by testing directly against the API,
+  not by reading more documentation.
+- **Three honesty behaviors, deliberately built:** the model names parts
+  of a question it can't answer instead of dropping them
+  (`unsupported_aspects`); a metro with no data for a requested metric
+  says so instead of returning nothing (`no_data_metros`); an unmatched
+  metro name is surfaced, not swallowed (`unmatched_metros`). All three
+  exist because manual testing found the failure mode first - not because
+  they were anticipated up front.
+- **A real eval set exists**: 18 cases, 44 checks, currently 100%. Read
+  that number as "hasn't found a failure yet," not "is correct" - it's an
+  18-case first pass that doesn't cover adversarial input or the
+  metric-choice non-determinism already observed by hand (the same
+  ranking question picked a different, still-defensible metric on
+  different runs). A score that never moves again would itself be a
+  reason to write harder cases.
+- **Frontend** - fully rewired to the real data (metro browser, trend
+  charts, ranking charts), verified in an actual browser (not just typed
+  correctly) - zero console errors across the query flow. Still visually
+  generic: rounded cards, blue accent, centered layout. This directly
+  contradicts the project's own stated design bar (`PREFERENCES.md`), and
+  hasn't moved since it was first flagged - it's been correctly
+  deprioritized behind the data/AI work each time, but it's still true.
+- **Zero automated tests** for general code correctness. The eval set
+  tests NL-layer behavior specifically; it isn't a substitute for testing
+  the ETL, the crosswalk, or the API contracts.
+- **No auth, no deployment, no CI.** Fine for local development, not
+  hidden - see `ROADMAP.md` Phases 4-5.
 
-## Data sourcing (new since first draft)
+## What actually derisked this project, in order
 
-The original assumption - scrape or search-engine our way to per-listing
-price/relist history - doesn't survive scrutiny: no free source
-backfills individual-listing history, and the sites that have it forbid
-scraping (Craigslist v. PadMapper is directly on point - same product
-idea, same outcome). Pivoted to real, free, legal **aggregate
-market-trend data** (Redfin Data Center, Census ACS) instead of
-per-listing data. This is a genuine product scope change - "any
-address's history" becomes "how a market/segment is moving" - not a
-finishing detail, and it was surfaced and agreed on explicitly rather
-than assumed. Full writeup: `ROADMAP.md` Phase 3.
+1. Catching that the original data plan (scrape/search) was illegal or
+   infeasible *before* building anything on top of it.
+2. Verifying every claim with a real check instead of assuming - live API
+   calls, real browser tests, exact-value cross-checks against raw data.
+   This caught two real, silent bugs that "it ran without error" would
+   have missed entirely: a naming mismatch that zeroed out one metric with
+   no error, and (earlier) the same class of problem in the NL layer
+   itself.
+3. Treating "the model didn't hallucinate" as necessary but not
+   sufficient, and building the honesty behaviors that follow from that.
 
-**Update:** both sides of the mission now have real, verified data - not
-just sales. Redfin covers the sale side (50 metros, monthly, 2012-2026).
-Apartment List covers the rent side (Rent Estimates, Vacancy Index, Time
-on Market - up to 642 metros depending on the file, 2017/2019-2026). Both
-spot-checked against known real-world market history and both check out
-(Austin's rent-boom-then-bust story shows up consistently across price,
-vacancy, and time-on-market independently). This is no longer a
-hypothetical data strategy; it's real data sitting in `data/samples/`
-waiting on a schema to load into - and a real crosswalk problem now that
-two sources with different metro-naming conventions need to join. Still
-blocked on the Census API key - see `ROADMAP.md` for the concrete next
-actions and who owns them.
+None of these were UI work. That's not an accident - this project's
+strongest evidence for "forward-deployed AI engineer" is the sequence
+above, not any single screen.
 
 ## Biggest risk to the job goal specifically
 
-This has shifted, not disappeared. The core claim - "the AI layer works
-reliably" - now has real (if thin) evidence behind it instead of zero.
-The risk now is **proving it holds up**, not proving it exists: five
-manual queries is not an eval, and the one real failure mode found so far
-(silently dropping unsupported query aspects instead of flagging them)
-is exactly the kind of thing that looks fine in a demo and falls apart
-under real interview scrutiny. Everything else (data model, API, UI,
-real data sourcing) is competent but not differentiating on its own; a
-measured, honest account of where the NL layer works and where it
-doesn't *is* the differentiator.
+The eval set is real but thin. Eighteen hand-written cases that all pass
+is a good start and a weak final claim - the honest read is "no known
+failures yet," and an interviewer who asks "how do you know it's
+reliable" deserves a better answer than a static 18/18. The next
+highest-value work is adversarial and ambiguous cases that might actually
+fail something, not more UI polish and not a bigger eval set for its own
+sake.
 
-## Real data now has a schema (new since first draft)
-
-`Metro` + `MarketMetric` tables built and loaded with all six real files
-(50 metros, 121k+21k rows). Verified the same way as everything else in
-this project so far - not "it ran without error," but "the exact numbers
-match what was already validated from the raw files." That check caught
-a real bug: one Apartment List file names metros differently than its
-own other two files, and the mismatch silently produced zero rows for
-that metric with no error - fixed only because the cross-check happened
-at all. Worth remembering as a pattern: every data-join in this project
-so far has had at least one non-obvious naming mismatch, and none of them
-threw an error - they all failed silently. Assume the next one will too.
-
-Added alongside the old `Listing`/`ListingEvent` model rather than
-replacing it yet, so the already-verified DeepSeek integration keeps
-working. The NL layer, API, and frontend still all point at the old
-per-listing schema - that rewiring is the next real chunk of work, and
-the eval set should wait for it rather than get built twice.
+Second risk, unchanged for a while now: the visual design still
+contradicts the project's own stated bar. It keeps getting correctly
+deprioritized, but "correctly deprioritized" three times in a row is
+worth naming as a pattern, not just repeating the deferral.
 
 ## Recommendation
 
-Build the real eval set next (15-20 queries, expected filter output,
-scored automatically) and use it to decide, deliberately, how unsupported
-query aspects should be surfaced to the user - don't leave that as an
-accidental side effect of whatever the model happens to do. That artifact
-- not another UI pass, not the schema redesign - is what actually proves
-the "AI engineer" half of the title.
+Before touching the frontend: try to break the eval. Write cases designed
+to fail - ambiguous metric choices, conflicting instructions, queries that
+mix a supported and unsupported aspect in ways the 18 current cases don't.
+A number that only ever goes up because nothing hard was tried isn't
+evidence of reliability. If it's still solid after that, *then* the visual
+redesign is next in line.

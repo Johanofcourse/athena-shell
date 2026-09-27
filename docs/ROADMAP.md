@@ -1,149 +1,125 @@
 # Roadmap
 
 Athena Shell has two goals that both need to hold up: a genuinely useful
-listing-history search tool, and a portfolio piece that demonstrates
-forward-deployed AI engineering skill. Phases below are ordered by what
-actually derisks those goals, not by what's easiest to build next.
+market-trend tool, and a portfolio piece that demonstrates forward-deployed
+AI engineering skill. Phases below are ordered by what actually derisks
+those goals, not by what's easiest to build next.
 
 ## Phase 0 — Scaffold (done, PR #1)
-- [x] Data model: `Listing` + append-only `ListingEvent` timeline
-- [x] Synthetic dataset generator (180 listings, realistic price/relist/sale history)
-- [x] REST API: `/listings`, `/listings/{id}`, `/query`
-- [x] NL query layer wired to DeepSeek (tool-calling -> validated filter shape)
-- [x] React/TS search UI with per-listing history chart
-- [ ] Not yet done: actually exercising `/query` against live DeepSeek
+Originally built against a synthetic per-listing dataset (`Listing` +
+`ListingEvent`, a seed script generating 180 fake listings). That model
+and its seed script were **removed outright** once Phase 3's real-data
+schema was proven working - not deprecated, not kept around. See Phase 3.
+- [x] REST API, NL query layer wired to DeepSeek, React/TS UI - all since
+      rebuilt against real data (Phase 3), described there.
 
-## Phase 1 — Prove the NL layer works
-The differentiating part of this project, and currently the least proven.
+## Phase 1 — Prove the NL layer works (done)
+The differentiating part of this project, and the thing most likely to be
+probed hardest in an interview.
 - [x] Guardrails ahead of a live key: `/query` input capped at 300 chars,
       rate-limited to 10 req/min/IP (verified locally - burst of 11
       returns `429`). Still open: no auth, no spend cap on the DeepSeek
-      key itself (must be set in DeepSeek's own dashboard once the key
-      exists). See `DOCUMENTATION.md` -> Guardrails.
-- [x] Wire a real `DEEPSEEK_API_KEY` and run `/query` end to end. Two
-      real fixes needed along the way, not a clean first try:
-      - Model name was stale (`deepseek-chat` -> `deepseek-flash`,
-        confirmed against DeepSeek's docs - "DeepSeek Flash" the
-        marketing name maps to `deepseek-flash` the API string).
-      - `deepseek-flash` runs in "thinking" mode by default, which
-        **rejects forced `tool_choice` outright** (400 error). Fixed by
-        passing `extra_body={"thinking": {"type": "disabled"}}` -
-        confirmed by testing directly against the API, not from docs
-        (DeepSeek's docs didn't cover this interaction).
-      - Manually tested 5 varied queries post-fix: price/property-type/
-        city/days-on-market/relist-count filters all parsed correctly,
-        "cheapest" correctly mapped to a sort clause. Tool-calling itself
-        is reliable.
-- [ ] Build an eval set: ~15-20 representative NL queries with expected
-      filter output, scored automatically on every change. Not built yet
-      - the 5 manual tests above are a smoke test, not a real eval.
-- [ ] **Real finding from manual testing:** "houses near good schools"
-      didn't hallucinate a schools filter (good) but silently dropped
-      that part of the query and returned 25 unfiltered results with no
-      indication that school quality isn't something this system can
-      evaluate. Not hallucinating turned out to be necessary but not
-      sufficient - the model also needs to *say* when part of a query is
-      unsupported, not just quietly ignore it. Needs a real fix (e.g. the
-      tool schema gains an `unsupported_aspects` field the model
-      populates, surfaced in `explain_filters()`), not just noting it.
-- [ ] Decide the fallback story for ambiguous/malformed model output
-- Note: once Phase 3 lands, `QueryFilters` moves from per-listing filters
-      to geography/time-series filters - this eval set will need to be
-      rebuilt against the new shape, not just extended.
+      key itself (must be set in DeepSeek's own dashboard). See
+      `DOCUMENTATION.md` -> Guardrails.
+- [x] Wire a real `DEEPSEEK_API_KEY` and run `/query` end to end. Two real
+      fixes needed, not a clean first try: a stale model name
+      (`deepseek-chat` -> `deepseek-flash`), and `deepseek-flash`'s
+      default "thinking" mode rejecting forced `tool_choice` outright (400,
+      undocumented by DeepSeek - found by testing directly against the
+      API, fixed with `extra_body={"thinking": {"type": "disabled"}}`).
+- [x] **Honesty fix, not just noted:** early manual testing found "houses
+      near good schools" didn't hallucinate a filter but silently dropped
+      that part of the question. Fixed by giving the tool schema an
+      `unsupported_aspects` field the model populates instead of ignoring
+      or inventing - surfaced in `explain_filters()`. Same pattern applied
+      to two more real cases found during the Phase 3 rebuild: a metro
+      that resolves but has no data for the requested metric
+      (`no_data_metros`), and a metro name that doesn't match anything
+      tracked at all (`unmatched_metros`).
+- [x] Build a real eval set: 18 cases in `backend/evals/`, covering every
+      metric category, both query modes (trend/ranking), and all three
+      honesty behaviors above. Run with `python -m evals.run_eval`.
+      Current result: **18/18 cases, 44/44 checks** - read carefully in
+      `DOCUMENTATION.md`, not as a finish line. It means the eval hasn't
+      found a failure yet; it doesn't mean there isn't one. Known gaps:
+      no adversarial-input cases, doesn't probe the metric-choice
+      non-determinism observed by hand (same ranking question picked a
+      different, still-defensible metric on different runs).
 
 ## Phase 2 — Visual redesign
 - [ ] Replace the current generic/flat UI with the industrial,
-      hazard-signage-inspired direction from `PREFERENCES.md`
+      hazard-signage-inspired direction from `PREFERENCES.md`. Not started
+      - deliberately deprioritized behind proving the data/AI layer, per
+      the recommendation in `PRODUCT_REVIEW.md`.
 
-## Phase 3 — Real data: aggregate market trends, not per-listing scraping
+## Phase 3 — Real data: aggregate market trends (done)
 
 **Decision (2026-09-22):** per-listing history (this exact address's price
 drops) isn't obtainable for free or legally - no free source backfills
 individual listing/relisting history, and scraping the sites that have it
-(Zillow, Redfin, Craigslist, Apartments.com) violates their ToS. This
-isn't hypothetical risk: Craigslist successfully sued PadMapper for
-scraping rental listings into a comparison tool - functionally the same
-product idea. Paying a licensed provider (ATTOM, Bridge/MLS) would solve
-it but is explicitly off the table (no budget).
+violates their ToS (Craigslist successfully sued PadMapper for exactly
+this product idea). Paying a licensed provider was explicitly off the
+table. Pivoted to real, free, legal **aggregate market-trend data by
+metro** instead - a genuine scope change ("any address's history" becomes
+"how a market/segment is moving"), surfaced and agreed on explicitly.
 
-What's real, free, and legal instead: **aggregate market-trend data by
-geography** (metro/zip/county), published directly by Redfin and the
-Census Bureau as historical time series - the backfill already exists,
-we're not waiting for it to accumulate. This changes the product from
-"look up any address's history" to "compare how a market/segment is
-moving" - still serves the rent-negotiation mission (citing a published
-median-rent trend is arguably more credible leverage than one scraped
-comp), but it's a real scope change, not a detail.
-
-### Sources evaluated so far
+### Sources
 
 | Source | Status | Notes |
 |---|---|---|
-| Redfin Data Center | **Confirmed, files in hand** | Downloads page is bot-gated for automation (403, confirmed via headless browser) but works fine in a real browser. Johan pulled all three: Price Drops, Home Delistings & Relistings, and Housing Market Tracker (key metrics), each Metro-level, top 50 metros, monthly, **Jan 2012 - Aug 2026** (176 months, 8,800 rows/file, ~1MB each). Spot-checked Austin's actual numbers against known history - matches the real 2012 low, 2022 pandemic-boom peak ($535k median, 38-day DOM), and the 2023+ cooldown. In `data/samples/`, committed. |
-| Apartment List | **Confirmed, files in hand (rent side)** | Rent Estimates, Vacancy Index, and Time on Market pulled as direct CDN CSV links (Contentful-hosted, no bot-gate - Johan found these via the page's download dropdown). Rent Estimates: Jan 2017-Aug 2026, 642 metro rows, split by bed size (overall/1br/2br), wide format (one column per month, not one row per period like Redfin). Vacancy Index: 125 metro rows, no bed-size split. Time on Market: only 46 metro rows. Spot-checked Austin: rent peaked $1,636 (Aug 2022) then cooled to $1,300 (Aug 2026) while vacancy rose 8.4% -> 9.3% and time-on-market rose 36 -> 41 days - three independent metrics telling the same coherent oversupply story. Two real gotchas: metro naming doesn't match Redfin's ("Austin, TX metro area" vs "Austin-Round Rock-Georgetown, TX"), and isn't even consistent across Apartment List's own files (one has "...TX Metro Area" suffix, others don't) - a real crosswalk/normalization step is needed, not just a join. Coverage also isn't uniform: full three-metric coverage is capped at the 46 metros Time on Market has. In `data/samples/`, committed. |
-| Census ACS (`api.census.gov`) | **Confirmed reachable, needs a free API key** | Direct JSON API, e.g. `B25064_001E` = median gross rent, `B25077_001E` = median home value, queryable by county/state. Anonymous requests now redirect to `missing_key.html` - registration is required but free (`api.census.gov/data/key_signup.html`, confirmed to exist). Note: this is an annual (5-year rolling estimate) figure, not monthly like Redfin/Apartment List - useful as a benchmark/cross-check, not a trend line. Once we have a key this is fully scriptable, no human-in-the-loop needed per request. |
-| Zillow Research (ZHVI/ZORI) | **Deprioritized** | Every fetch attempt (3 tries across sessions) returned HTTP 403. Apartment List already covers the same need (monthly rent trend) and is confirmed working - not worth continuing to chase Zillow. |
-| HUD Fair Market Rents | **Unverified, low priority** | Recalled from training as a real annual free government dataset. Fetch attempts returned no usable content. Annual cadence like Census, so same "benchmark not trend" role - not blocking anything right now. |
+| Redfin Data Center | **In production** | Price Drops, Home Delistings & Relistings, Housing Market Tracker. Metro-level, top 50 metros, monthly, Jan 2012 - Aug 2026 (176 months). Downloads page is bot-gated for automation (403, confirmed via headless browser) but works in a real browser. |
+| Apartment List | **In production (rent side)** | Rent Estimates (split by bed size), Vacancy Index, Time on Market. Jan 2017/2019 - Aug 2026. Pulled as direct CDN links, no bot-gate. Metro naming doesn't match Redfin's, and isn't even consistent across Apartment List's own files (one file suffixes " Metro Area", others don't) - see the crosswalk bug below. |
+| Census ACS (`api.census.gov`) | **Pending - free key, signup issues** | Two signup attempts: validation email either didn't arrive or the one-time link was already invalid by the time it was clicked. Not blocking anything - Apartment List already covers the rent-trend need. Would add an independent, annually-updated benchmark (different methodology: surveys *all* current renters, not just new-lease asking prices - a real, useful distinction, not a duplicate). |
+| Zillow Research (ZHVI/ZORI) | **Deprioritized** | 403 on every attempt (3 tries). Apartment List covers the same need. |
+| HUD Fair Market Rents | **Unverified, low priority** | Annual cadence, same "benchmark not trend" role as Census. |
 
-### Next steps (in-progress, divided by who can actually do them)
+### What got built
 
-- [x] **Johan:** download the three Redfin files (metro-level, 2012-2026)
-      and add them to `data/samples/`.
-- [x] **Johan:** download three Apartment List files (Rent Estimates,
-      Vacancy Index, Time on Market) via direct CDN links, added to
-      `data/samples/`.
-- [ ] **Johan:** sign up for a free Census API key. Attempted twice - both
-      times the validation email either didn't arrive or the link was
-      already invalid by the time it was clicked (possibly an email
-      security scanner pre-visiting the one-time link). Not blocking
-      anything, retry whenever.
-- [x] **Johan:** got a DeepSeek key - see Phase 1, already verified live.
-- [x] **Claude:** inspect all six files' real columns/granularity/history
-      depth, spot-check data quality against known real-world market
-      history. Confirmed good on all six - see table above.
-- [ ] **Claude:** re-verify Zillow Research and HUD FMR via a real
-      browser rather than leaving them as "recalled, not confirmed."
-      Low priority - Apartment List + Census already cover the need.
-- [x] Build a geography name crosswalk (Redfin <-> Apartment List metro
-      names). 40/50 Redfin metros matched cleanly; the other 10 are a
-      real geography mismatch, not a matching failure - Redfin tracks
-      them as separate metropolitan *divisions* (Anaheim, Fort
-      Lauderdale, Oakland, ...) that Apartment List only publishes as
-      part of a larger combined metro (Los Angeles, Miami, San
-      Francisco, ...). Decision: leave those 10 without rent-side data
-      rather than approximate them onto their parent metro's numbers -
-      Anaheim's rent isn't Greater LA's rent. Explicit, reviewed table in
-      `backend/app/market_crosswalk.py`, not a fuzzy-match function that
-      runs at ingest time.
-- [x] Design and build the geography x time-series schema: `Metro` +
-      `MarketMetric` (long/tidy fact table - one row per metro/period/
-      metric, not one wide column per metric) in `backend/app/models.py`,
-      added **alongside** the existing `Listing`/`ListingEvent` rather
-      than replacing them yet, so the already-verified NL layer keeps
-      working while this gets proven out. ETL in
-      `backend/app/ingest_market_data.py`, run and verified: 50 metros,
-      121,218 Redfin rows, 21,963 Apartment List rows.
-    - **Real bug found and fixed during verification, not before:**
-      cross-checking Austin's numbers in the new tables against the
-      already-validated raw-CSV values, `time_on_market_days` came back
-      empty. Cause: the Time on Market file suffixes every metro name
-      with `" Metro Area"`, unlike Apartment List's other two files - the
-      exact naming inconsistency flagged as a risk earlier, now a
-      confirmed silent join failure (0 rows, no error) until normalized
-      in `ingest_market_data.py`. Re-ran after the fix; all values now
-      match the raw files exactly.
-- [ ] **Not started:** rewire `QueryFilters`/`nl_query.py`/the API to
-      query `MarketMetric` instead of `Listing`, fold in an
-      `unsupported_aspects` field on the new tool schema (see Phase 1),
-      update the frontend to trend/comparison views instead of a listings
-      grid, and only then remove the old `Listing`/`ListingEvent` model.
-      Build the real eval set against this final shape once it lands -
-      not before, to avoid building it twice.
+- **Crosswalk** (`backend/app/market_crosswalk.py`): explicit, hand-reviewed
+  table, not a fuzzy-match function run at ingest time. 40/50 Redfin metros
+  matched to Apartment List cleanly. The other 10 are a real geography
+  mismatch: Redfin tracks metropolitan *divisions* (Anaheim, Fort
+  Lauderdale, Oakland, ...) that Apartment List only publishes as part of a
+  larger combined metro (Los Angeles, Miami, San Francisco, ...). Left
+  without rent-side data rather than approximated onto the parent metro -
+  Anaheim's rent isn't Greater LA's rent.
+- **Schema** (`backend/app/models.py`): `Metro` + `MarketMetric`, a
+  long/tidy fact table (one row per metro/period/metric/source) - new
+  metrics or sources are new rows, never a migration.
+- **ETL** (`backend/app/ingest_market_data.py`): loads all six real CSVs.
+  50 metros, 121,218 Redfin rows, 21,963 Apartment List rows.
+- **Real bug found and fixed during verification, not before:**
+  cross-checking Austin's numbers in the new tables against the
+  already-validated raw CSVs, `time_on_market_days` came back empty.
+  Cause: that one Apartment List file suffixes every metro name with
+  `" Metro Area"`, unlike its own other two files - a silent join failure
+  (0 rows, no error) until normalized. Re-ran after the fix; all values
+  matched exactly. Worth remembering: every cross-source join in this
+  project has had at least one non-obvious naming mismatch, and none of
+  them threw an error.
+- **Full cutover**: NL layer, API (`GET /metros`, `GET /metros/{id}/series`,
+  `POST /query`), and frontend (metro browser, trend charts, ranking
+  charts) all rewired to the new schema. Old `Listing`/`ListingEvent`
+  model, its router, and its seed script removed outright.
+- **Verified in a real browser** (headless Chromium, not just curl): metro
+  grid, metro detail charts, NL trend queries, and NL ranking queries all
+  render correctly with zero console errors. Two apparent chart bugs
+  during testing turned out to be screenshot-timing artifacts (Recharts'
+  mount animation, plus a hover-tooltip overlay) - confirmed by checking
+  the actual SVG path data and raw network responses before concluding
+  anything, not by assuming the first odd screenshot was real.
+
+### Still open
+- [ ] Census ACS integration once a key exists.
+- [ ] Re-verify Zillow Research / HUD FMR via a real browser - low
+      priority, not blocking anything.
 
 ## Phase 4 — Engineering rigor
-- [ ] Automated backend tests (data model, filter logic, API contracts)
+- [ ] Automated backend tests (data model, ETL, API contracts) - distinct
+      from the eval set, which tests NL-layer behavior, not general code
+      correctness.
 - [ ] Frontend component tests
-- [ ] CI: run the suite on every push
+- [ ] CI: run the suite (and the eval set) on every push
 
 ## Phase 5 — Deployment
 - [ ] Pick a host, wire real CD (auto-deploy on merge to main)

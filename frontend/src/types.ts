@@ -1,68 +1,53 @@
-export type ListingStatus = "active" | "pending" | "sold" | "off_market";
+export type MetricName =
+  | "median_sale_price"
+  | "median_days_on_market"
+  | "homes_sold"
+  | "new_listings"
+  | "active_listings"
+  | "pending_sales"
+  | "median_price_per_sqft"
+  | "price_drop_count"
+  | "price_drop_pct_avg"
+  | "pct_active_with_price_drop"
+  | "homes_sold_with_price_drop"
+  | "total_delistings"
+  | "total_relistings"
+  | "share_delisted_pct"
+  | "share_relisted_pct"
+  | "median_rent"
+  | "vacancy_rate"
+  | "time_on_market_days";
 
-export type EventType =
-  | "listed"
-  | "price_change"
-  | "status_change"
-  | "relisted"
-  | "delisted"
-  | "sold";
-
-export interface ListingEvent {
-  event_type: EventType;
-  event_date: string;
-  price: number | null;
-  status: ListingStatus | null;
-  notes: string | null;
-}
-
-export interface Listing {
+export interface Metro {
   id: string;
-  address: string;
-  city: string;
+  canonical_name: string;
   state: string;
-  zip_code: string;
-  property_type: string;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-  first_listed_date: string;
-  last_event_date: string;
-  original_price: number;
-  current_price: number;
-  price_drop_amount: number;
-  price_drop_pct: number;
-  status: ListingStatus;
-  days_on_market: number;
-  total_days_on_market: number;
-  relist_count: number;
+  has_sale_data: boolean;
+  has_rent_data: boolean;
 }
 
-export interface ListingDetail extends Listing {
-  events: ListingEvent[];
+export interface MarketMetricPoint {
+  metro: string;
+  period: string;
+  value: number;
 }
 
-export interface QueryFilters {
-  min_price?: number | null;
-  max_price?: number | null;
-  city?: string | null;
-  state?: string | null;
-  property_type?: string | null;
-  bedrooms_min?: number | null;
-  bathrooms_min?: number | null;
-  min_price_drop_pct?: number | null;
-  min_price_drop_amount?: number | null;
-  min_days_on_market?: number | null;
-  max_days_on_market?: number | null;
-  min_relist_count?: number | null;
-  status?: ListingStatus | null;
-  sort_by?: string | null;
-  sort_order?: string | null;
+export interface MarketQueryFilters {
+  metros: string[];
+  metric: MetricName;
+  bed_size: string | null;
+  start_period: string | null;
+  end_period: string | null;
+  sort_by: "period" | "value";
+  sort_order: "asc" | "desc";
   limit: number;
+  unsupported_aspects: string[];
 }
 
-export interface QueryResponse {
-  filters: QueryFilters;
+export interface MarketQueryResponse {
+  filters: MarketQueryFilters;
   explanation: string;
-  results: Listing[];
+  unmatched_metros: string[];
+  no_data_metros: string[];
+  results: MarketMetricPoint[];
 }

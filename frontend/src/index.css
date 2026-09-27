@@ -128,19 +128,19 @@ header h1 {
   font-size: 14px;
 }
 
-.results-grid {
-  margin-top: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 14px;
-}
-
 .empty-state {
   margin-top: 20px;
   color: var(--text-muted);
 }
 
-.listing-card {
+.metro-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.metro-card {
   text-align: left;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -151,19 +151,16 @@ header h1 {
   color: inherit;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.listing-card:hover {
+.metro-card:hover {
   border-color: var(--accent);
 }
 
-.listing-card-header {
+.metro-badges {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: var(--text-muted);
+  gap: 6px;
 }
 
 .status-badge {
@@ -180,57 +177,25 @@ header h1 {
   color: var(--accent);
 }
 
-.status-pending {
-  background: color-mix(in srgb, #f59e0b 15%, transparent);
-  color: #b45309;
-}
-
 .status-sold {
   background: color-mix(in srgb, var(--success) 15%, transparent);
   color: var(--success);
-}
-
-.status-off_market {
-  background: color-mix(in srgb, var(--text-muted) 15%, transparent);
-  color: var(--text-muted);
 }
 
 .address {
   font-weight: 600;
 }
 
-.location {
-  color: var(--text-muted);
-  font-size: 13px;
+.query-results {
+  margin-top: 8px;
 }
 
-.price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.price {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.price-drop {
-  color: var(--danger);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.facts {
-  color: var(--text-muted);
-  font-size: 13px;
-}
-
-.relist-flag {
-  font-size: 12px;
-  color: var(--accent);
-  font-weight: 600;
+.chart-card {
+  margin: 12px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
 }
 
 .detail-overlay {
@@ -265,64 +230,4 @@ header h1 {
   color: var(--text-muted);
   cursor: pointer;
   line-height: 1;
-}
-
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin: 20px 0;
-}
-
-.stat-label {
-  display: block;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.stat-value {
-  display: block;
-  font-size: 17px;
-  font-weight: 700;
-  margin-top: 2px;
-}
-
-.history-chart {
-  margin: 20px 0;
-}
-
-.timeline {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.timeline li {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
-  font-size: 13px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-}
-
-.timeline-date {
-  color: var(--text-muted);
-  min-width: 80px;
-}
-
-.timeline-type {
-  font-weight: 600;
-  min-width: 100px;
-}
-
-.timeline-price {
-  color: var(--accent);
-}
-
-.timeline-notes {
-  color: var(--text-muted);
 }

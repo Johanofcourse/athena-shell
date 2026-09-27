@@ -1,10 +1,10 @@
 import { FormEvent, useState } from "react";
 
 const EXAMPLE_QUERIES = [
-  "Condos in Austin under $400k that dropped in price",
-  "Listings on the market over 60 days",
-  "Homes relisted more than once in Denver",
-  "3+ bedroom single family homes with a 5%+ price drop",
+  "How has rent changed in Austin over the last two years?",
+  "Which metros have the biggest price drops right now?",
+  "Compare days on market for Austin and Denver",
+  "What's the vacancy rate trend in Seattle?",
 ];
 
 interface Props {
@@ -27,8 +27,8 @@ export function SearchBar({ onSearch, loading }: Props) {
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Ask about listing history, e.g. “price drops over 10% in the last month”"
-          aria-label="Natural language listing search"
+          placeholder="Ask about market trends, e.g. “how has rent changed in Denver”"
+          aria-label="Natural language market trend search"
         />
         <button type="submit" disabled={loading || !value.trim()}>
           {loading ? "Searching…" : "Search"}

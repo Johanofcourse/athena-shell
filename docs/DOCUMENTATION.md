@@ -11,60 +11,106 @@ frontend (Vite/React/TS)  --HTTP-->  backend (FastAPI)  --tool call-->  DeepSeek
         :5173                              :8000
                                              |
                                           SQLite
-                                (listings + event timeline)
+                              (Metro + MarketMetric, long/tidy fact table)
 ```
 
 Two request paths through the backend:
-- `GET /listings`, `GET /listings/{id}` - plain reads, no LLM involved.
-- `POST /query` - the NL path: DeepSeek resolves free text into a structured
-  filter object, which then runs through the same parameterized query path
-  as everything else. The model never sees or writes SQL.
+- `GET /metros`, `GET /metros/{id}/series` - plain reads, no LLM involved.
+  Used for browsing and for chart data once a metro is picked directly.
+- `POST /query` - the NL path: DeepSeek resolves free text into a
+  structured filter object, which then runs through the same
+  parameterized query path as everything else. The model never sees or
+  writes SQL.
 
 ## Data model (`backend/app/models.py`)
 
-**`Listing`** - one row per property. Carries both raw facts (address,
-beds/baths, sqft) and a set of *denormalized summary fields* derived from
-that listing's event history: `current_price`, `price_drop_amount`,
-`price_drop_pct`, `days_on_market`, `total_days_on_market`,
-`relist_count`, `status`. These exist so the query layer can filter/sort
-without recomputing history on every request. They're computed once, at
-write time (currently only in `seed.py`) - if a real ingestion pipeline
-ever replaces the seed script, it owns keeping these fields correct.
+**`Metro`** - one row per tracked metro (50 total). Doubles as the
+crosswalk between Redfin's and Apartment List's different naming
+conventions for the same geography (`redfin_name`, `aptlist_name`) - see
+`backend/app/market_crosswalk.py` for the full, hand-reviewed table.
+`aptlist_name` is `None` for 10 metros where Redfin tracks a metropolitan
+*division* (e.g. Anaheim) that Apartment List only publishes as part of a
+larger combined metro (Los Angeles) - a real, deliberate gap, not a bug.
 
-**`ListingEvent`** - append-only. One row per state change:
-`listed` / `price_change` / `status_change` / `relisted` / `delisted` /
-`sold`. This is the source of truth for a listing's history; the detail
-view (`GET /listings/{id}`) returns the full ordered list.
+**`MarketMetric`** - one row per (metro, period, source, metric[, bed_size])
+observation. A long/tidy fact table, not one wide column per metric -
+adding a metric or a new source is new rows, never a schema migration.
+`backend/app/ingest_market_data.py` loads all six real CSVs
+(`data/samples/`) into this table; run with `python -m app.ingest_market_data`.
+
+This replaced an earlier `Listing`/`ListingEvent` model built against a
+synthetic per-listing dataset (see `git log` before this doc's current
+version, or `docs/PRODUCT_REVIEW.md` for why the pivot happened). It was
+removed outright once the new schema was proven working, not kept around
+deprecated.
 
 ## NL query layer (`backend/app/nl_query.py`)
 
 Design choice: **tool-calling into a fixed filter shape, not text-to-SQL.**
-DeepSeek is called with a single `filter_listings` tool and forced to call
-it (`tool_choice`). The returned arguments are parsed and validated against
-`QueryFilters` (Pydantic) before touching the database. This trades some
-query flexibility for safety and testability - malformed or adversarial
-input fails Pydantic validation instead of reaching SQL.
+DeepSeek is called with a single `query_market_metrics` tool and forced to
+call it (`tool_choice`). The returned arguments are parsed and validated
+against `MarketQueryFilters` (Pydantic, `MetricName` is an enum - not a
+free string) before touching the database.
 
-`explain_filters()` builds the human-readable "Showing listings..." summary
-**from the resolved filter object**, not a second LLM call - deterministic,
-free, and can't say something different from what actually ran.
+Two query modes, both going through the same tool:
+- **Trend mode** (`sort_by: "period"`, the default) - full time series for
+  one or more named metros. Deliberately does **not** fall back to "all
+  metros" when none are named; it says so explicitly instead (see below).
+- **Ranking mode** (`sort_by: "value"`) - one point per metro at its
+  latest value, sorted - for "which metro has the highest/lowest X"
+  questions. `metros` is left empty to mean "all of them."
 
-`apply_filters()` is the only thing that touches the database for a query -
-a plain SQLAlchemy `select()` with `.where()` clauses added conditionally
-per filter field.
+**Three honesty behaviors, deliberately built, not accidental:**
+1. `unsupported_aspects` - a field on the tool schema itself. When part of
+   a question can't be answered (school quality, crime, a specific
+   address), the model names it here instead of silently dropping it or
+   inventing a filter. This exists because early testing found the model
+   would otherwise return unfiltered results with no indication part of
+   the question went unanswered.
+2. `no_data_metros` - a metro resolves fine but has zero rows for the
+   requested metric (e.g. rent for Anaheim, which Apartment List doesn't
+   cover at that granularity). Surfaced explicitly rather than returning
+   an empty result silently.
+3. `unmatched_metros` - a name that doesn't match any tracked metro at
+   all (typo, fictional place, unsupported city). Also surfaced, not
+   swallowed.
 
-This layer is currently **unverified against the live DeepSeek API** - see
-`ROADMAP.md` Phase 1 and `PRODUCT_REVIEW.md`.
+`explain_filters()` builds the human-readable explanation **from the
+resolved filter object and query outcome**, not a second LLM call -
+deterministic, free, and it's what actually surfaces all three behaviors
+above to the user.
+
+`run_market_query()` is the only thing that touches the database for a
+query - plain SQLAlchemy `select()`s, no raw SQL, no string interpolation.
+
+**Verified against the live API, including a real fix needed:**
+`deepseek-flash` runs in "thinking" mode by default, which rejects forced
+`tool_choice` outright (undocumented by DeepSeek - found by testing
+directly). Fixed with `extra_body={"thinking": {"type": "disabled"}}`.
+
+**Eval set** (`backend/evals/`): 18 cases covering every metric category,
+both query modes, bed_size/time-range parsing, and all three honesty
+behaviors above. Run with `python -m evals.run_eval` (costs a small amount
+of real DeepSeek usage). Current result: 18/18 cases, 44/44 individual
+checks. Read that number carefully, not proudly - it means this eval
+hasn't found a failure yet, which is different from there being none. It's
+an 18-case first pass, not a comprehensive suite; some checks accept
+multiple correct answers by design (e.g. any of three metrics for
+"price drop trends", since that's a genuinely ambiguous question). It
+doesn't yet cover adversarial input, multi-part queries, or the
+metric-choice non-determinism observed during manual testing (the same
+"biggest price drops" question picked different-but-defensible metrics on
+different runs). A 100% score that never moves is itself a reason to add
+harder cases, not a finish line.
 
 ### Guardrails / abuse prevention
 
 The realistic abuse case for an open `/query` endpoint backed by a paid
 LLM call isn't "someone tricks it into writing a PDF" - forced
 `tool_choice` already makes that structurally impossible, since the model
-can only ever return `filter_listings` arguments, never free text, and
-nothing it writes reaches the client directly (`explain_filters()` is our
-own deterministic code, not model output). The real risk is someone
-hammering the endpoint to run up the API bill. Mitigated by:
+can only ever return `query_market_metrics` arguments, never free text,
+and nothing it writes reaches the client directly. The real risk is
+someone hammering the endpoint to run up the API bill. Mitigated by:
 
 - `QueryRequest.query` is capped at 300 characters (Pydantic
   `max_length`) - rejects oversized payloads before they reach the model.
@@ -77,17 +123,17 @@ or scale across multiple backend instances - fine for a single-instance
 deployment, would need a shared store (Redis) if this ever runs
 horizontally scaled. There's also still no auth, and no server-side spend
 cap on the DeepSeek key itself - that has to be set directly in
-DeepSeek's dashboard once a real key exists, it isn't something the app
-can enforce from the outside.
+DeepSeek's dashboard, it isn't something the app can enforce from the
+outside.
 
 ## API reference
 
 | Method | Path | Description |
 |---|---|---|
 | GET | `/health` | Liveness check |
-| GET | `/listings?limit=` | Recent listings, newest activity first |
-| GET | `/listings/{id}` | One listing with full event history |
-| POST | `/query` | `{"query": "<natural language>"}` -> `{filters, explanation, results}` |
+| GET | `/metros` | All tracked metros, with sale/rent data availability flags |
+| GET | `/metros/{id}/series?metric=&bed_size=` | Raw time series for one metro/metric, for direct charting |
+| POST | `/query` | `{"query": "<natural language>"}` -> `{filters, explanation, unmatched_metros, no_data_metros, results}` |
 
 Full request/response schemas: `backend/app/schemas.py`, or run the backend
 and check `/docs` (FastAPI's auto-generated Swagger UI).
@@ -100,7 +146,7 @@ and check `/docs` (FastAPI's auto-generated Swagger UI).
 |---|---|
 | `DEEPSEEK_API_KEY` | Required for `/query`; missing key returns a 503 |
 | `DEEPSEEK_BASE_URL` | Default `https://api.deepseek.com` |
-| `DEEPSEEK_MODEL` | Default `deepseek-chat` |
+| `DEEPSEEK_MODEL` | Default `deepseek-flash` |
 | `DATABASE_URL` | Default `sqlite:///./athena.db` |
 | `CORS_ORIGINS` | Comma-separated allowed origins |
 
@@ -110,10 +156,22 @@ and check `/docs` (FastAPI's auto-generated Swagger UI).
 |---|---|
 | `VITE_API_URL` | Backend base URL, default `http://localhost:8000` |
 
+## Setting up a fresh database
+
+```bash
+cd backend
+python -m app.ingest_market_data   # loads data/samples/*.csv into athena.db
+```
+
+There's no synthetic-data seed script anymore - real data replaced it.
+
 ## Current limitations
 
-- No automated test suite (backend or frontend).
-- Synthetic data only (`backend/app/seed.py`); no real listings source.
+- No automated test suite (backend or frontend) - the eval set tests the
+  NL layer specifically, not general code correctness.
 - No auth - every endpoint is open. Fine for a local portfolio demo, not
   for anything deployed publicly as-is.
 - No deployment/CI pipeline configured yet.
+- Census ACS not yet integrated (pending API key) - would add an
+  independent benchmark on top of Redfin/Apartment List, see
+  `ROADMAP.md` Phase 3.
