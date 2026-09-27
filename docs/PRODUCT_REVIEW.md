@@ -4,7 +4,7 @@ Honest self-assessment, not a status report dressed up as one. Updated as
 the project moves - see `ROADMAP.md` for what's planned and `git log` for
 what's actually landed since this was last written.
 
-**Last updated:** 2026-09-27 (real data sourced for both sale + rent sides, first live DeepSeek run)
+**Last updated:** 2026-09-27 (real market schema + ETL built and verified, on top of the data sourcing and first live DeepSeek run from earlier the same day)
 
 ## What this is being judged against
 
@@ -88,6 +88,25 @@ under real interview scrutiny. Everything else (data model, API, UI,
 real data sourcing) is competent but not differentiating on its own; a
 measured, honest account of where the NL layer works and where it
 doesn't *is* the differentiator.
+
+## Real data now has a schema (new since first draft)
+
+`Metro` + `MarketMetric` tables built and loaded with all six real files
+(50 metros, 121k+21k rows). Verified the same way as everything else in
+this project so far - not "it ran without error," but "the exact numbers
+match what was already validated from the raw files." That check caught
+a real bug: one Apartment List file names metros differently than its
+own other two files, and the mismatch silently produced zero rows for
+that metric with no error - fixed only because the cross-check happened
+at all. Worth remembering as a pattern: every data-join in this project
+so far has had at least one non-obvious naming mismatch, and none of them
+threw an error - they all failed silently. Assume the next one will too.
+
+Added alongside the old `Listing`/`ListingEvent` model rather than
+replacing it yet, so the already-verified DeepSeek integration keeps
+working. The NL layer, API, and frontend still all point at the old
+per-listing schema - that rewiring is the next real chunk of work, and
+the eval set should wait for it rather than get built twice.
 
 ## Recommendation
 
