@@ -72,6 +72,10 @@ def interpret_query(query: str) -> QueryFilters:
         ],
         tools=[FILTER_LISTINGS_TOOL],
         tool_choice={"type": "function", "function": {"name": "filter_listings"}},
+        # deepseek-flash runs in "thinking" mode by default, which rejects
+        # forced tool_choice outright (400: "Thinking mode does not support
+        # this tool_choice") - confirmed by testing directly against the API.
+        extra_body={"thinking": {"type": "disabled"}},
     )
 
     message = response.choices[0].message

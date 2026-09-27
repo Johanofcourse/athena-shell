@@ -20,12 +20,33 @@ The differentiating part of this project, and currently the least proven.
       returns `429`). Still open: no auth, no spend cap on the DeepSeek
       key itself (must be set in DeepSeek's own dashboard once the key
       exists). See `DOCUMENTATION.md` -> Guardrails.
-- [ ] Wire a real `DEEPSEEK_API_KEY` and run `/query` end to end
+- [x] Wire a real `DEEPSEEK_API_KEY` and run `/query` end to end. Two
+      real fixes needed along the way, not a clean first try:
+      - Model name was stale (`deepseek-chat` -> `deepseek-flash`,
+        confirmed against DeepSeek's docs - "DeepSeek Flash" the
+        marketing name maps to `deepseek-flash` the API string).
+      - `deepseek-flash` runs in "thinking" mode by default, which
+        **rejects forced `tool_choice` outright** (400 error). Fixed by
+        passing `extra_body={"thinking": {"type": "disabled"}}` -
+        confirmed by testing directly against the API, not from docs
+        (DeepSeek's docs didn't cover this interaction).
+      - Manually tested 5 varied queries post-fix: price/property-type/
+        city/days-on-market/relist-count filters all parsed correctly,
+        "cheapest" correctly mapped to a sort clause. Tool-calling itself
+        is reliable.
 - [ ] Build an eval set: ~15-20 representative NL queries with expected
-      filter output, scored automatically on every change
-- [ ] Handle queries the schema can't answer (e.g. "near good schools" -
-      no schools data) by degrading gracefully, not hallucinating a filter
-- [ ] Decide the fallback story for ambiguous/ malformed model output
+      filter output, scored automatically on every change. Not built yet
+      - the 5 manual tests above are a smoke test, not a real eval.
+- [ ] **Real finding from manual testing:** "houses near good schools"
+      didn't hallucinate a schools filter (good) but silently dropped
+      that part of the query and returned 25 unfiltered results with no
+      indication that school quality isn't something this system can
+      evaluate. Not hallucinating turned out to be necessary but not
+      sufficient - the model also needs to *say* when part of a query is
+      unsupported, not just quietly ignore it. Needs a real fix (e.g. the
+      tool schema gains an `unsupported_aspects` field the model
+      populates, surfaced in `explain_filters()`), not just noting it.
+- [ ] Decide the fallback story for ambiguous/malformed model output
 - Note: once Phase 3 lands, `QueryFilters` moves from per-listing filters
       to geography/time-series filters - this eval set will need to be
       rebuilt against the new shape, not just extended.
