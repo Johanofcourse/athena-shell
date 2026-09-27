@@ -52,8 +52,12 @@ address's history" becomes "how a market/segment is moving" - not a
 finishing detail, and it was surfaced and agreed on explicitly rather
 than assumed. Full writeup: `ROADMAP.md` Phase 3.
 
-Currently blocked on two human-only steps (Redfin's download page is
-bot-gated; Census needs a free API key signup) - see ROADMAP for the
+**Update:** real Redfin data is now in hand and verified - 50 metros,
+monthly, Jan 2012-Aug 2026, spot-checked against Austin's actual known
+market history (it matches). This is no longer a hypothetical data
+strategy; it's real data sitting in `data/samples/` waiting on a schema
+to load into. Still blocked on the Census API key signup - see ROADMAP for
+the
 concrete next actions and who owns them.
 
 ## Biggest risk to the job goal specifically
