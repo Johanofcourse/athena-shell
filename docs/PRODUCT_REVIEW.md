@@ -52,13 +52,18 @@ address's history" becomes "how a market/segment is moving" - not a
 finishing detail, and it was surfaced and agreed on explicitly rather
 than assumed. Full writeup: `ROADMAP.md` Phase 3.
 
-**Update:** real Redfin data is now in hand and verified - 50 metros,
-monthly, Jan 2012-Aug 2026, spot-checked against Austin's actual known
-market history (it matches). This is no longer a hypothetical data
-strategy; it's real data sitting in `data/samples/` waiting on a schema
-to load into. Still blocked on the Census API key signup - see ROADMAP for
-the
-concrete next actions and who owns them.
+**Update:** both sides of the mission now have real, verified data - not
+just sales. Redfin covers the sale side (50 metros, monthly, 2012-2026).
+Apartment List covers the rent side (Rent Estimates, Vacancy Index, Time
+on Market - up to 642 metros depending on the file, 2017/2019-2026). Both
+spot-checked against known real-world market history and both check out
+(Austin's rent-boom-then-bust story shows up consistently across price,
+vacancy, and time-on-market independently). This is no longer a
+hypothetical data strategy; it's real data sitting in `data/samples/`
+waiting on a schema to load into - and a real crosswalk problem now that
+two sources with different metro-naming conventions need to join. Still
+blocked on the Census API key and a DeepSeek key - see `ROADMAP.md` for
+the concrete next actions and who owns them.
 
 ## Biggest risk to the job goal specifically
 

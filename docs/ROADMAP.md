@@ -59,25 +59,38 @@ comp), but it's a real scope change, not a detail.
 | Source | Status | Notes |
 |---|---|---|
 | Redfin Data Center | **Confirmed, files in hand** | Downloads page is bot-gated for automation (403, confirmed via headless browser) but works fine in a real browser. Johan pulled all three: Price Drops, Home Delistings & Relistings, and Housing Market Tracker (key metrics), each Metro-level, top 50 metros, monthly, **Jan 2012 - Aug 2026** (176 months, 8,800 rows/file, ~1MB each). Spot-checked Austin's actual numbers against known history - matches the real 2012 low, 2022 pandemic-boom peak ($535k median, 38-day DOM), and the 2023+ cooldown. In `data/samples/`, committed. |
-| Census ACS (`api.census.gov`) | **Confirmed reachable, needs a free API key** | Direct JSON API, e.g. `B25064_001E` = median gross rent, `B25077_001E` = median home value, queryable by county/state. Anonymous requests now redirect to `missing_key.html` - registration is required but free (`api.census.gov/data/key_signup.html`, confirmed to exist). Once we have a key this is fully scriptable, no human-in-the-loop needed per request. |
-| Zillow Research (ZHVI/ZORI) | **Unverified** | Recalled from training as a real free program (home value + rent indices), but live fetch attempts returned HTTP 403. Needs a real-browser check like Redfin, or independent confirmation, before relying on it. |
-| HUD Fair Market Rents | **Unverified** | Recalled from training as a real annual free government dataset. Fetch attempts returned no usable content (likely a rendering issue, not necessarily blocked). Needs a follow-up check. |
+| Apartment List | **Confirmed, files in hand (rent side)** | Rent Estimates, Vacancy Index, and Time on Market pulled as direct CDN CSV links (Contentful-hosted, no bot-gate - Johan found these via the page's download dropdown). Rent Estimates: Jan 2017-Aug 2026, 642 metro rows, split by bed size (overall/1br/2br), wide format (one column per month, not one row per period like Redfin). Vacancy Index: 125 metro rows, no bed-size split. Time on Market: only 46 metro rows. Spot-checked Austin: rent peaked $1,636 (Aug 2022) then cooled to $1,300 (Aug 2026) while vacancy rose 8.4% -> 9.3% and time-on-market rose 36 -> 41 days - three independent metrics telling the same coherent oversupply story. Two real gotchas: metro naming doesn't match Redfin's ("Austin, TX metro area" vs "Austin-Round Rock-Georgetown, TX"), and isn't even consistent across Apartment List's own files (one has "...TX Metro Area" suffix, others don't) - a real crosswalk/normalization step is needed, not just a join. Coverage also isn't uniform: full three-metric coverage is capped at the 46 metros Time on Market has. In `data/samples/`, committed. |
+| Census ACS (`api.census.gov`) | **Confirmed reachable, needs a free API key** | Direct JSON API, e.g. `B25064_001E` = median gross rent, `B25077_001E` = median home value, queryable by county/state. Anonymous requests now redirect to `missing_key.html` - registration is required but free (`api.census.gov/data/key_signup.html`, confirmed to exist). Note: this is an annual (5-year rolling estimate) figure, not monthly like Redfin/Apartment List - useful as a benchmark/cross-check, not a trend line. Once we have a key this is fully scriptable, no human-in-the-loop needed per request. |
+| Zillow Research (ZHVI/ZORI) | **Deprioritized** | Every fetch attempt (3 tries across sessions) returned HTTP 403. Apartment List already covers the same need (monthly rent trend) and is confirmed working - not worth continuing to chase Zillow. |
+| HUD Fair Market Rents | **Unverified, low priority** | Recalled from training as a real annual free government dataset. Fetch attempts returned no usable content. Annual cadence like Census, so same "benchmark not trend" role - not blocking anything right now. |
 
 ### Next steps (in-progress, divided by who can actually do them)
 
 - [x] **Johan:** download the three Redfin files (metro-level, 2012-2026)
       and add them to `data/samples/`.
+- [x] **Johan:** download three Apartment List files (Rent Estimates,
+      Vacancy Index, Time on Market) via direct CDN links, added to
+      `data/samples/`.
 - [ ] **Johan:** sign up for a free Census API key, pass it in as
       `CENSUS_API_KEY` (never committed) so pulls can be scripted.
-- [x] **Claude:** inspect the three files' real columns/granularity/
-      history depth, spot-check data quality. Confirmed good - see table
-      above.
+- [ ] **Johan:** get a DeepSeek API key, pass it in as `DEEPSEEK_API_KEY`
+      so Phase 1 can actually run.
+- [x] **Claude:** inspect all six files' real columns/granularity/history
+      depth, spot-check data quality against known real-world market
+      history. Confirmed good on all six - see table above.
 - [ ] **Claude:** re-verify Zillow Research and HUD FMR via a real
       browser rather than leaving them as "recalled, not confirmed."
+      Low priority - Apartment List + Census already cover the need.
+- [ ] Build a geography name crosswalk (Redfin metro names <-> Apartment
+      List metro names, which aren't even consistent with themselves
+      across files) - this has to exist before anything can join across
+      sources, not an afterthought.
 - [ ] Design and build the geography x time-series schema (replacing
-      `Listing`/`ListingEvent`) and the ETL to load these three CSVs into
-      it; update `QueryFilters` and the frontend (trend/comparison views
-      instead of a listings grid) to match. Not started yet.
+      `Listing`/`ListingEvent`) and the ETL to load these six CSVs into
+      it (note: Apartment List's files are wide-format, one column per
+      month - need reshaping, unlike Redfin's long format); update
+      `QueryFilters` and the frontend (trend/comparison views instead of
+      a listings grid) to match. Not started yet.
 
 ## Phase 4 — Engineering rigor
 - [ ] Automated backend tests (data model, filter logic, API contracts)
