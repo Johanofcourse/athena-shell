@@ -92,26 +92,53 @@ comp), but it's a real scope change, not a detail.
 - [x] **Johan:** download three Apartment List files (Rent Estimates,
       Vacancy Index, Time on Market) via direct CDN links, added to
       `data/samples/`.
-- [ ] **Johan:** sign up for a free Census API key, pass it in as
-      `CENSUS_API_KEY` (never committed) so pulls can be scripted.
-- [ ] **Johan:** get a DeepSeek API key, pass it in as `DEEPSEEK_API_KEY`
-      so Phase 1 can actually run.
+- [ ] **Johan:** sign up for a free Census API key. Attempted twice - both
+      times the validation email either didn't arrive or the link was
+      already invalid by the time it was clicked (possibly an email
+      security scanner pre-visiting the one-time link). Not blocking
+      anything, retry whenever.
+- [x] **Johan:** got a DeepSeek key - see Phase 1, already verified live.
 - [x] **Claude:** inspect all six files' real columns/granularity/history
       depth, spot-check data quality against known real-world market
       history. Confirmed good on all six - see table above.
 - [ ] **Claude:** re-verify Zillow Research and HUD FMR via a real
       browser rather than leaving them as "recalled, not confirmed."
       Low priority - Apartment List + Census already cover the need.
-- [ ] Build a geography name crosswalk (Redfin metro names <-> Apartment
-      List metro names, which aren't even consistent with themselves
-      across files) - this has to exist before anything can join across
-      sources, not an afterthought.
-- [ ] Design and build the geography x time-series schema (replacing
-      `Listing`/`ListingEvent`) and the ETL to load these six CSVs into
-      it (note: Apartment List's files are wide-format, one column per
-      month - need reshaping, unlike Redfin's long format); update
-      `QueryFilters` and the frontend (trend/comparison views instead of
-      a listings grid) to match. Not started yet.
+- [x] Build a geography name crosswalk (Redfin <-> Apartment List metro
+      names). 40/50 Redfin metros matched cleanly; the other 10 are a
+      real geography mismatch, not a matching failure - Redfin tracks
+      them as separate metropolitan *divisions* (Anaheim, Fort
+      Lauderdale, Oakland, ...) that Apartment List only publishes as
+      part of a larger combined metro (Los Angeles, Miami, San
+      Francisco, ...). Decision: leave those 10 without rent-side data
+      rather than approximate them onto their parent metro's numbers -
+      Anaheim's rent isn't Greater LA's rent. Explicit, reviewed table in
+      `backend/app/market_crosswalk.py`, not a fuzzy-match function that
+      runs at ingest time.
+- [x] Design and build the geography x time-series schema: `Metro` +
+      `MarketMetric` (long/tidy fact table - one row per metro/period/
+      metric, not one wide column per metric) in `backend/app/models.py`,
+      added **alongside** the existing `Listing`/`ListingEvent` rather
+      than replacing them yet, so the already-verified NL layer keeps
+      working while this gets proven out. ETL in
+      `backend/app/ingest_market_data.py`, run and verified: 50 metros,
+      121,218 Redfin rows, 21,963 Apartment List rows.
+    - **Real bug found and fixed during verification, not before:**
+      cross-checking Austin's numbers in the new tables against the
+      already-validated raw-CSV values, `time_on_market_days` came back
+      empty. Cause: the Time on Market file suffixes every metro name
+      with `" Metro Area"`, unlike Apartment List's other two files - the
+      exact naming inconsistency flagged as a risk earlier, now a
+      confirmed silent join failure (0 rows, no error) until normalized
+      in `ingest_market_data.py`. Re-ran after the fix; all values now
+      match the raw files exactly.
+- [ ] **Not started:** rewire `QueryFilters`/`nl_query.py`/the API to
+      query `MarketMetric` instead of `Listing`, fold in an
+      `unsupported_aspects` field on the new tool schema (see Phase 1),
+      update the frontend to trend/comparison views instead of a listings
+      grid, and only then remove the old `Listing`/`ListingEvent` model.
+      Build the real eval set against this final shape once it lands -
+      not before, to avoid building it twice.
 
 ## Phase 4 — Engineering rigor
 - [ ] Automated backend tests (data model, filter logic, API contracts)

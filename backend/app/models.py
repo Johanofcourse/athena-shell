@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import Date, DateTime, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -81,3 +81,55 @@ class ListingEvent(Base):
     notes: Mapped[str | None] = mapped_column(String, nullable=True)
 
     listing: Mapped["Listing"] = relationship(back_populates="events")
+
+
+class Metro(Base):
+    """A metro area, the geography unit for the real market-trend data
+    (Phase 3). Redfin and Apartment List name the same metro differently
+    (and Redfin sometimes tracks a metropolitan *division* - e.g. Anaheim -
+    that Apartment List only publishes as part of a larger combined metro -
+    e.g. Los Angeles), so this table is also the crosswalk: each source's
+    native name is stored alongside the canonical one. A metro missing
+    aptlist_name genuinely has no rent-side data at this granularity -
+    that's a real gap, not something to paper over by borrowing a parent
+    metro's numbers."""
+
+    __tablename__ = "metros"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)  # slug, e.g. "austin-tx"
+    canonical_name: Mapped[str] = mapped_column(String, nullable=False)
+    state: Mapped[str] = mapped_column(String, nullable=False, index=True)
+
+    redfin_name: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    aptlist_name: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+
+    metrics: Mapped[list["MarketMetric"]] = relationship(back_populates="metro")
+
+
+class MetricSource(str, enum.Enum):
+    REDFIN = "redfin"
+    APARTMENT_LIST = "apartment_list"
+
+
+class MarketMetric(Base):
+    """One (metro, period, metric) observation. A long/tidy fact table
+    rather than one wide column per metric: new metrics or sources add
+    rows, never a migration, and the NL query layer only ever needs to
+    reason about "metric X for metro Y over period range Z" regardless of
+    which source it came from."""
+
+    __tablename__ = "market_metrics"
+    __table_args__ = (
+        UniqueConstraint("metro_id", "period", "source", "metric", "bed_size", name="uq_market_metric"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    metro_id: Mapped[str] = mapped_column(ForeignKey("metros.id"), nullable=False, index=True)
+
+    period: Mapped[date] = mapped_column(Date, nullable=False, index=True)  # first-of-month
+    source: Mapped[MetricSource] = mapped_column(Enum(MetricSource), nullable=False)
+    metric: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    bed_size: Mapped[str | None] = mapped_column(String, nullable=True)  # "overall"/"1br"/"2br", rent metrics only
+    value: Mapped[float] = mapped_column(Float, nullable=False)
+
+    metro: Mapped["Metro"] = relationship(back_populates="metrics")
