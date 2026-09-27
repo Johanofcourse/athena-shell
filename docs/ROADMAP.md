@@ -58,29 +58,26 @@ comp), but it's a real scope change, not a detail.
 
 | Source | Status | Notes |
 |---|---|---|
-| Redfin Data Center | **Confirmed relevant, blocked on access** | Has "Price Drops," "Home Delistings & Relistings," and "Housing Market Tracker" (days on market) as named historical datasets - maps closely onto our existing metrics. Downloads page returns HTTP 403 with a bot-detection challenge, confirmed via a real headless-browser request, even though the data is meant for public download. **Not** going to try to defeat that gate (fingerprint spoofing to get past anti-bot protection is the same category of problem as scraping, regardless of the data being free) - needs a human to click through in a real browser instead. |
+| Redfin Data Center | **Confirmed, files in hand** | Downloads page is bot-gated for automation (403, confirmed via headless browser) but works fine in a real browser. Johan pulled all three: Price Drops, Home Delistings & Relistings, and Housing Market Tracker (key metrics), each Metro-level, top 50 metros, monthly, **Jan 2012 - Aug 2026** (176 months, 8,800 rows/file, ~1MB each). Spot-checked Austin's actual numbers against known history - matches the real 2012 low, 2022 pandemic-boom peak ($535k median, 38-day DOM), and the 2023+ cooldown. In `data/samples/`, committed. |
 | Census ACS (`api.census.gov`) | **Confirmed reachable, needs a free API key** | Direct JSON API, e.g. `B25064_001E` = median gross rent, `B25077_001E` = median home value, queryable by county/state. Anonymous requests now redirect to `missing_key.html` - registration is required but free (`api.census.gov/data/key_signup.html`, confirmed to exist). Once we have a key this is fully scriptable, no human-in-the-loop needed per request. |
 | Zillow Research (ZHVI/ZORI) | **Unverified** | Recalled from training as a real free program (home value + rent indices), but live fetch attempts returned HTTP 403. Needs a real-browser check like Redfin, or independent confirmation, before relying on it. |
 | HUD Fair Market Rents | **Unverified** | Recalled from training as a real annual free government dataset. Fetch attempts returned no usable content (likely a rendering issue, not necessarily blocked). Needs a follow-up check. |
 
 ### Next steps (in-progress, divided by who can actually do them)
 
-- [ ] **Johan:** open the Redfin Data Center downloads page in a real
-      browser, download 2-3 files (Price Drops, Home Delistings &
-      Relistings, and one Housing Market Tracker export), share them
-      (repo `data/samples/`, gitignored, or pasted excerpts) for
-      structure/quality review.
+- [x] **Johan:** download the three Redfin files (metro-level, 2012-2026)
+      and add them to `data/samples/`.
 - [ ] **Johan:** sign up for a free Census API key, pass it in as
       `CENSUS_API_KEY` (never committed) so pulls can be scripted.
-- [ ] **Claude:** once files/key are in hand, inspect real
-      columns/granularity/history depth and report back before touching
-      the schema.
+- [x] **Claude:** inspect the three files' real columns/granularity/
+      history depth, spot-check data quality. Confirmed good - see table
+      above.
 - [ ] **Claude:** re-verify Zillow Research and HUD FMR via a real
       browser rather than leaving them as "recalled, not confirmed."
-- [ ] Redesign `Listing`/`ListingEvent` into a geography x time-series
-      shape once the above is confirmed; update `QueryFilters` and the
-      frontend (trend/comparison views instead of a listings grid) to
-      match.
+- [ ] Design and build the geography x time-series schema (replacing
+      `Listing`/`ListingEvent`) and the ETL to load these three CSVs into
+      it; update `QueryFilters` and the frontend (trend/comparison views
+      instead of a listings grid) to match. Not started yet.
 
 ## Phase 4 — Engineering rigor
 - [ ] Automated backend tests (data model, filter logic, API contracts)
