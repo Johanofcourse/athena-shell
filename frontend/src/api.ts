@@ -1,4 +1,4 @@
-import type { Listing, ListingDetail, QueryResponse } from "./types";
+import type { MarketMetricPoint, MarketQueryResponse, Metro, MetricName } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -14,15 +14,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export function fetchListings(limit = 50): Promise<Listing[]> {
-  return request(`/listings?limit=${limit}`);
+export function fetchMetros(): Promise<Metro[]> {
+  return request("/metros");
 }
 
-export function fetchListing(id: string): Promise<ListingDetail> {
-  return request(`/listings/${id}`);
+export function fetchMetroSeries(
+  metroId: string,
+  metric: MetricName,
+  bedSize?: string,
+): Promise<MarketMetricPoint[]> {
+  const params = new URLSearchParams({ metric });
+  if (bedSize) params.set("bed_size", bedSize);
+  return request(`/metros/${metroId}/series?${params.toString()}`);
 }
 
-export function runQuery(query: string): Promise<QueryResponse> {
+export function runQuery(query: string): Promise<MarketQueryResponse> {
   return request("/query", {
     method: "POST",
     body: JSON.stringify({ query }),

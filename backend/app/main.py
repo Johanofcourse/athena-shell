@@ -7,7 +7,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.config import settings
 from app.database import Base, engine
 from app.rate_limit import limiter
-from app.routers import listings, query
+from app.routers import metros, query
 
 app = FastAPI(title="Athena Shell API", version="0.1.0")
 
@@ -28,7 +28,7 @@ def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
 
 
-app.include_router(listings.router)
+app.include_router(metros.router)
 app.include_router(query.router)
 
 
