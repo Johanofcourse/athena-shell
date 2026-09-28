@@ -274,6 +274,10 @@ header h1 {
   color: var(--success);
 }
 
+.status-income {
+  color: var(--text-muted);
+}
+
 .address {
   font-family: var(--font-display);
   font-weight: 700;

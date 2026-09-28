@@ -25,17 +25,26 @@ Two request paths through the backend:
 ## Data model (`backend/app/models.py`)
 
 **`Metro`** - one row per tracked metro (50 total). Doubles as the
-crosswalk between Redfin's and Apartment List's different naming
-conventions for the same geography (`redfin_name`, `aptlist_name`) - see
-`backend/app/market_crosswalk.py` for the full, hand-reviewed table.
-`aptlist_name` is `None` for 10 metros where Redfin tracks a metropolitan
-*division* (e.g. Anaheim) that Apartment List only publishes as part of a
-larger combined metro (Los Angeles) - a real, deliberate gap, not a bug.
+crosswalk between Redfin's, Apartment List's, and Census's different
+naming conventions for the same geography (`redfin_name`, `aptlist_name`,
+`census_income_name`) - see `backend/app/market_crosswalk.py` for the
+full, hand-reviewed table. `aptlist_name` and `census_income_name` are
+both `None` for the *same* 10 metros, where Redfin tracks a metropolitan
+*division* (e.g. Anaheim) that Apartment List and Census's metro-level
+income table only publish as part of a larger combined metro (Los
+Angeles) - a real, deliberate gap, not a bug. (Census's own naming also
+drifts across time within a single source - e.g. Denver is
+"Denver-Aurora-Lakewood, CO" in Apartment List's crosswalk entry but
+"Denver-Aurora-Centennial, CO" in Census's 2024 data - which is why this
+is a hand-reviewed table, not a live string match.)
 
 **`MarketMetric`** - one row per (metro, period, source, metric[, bed_size])
 observation. A long/tidy fact table, not one wide column per metric -
 adding a metric or a new source is new rows, never a schema migration.
-`backend/app/ingest_market_data.py` loads all six real CSVs
+Census rows (`median_household_income`, `median_gross_rent`) are a single
+snapshot per metro (ACS 5-Year 2024) rather than a monthly series - the
+fact table handles a one-point "series" the same way it handles a
+176-point one. `backend/app/ingest_market_data.py` loads all real CSVs
 (`data/samples/`) into this table; run with `python -m app.ingest_market_data`.
 
 This replaced an earlier `Listing`/`ListingEvent` model built against a
@@ -60,7 +69,7 @@ Two query modes, both going through the same tool:
   latest value, sorted - for "which metro has the highest/lowest X"
   questions. `metros` is left empty to mean "all of them."
 
-**Three honesty behaviors, deliberately built, not accidental:**
+**Four honesty behaviors, deliberately built, not accidental:**
 1. `unsupported_aspects` - a field on the tool schema itself. When part of
    a question can't be answered (school quality, crime, a specific
    address), the model names it here instead of silently dropping it or
@@ -68,12 +77,22 @@ Two query modes, both going through the same tool:
    would otherwise return unfiltered results with no indication part of
    the question went unanswered.
 2. `no_data_metros` - a metro resolves fine but has zero rows for the
-   requested metric (e.g. rent for Anaheim, which Apartment List doesn't
-   cover at that granularity). Surfaced explicitly rather than returning
-   an empty result silently.
+   requested metric (e.g. household income for Anaheim, which Census's
+   metro-level table doesn't cover at that granularity, and no
+   county-level fallback was pulled for). Surfaced explicitly rather than
+   returning an empty result silently.
 3. `unmatched_metros` - a name that doesn't match any tracked metro at
    all (typo, fictional place, unsupported city). Also surfaced, not
    swallowed.
+4. `approximated_metros` - a `median_rent` (or `rent_to_income_pct`)
+   request was answered using Census's county-level `median_gross_rent`
+   instead of real Apartment List data, for the same 10 metro-division
+   metros above (e.g. Anaheim). A real number from a different, coarser
+   survey - always flagged, never silently presented as if it were the
+   same measure. Only offered when the question wasn't bedroom-specific
+   (Census doesn't split gross rent by bed size); a 1BR/2BR-specific
+   question for one of these metros still comes back as genuine
+   `no_data_metros`. See `run_market_query()`'s `_fetch_rent_rows()`.
 
 `explain_filters()` builds the human-readable explanation **from the
 resolved filter object and query outcome**, not a second LLM call -
@@ -83,36 +102,50 @@ above to the user.
 `run_market_query()` is the only thing that touches the database for a
 query - plain SQLAlchemy `select()`s, no raw SQL, no string interpolation.
 
+**`rent_to_income_pct`** (computed, not a directly ingested metric):
+`(median rent x 12) / median household income x 100`. Income is a single
+ACS snapshot, held constant across whatever rent periods exist, so a
+trend query for this metric shows real month-to-month rent movement
+against a fixed income baseline - a real combination of two real numbers,
+not a fabricated series. `median_gross_rent` (the Census fallback above)
+is deliberately **excluded** from `query_market_metrics`'s `metric` enum
+(`SELECTABLE_METRICS` in `nl_query.py`) - it's never something a user
+picks directly, only an internal substitution `run_market_query()` makes
+for `median_rent` requests.
+
 **Verified against the live API, including a real fix needed:**
 `deepseek-flash` runs in "thinking" mode by default, which rejects forced
 `tool_choice` outright (undocumented by DeepSeek - found by testing
 directly). Fixed with `extra_body={"thinking": {"type": "disabled"}}`.
 
-**Eval set** (`backend/evals/`): 26 cases covering every metric category,
-both query modes, bed_size/time-range parsing, all three honesty
-behaviors above, and (added in a second, adversarial pass) off-topic
-input, a prompt-injection attempt, a typo, a self-contradictory ranking
-question, weird casing, and a relative time range - plus a repeatability
-check that re-runs one ambiguous ranking query 5 times and reports whether
-the chosen metric stays consistent. Run with `python -m evals.run_eval`
-(costs a small amount of real DeepSeek usage). Current result: 26/26
-cases, 59/59 individual checks, 5/5 repeatability.
+**Eval set** (`backend/evals/`): 31 cases covering every metric category
+(including the Census-backed `median_household_income` and the computed
+`rent_to_income_pct`), both query modes, bed_size/time-range parsing, all
+four honesty behaviors above (including the `median_rent` ->
+`median_gross_rent` fallback and the genuine income gap it doesn't paper
+over), an adversarial pass (off-topic input, a prompt-injection attempt, a
+typo, a self-contradictory ranking question, weird casing, a relative time
+range), and a permanent regression case - plus a repeatability check that
+re-runs one ambiguous ranking query 5 times and reports whether the chosen
+metric stays consistent. Run with `python -m evals.run_eval` (costs a
+small amount of real DeepSeek usage). Current result: **31/31 cases,
+73/73 individual checks**; the repeatability check still reproduces the
+known metric-choice non-determinism below (2 different metrics across 5
+runs this time).
 
-Read that carefully, not proudly. It means these 26 attempts (including
-ones written specifically to break it) didn't find a failure - that's
-weaker evidence than it sounds, since everything passing on the first
-adversarial attempt is at least as consistent with "the cases weren't hard
-enough" as with "the system is robust." Two specific nuances: the typo
-case likely passes because DeepSeek normalizes the input before our
-metro-matcher (plain substring matching, not fuzzy) ever sees it - real
-robustness, but from the LLM layer, not this codebase; and the
-repeatability check coming back stable does not contradict the
-metric-choice variance observed earlier by hand (two separate manual
-tests picked different metrics for the same ranking question) - 5 samples
-simply didn't reproduce it. A perfect score is a reason to write harder
-cases, not a finish line. Current count is 27 cases (26 plus a permanent
-regression test, see below), last run 26/27 - the failure is a real,
-documented, low-severity finding, not a stale number left unupdated.
+Read that carefully, not proudly. A clean run means these attempts
+(including ones written specifically to break it) didn't find a failure -
+that's weaker evidence than it sounds, since everything passing on the
+first adversarial attempt is at least as consistent with "the cases
+weren't hard enough" as with "the system is robust." Two specific
+nuances: the typo case likely passes because DeepSeek normalizes the
+input before our metro-matcher (plain substring matching, not fuzzy) ever
+sees it - real robustness, but from the LLM layer, not this codebase; and
+the repeatability check reproducing non-determinism on one run and not
+another (5/5 stable, then 2 different metrics across 5 runs, now 2 again)
+is itself the finding - it's genuinely inconsistent, not flaky
+measurement. A perfect score is a reason to write harder cases, not a
+finish line.
 
 ### Multi-turn conversation
 
@@ -211,14 +244,15 @@ sharp corners, a hazard-stripe accent bar. One deliberate identity, not a
 theme that softens for `prefers-color-scheme: light`.
 
 **Value formatting** (`format.ts`): metrics aren't all the same *kind* of
-number - `median_sale_price`/`median_rent`/`median_price_per_sqft` are
-currency, `vacancy_rate` is a 0-1 fraction needing percent conversion,
-`price_drop_pct_avg` and similar are already percent numbers needing only
-a `%` suffix, and everything else (counts, days) is a plain comma-grouped
-number. `formatMetricValue(metric, value)` picks the right one - applying
-`$` formatting to a percentage or a day-count would be wrong, not just
-inconsistent, so this is metric-aware rather than a single blanket
-formatter.
+number - `median_sale_price`/`median_rent`/`median_price_per_sqft`/
+`median_household_income`/`median_gross_rent` are currency, `vacancy_rate`
+is a 0-1 fraction needing percent conversion, `price_drop_pct_avg`,
+`rent_to_income_pct`, and similar are already percent numbers needing
+only a `%` suffix, and everything else (counts, days) is a plain
+comma-grouped number. `formatMetricValue(metric, value)` picks the right
+one - applying `$` formatting to a percentage or a day-count would be
+wrong, not just inconsistent, so this is metric-aware rather than a
+single blanket formatter.
 
 **Result analysis** (`analysis.ts`): a plain-language summary line
 (`summarizeResults()`) computed directly from the returned data points -
@@ -232,9 +266,9 @@ second LLM call, so it can never claim something the data doesn't back up.
 | Method | Path | Description |
 |---|---|---|
 | GET | `/health` | Liveness check |
-| GET | `/metros` | All tracked metros, with sale/rent data availability flags |
-| GET | `/metros/{id}/series?metric=&bed_size=` | Raw time series for one metro/metric, for direct charting |
-| POST | `/query` | `{"query": "<natural language>", "history": [{"query", "filters"}, ...]}` -> `{filters, explanation, unmatched_metros, no_data_metros, results}`. `history` is optional, max 5 turns. |
+| GET | `/metros` | All tracked metros, with sale/rent/income data availability flags |
+| GET | `/metros/{id}/series?metric=&bed_size=` | Raw time series for one metro/metric, for direct charting. `median_rent` goes through the same Census gross-rent fallback as `/query` below. |
+| POST | `/query` | `{"query": "<natural language>", "history": [{"query", "filters"}, ...]}` -> `{filters, explanation, unmatched_metros, no_data_metros, approximated_metros, results}`. `history` is optional, max 5 turns. |
 | POST | `/query/feedback` | `{"query", "filters", "rating": "up"\|"down"}` -> 204. Logged to `QueryFeedback` for eval growth. |
 
 Full request/response schemas: `backend/app/schemas.py`, or run the backend
@@ -274,6 +308,6 @@ There's no synthetic-data seed script anymore - real data replaced it.
 - No auth - every endpoint is open. Fine for a local portfolio demo, not
   for anything deployed publicly as-is.
 - No deployment/CI pipeline configured yet.
-- Census ACS not yet integrated (pending API key) - would add an
-  independent benchmark on top of Redfin/Apartment List, see
-  `ROADMAP.md` Phase 3.
+- Census `S0801` (commute time) not pulled - the `api.census.gov` API key
+  signup issue is unresolved, and this wasn't pursued further via manual
+  table-browser downloads this round. See `ROADMAP.md` Phase 3.

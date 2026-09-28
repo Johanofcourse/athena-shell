@@ -28,6 +28,14 @@ class MetricName(str, enum.Enum):
     MEDIAN_RENT = "median_rent"
     VACANCY_RATE = "vacancy_rate"
     TIME_ON_MARKET_DAYS = "time_on_market_days"
+    MEDIAN_HOUSEHOLD_INCOME = "median_household_income"
+    RENT_TO_INCOME_PCT = "rent_to_income_pct"
+    # Not user-selectable (excluded from the tool schema's enum) - an
+    # internal fallback value substituted into median_rent results for the
+    # 10 metro-division metros Apartment List doesn't cover, always
+    # returned under this distinct name so it's never confused with real
+    # median_rent data. See run_market_query.
+    MEDIAN_GROSS_RENT = "median_gross_rent"
 
 
 class MetroOut(BaseModel):
@@ -38,6 +46,7 @@ class MetroOut(BaseModel):
     state: str
     has_sale_data: bool
     has_rent_data: bool
+    has_income_data: bool
 
 
 class MarketMetricPoint(BaseModel):
@@ -97,6 +106,7 @@ class MarketQueryResponse(BaseModel):
     explanation: str
     unmatched_metros: list[str]
     no_data_metros: list[str]
+    approximated_metros: list[str]
     results: list[MarketMetricPoint]
 
 

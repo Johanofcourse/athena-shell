@@ -20,6 +20,14 @@ multi-turn conversation support (not by this suite) - see its comment.
 Cases can carry an optional "history" list of prior query strings, each
 interpreted in sequence to build real conversation context before the
 final query is checked.
+
+A later batch covers the Census income crosswalk and the
+median_rent -> median_gross_rent fallback: one case that used to be a
+genuine no_data case (Anaheim rent) and now should come back
+approximated instead, one real remaining income gap (Anaheim household
+income - a narrower fallback than gross rent, deliberately not filled
+in), and both trend and ranking modes of the new rent_to_income_pct
+computed metric.
 """
 
 CASES = [
@@ -131,10 +139,49 @@ CASES = [
         "expect_unsupported_nonempty": True,
     },
     {
-        "id": "no_data_metro",
+        "id": "rent_fallback_metro_division",
         "query": "What's the rent trend in Anaheim?",
+        # Anaheim is one of the 10 metro-division metros Apartment List
+        # doesn't cover - this used to be a genuine no_data case. It isn't
+        # anymore: the Census median_gross_rent fallback (see
+        # run_market_query) now answers it with real data, always flagged
+        # as an approximation rather than silently passed off as the same
+        # measure as median_rent elsewhere.
+        "expect_metros_contains": ["anaheim"],
+        "expect_no_data_empty": True,
+        "expect_approximated_nonempty": True,
+    },
+    {
+        "id": "household_income_single_metro",
+        "query": "What's the median household income in Austin?",
+        "expect_metric": ["median_household_income"],
+        "expect_metros_contains": ["austin"],
+    },
+    {
+        "id": "household_income_gap_metro",
+        "query": "What's the median household income in Anaheim?",
+        # Genuine gap, unlike rent above: Census's metro-level income table
+        # only publishes the combined Los Angeles metro, and no
+        # county-level income data was pulled to fill it in (a
+        # deliberately narrower fallback than gross rent - see
+        # ingest_market_data.py). Anaheim should come back as no_data, not
+        # silently borrow Los Angeles's number.
+        "expect_metric": ["median_household_income"],
         "expect_metros_contains": ["anaheim"],
         "expect_no_data_nonempty": True,
+    },
+    {
+        "id": "rent_to_income_single_metro",
+        "query": "What percent of income goes to rent in Denver?",
+        "expect_metric": ["rent_to_income_pct"],
+        "expect_metros_contains": ["denver"],
+    },
+    {
+        "id": "rent_to_income_ranking",
+        "query": "Which metros have the worst rent-to-income ratio?",
+        "expect_metric": ["rent_to_income_pct"],
+        "expect_metros_empty": True,
+        "expect_sort_by": "value",
     },
     {
         "id": "unmatched_metro",

@@ -14,6 +14,7 @@ export function MetroGrid({ metros, onSelect }: Props) {
           <div className="metro-badges">
             {metro.has_sale_data && <span className="status-badge status-active">Sale data</span>}
             {metro.has_rent_data && <span className="status-badge status-sold">Rent data</span>}
+            {metro.has_income_data && <span className="status-badge status-income">Income data</span>}
           </div>
         </button>
       ))}

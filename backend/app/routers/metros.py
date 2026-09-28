@@ -3,7 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import MarketMetric, Metro
+from app.models import Metro
+from app.nl_query import _fetch_rent_rows, _query_metric_rows
 from app.schemas import MarketMetricPoint, MetricName, MetroOut
 
 router = APIRouter(prefix="/metros", tags=["metros"])
@@ -19,6 +20,7 @@ def list_metros(db: Session = Depends(get_db)) -> list[dict]:
             "state": m.state,
             "has_sale_data": m.redfin_name is not None,
             "has_rent_data": m.aptlist_name is not None,
+            "has_income_data": m.census_income_name is not None,
         }
         for m in metros
     ]
@@ -35,13 +37,12 @@ def metro_series(
     if metro is None:
         raise HTTPException(status_code=404, detail="Metro not found")
 
-    stmt = select(MarketMetric).where(
-        MarketMetric.metro_id == metro_id,
-        MarketMetric.metric == metric.value,
-    )
-    if bed_size:
-        stmt = stmt.where(MarketMetric.bed_size == bed_size)
-    stmt = stmt.order_by(MarketMetric.period.asc())
+    # median_rent goes through the same Census gross-rent fallback as the
+    # NL query layer, so browsing a metro card and asking about it in
+    # natural language never disagree about whether data exists.
+    if metric == MetricName.MEDIAN_RENT:
+        rows, _used_fallback = _fetch_rent_rows(db, metro, bed_size, None, None)
+    else:
+        rows = _query_metric_rows(db, metro, metric.value, bed_size, None, None)
 
-    rows = db.execute(stmt).scalars().all()
     return [MarketMetricPoint(metro=metro.canonical_name, period=r.period, value=r.value) for r in rows]

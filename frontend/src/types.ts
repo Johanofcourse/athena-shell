@@ -16,7 +16,10 @@ export type MetricName =
   | "share_relisted_pct"
   | "median_rent"
   | "vacancy_rate"
-  | "time_on_market_days";
+  | "time_on_market_days"
+  | "median_household_income"
+  | "rent_to_income_pct"
+  | "median_gross_rent";
 
 export interface Metro {
   id: string;
@@ -24,6 +27,7 @@ export interface Metro {
   state: string;
   has_sale_data: boolean;
   has_rent_data: boolean;
+  has_income_data: boolean;
 }
 
 export interface MarketMetricPoint {
@@ -49,6 +53,7 @@ export interface MarketQueryResponse {
   explanation: string;
   unmatched_metros: string[];
   no_data_metros: string[];
+  approximated_metros: string[];
   results: MarketMetricPoint[];
 }
 

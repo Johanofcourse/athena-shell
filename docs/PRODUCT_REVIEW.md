@@ -6,7 +6,7 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-28 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, and the eval caught a second real issue on re-run)
+**Last updated:** 2026-09-28 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, and Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source)
 
 ## What this is being judged against
 
@@ -16,45 +16,56 @@ review holds the project to both, not just "does it run."
 
 ## Where it actually stands
 
-- **Data** - real, not synthetic. Redfin (50 metros, monthly sale-side
-  data, 2012-2026) and Apartment List (rent/vacancy/time-on-market,
-  2017/2019-2026), both independently spot-checked against known
-  real-world market history (Austin's 2012 low, 2022 pandemic-boom peak,
-  2023+ cooldown, and the matching rent/vacancy story) before being
-  trusted. Getting here required abandoning the original plan (scrape or
-  search-engine per-listing history - doesn't survive scrutiny, see
-  `ROADMAP.md` Phase 3) and finding a legally clean alternative instead.
+- **Data** - real, not synthetic, now from three independent sources.
+  Redfin (50 metros, monthly sale-side data, 2012-2026) and Apartment
+  List (rent/vacancy/time-on-market, 2017/2019-2026), both independently
+  spot-checked against known real-world market history (Austin's 2012
+  low, 2022 pandemic-boom peak, 2023+ cooldown, and the matching
+  rent/vacancy story) before being trusted. Getting here required
+  abandoning the original plan (scrape or search-engine per-listing
+  history - doesn't survive scrutiny, see `ROADMAP.md` Phase 3) and
+  finding a legally clean alternative instead. Census ACS (median
+  household income, plus a county-level gross-rent fallback for the 10
+  metro-division metros) joined this session as a third source, matched
+  against its own distinct metro-naming convention - a third crosswalk
+  entry, not a reuse of either existing one, since Census's own official
+  boundary names drift across time independent of both Redfin's and
+  Apartment List's.
 - **NL query layer** - verified live against DeepSeek, not just
   architected. Getting a working integration required two real,
   undocumented fixes (stale model name, a "thinking mode" incompatibility
   with forced tool-calling) found by testing directly against the API,
   not by reading more documentation.
-- **Three honesty behaviors, deliberately built:** the model names parts
+- **Four honesty behaviors, deliberately built:** the model names parts
   of a question it can't answer instead of dropping them
   (`unsupported_aspects`); a metro with no data for a requested metric
   says so instead of returning nothing (`no_data_metros`); an unmatched
-  metro name is surfaced, not swallowed (`unmatched_metros`). All three
-  exist because manual testing found the failure mode first - not because
-  they were anticipated up front.
-- **Eval set: 27 cases now, and it just proved its own point.** Expanded
-  to 26 to try to break the first 100% (off-topic, prompt-injection, typo,
-  self-contradiction, casing, relative time) - all 26 passed, and this
-  review said plainly that a clean first pass was weak evidence, more
-  likely to mean the cases weren't hard enough than that the system was
-  robust. Building multi-turn support proved that literally: it surfaced
-  a real bug (see below), and re-running the *same 26 cases* afterward
-  produced a genuinely different result - `adversarial_off_topic` failed
-  this time, then reproduced roughly 1-in-6 on repeated runs. Same test,
-  different outcome, because the underlying behavior is probabilistic.
-  That's not a regression to be alarmed by; it's the eval doing exactly
-  what it's for. Fixed the same day: strengthened the system prompt to
-  require `unsupported_aspects` even for fully off-topic questions,
-  re-tested 10/10 clean (up from ~5/6), full suite now **27/27, 62/62**.
-  The repeatability check on that same run reproduced the metric-choice
-  variance previously seen only by hand - real and recurring, and a
-  prompt fix wouldn't be expected to eliminate that the way the bed_size
-  fix structurally did (that one was a code-level guardrail; this one is
-  inherently the model's judgment call).
+  metro name is surfaced, not swallowed (`unmatched_metros`); and, new
+  this session, a `median_rent` request answered with the Census
+  fallback instead of real Apartment List data is explicitly flagged
+  (`approximated_metros`), never silently presented as the same measure.
+  All four exist because manual testing (or, for the fourth, a known
+  geography gap from Phase 3) found the case first - not because they
+  were anticipated up front.
+- **A computed metric that combines two real sources honestly.**
+  `rent_to_income_pct` = (median rent x 12) / median household income.
+  The temptation with a derived metric is to let it paper over a missing
+  input - it doesn't: the 10 metros missing Census income entirely still
+  come back as `no_data_metros` for this metric even where the rent
+  fallback above would otherwise have data, rather than silently omitting
+  the income term or guessing at it.
+- **Eval set: 31 cases now, and it's still finding real distinctions, not
+  just passing.** One case (Anaheim rent) flipped from a genuine
+  `no_data` case to a genuine `approximated` one *because the underlying
+  behavior actually changed* - the eval caught that correctly rather than
+  needing a hand update to "just pass." A sibling case (Anaheim household
+  income) deliberately stayed a `no_data` case, checking the two related
+  features don't get conflated. Full suite: **31/31 cases, 73/73 checks**.
+  The repeatability check on this run again reproduced the metric-choice
+  non-determinism first seen several updates ago (2 different metrics
+  across 5 runs) - still real, still not something a code fix should be
+  expected to eliminate, since it's the model's judgment call, not a
+  structural bug.
 - **Frontend** - redesigned (industrial/hazard-signage direction, per
   `PREFERENCES.md`) and verified in a real browser at every step, not
   just typed correctly - a genuine readability bug (overlapping chart date
@@ -106,17 +117,23 @@ above, not any single screen.
 The largest single risk, and it's a pattern now, not a one-off: **engineering
 rigor (Phase 4 - tests, CI) has been deprioritized behind every single
 other thing for the entire project so far** - real data, the NL layer, the
-visual redesign, three more features. Each individual deferral was
-defensible. Six in a row is worth naming as a pattern rather than
-re-litigating each time: at some point "there's always something more
-valuable to build first" stops being a sequencing decision and starts
-being the actual answer to "why no tests." An interviewer will notice the
-pattern, not just the current excuse.
+visual redesign, three more features, and now a third data source. Each
+individual deferral was defensible. Seven in a row is worth naming as a
+pattern rather than re-litigating each time: at some point "there's always
+something more valuable to build first" stops being a sequencing decision
+and starts being the actual answer to "why no tests." An interviewer will
+notice the pattern, not just the current excuse. This update is not an
+exception to that pattern - it's another instance of it, and it should be
+named as one rather than quietly extending the streak.
 
 ## Recommendation
 
-Phase 4 needs to actually happen next, not be deferred a seventh time for
+Phase 4 needs to actually happen next, not be deferred an eighth time for
 the next feature idea that comes up. The counter-argument ("one more
 feature is more impressive") is exactly the reasoning that produced the
 pattern above - and it's a weaker argument now than it's ever been, given
-how much real AI-layer work already exists to point to.
+how much real AI-layer work already exists to point to. The eval set is
+carrying real weight it wasn't designed for (it caught the Anaheim
+fallback distinction correctly this session, for what it's worth) but it
+tests NL-layer behavior, not the ETL/crosswalk/ingest code that just grew
+by roughly 150 lines with zero unit tests behind it.
