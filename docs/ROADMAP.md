@@ -39,12 +39,16 @@ probed hardest in an interview.
 - [x] Build a real eval set: 18 cases in `backend/evals/`, covering every
       metric category, both query modes (trend/ranking), and all three
       honesty behaviors above. Run with `python -m evals.run_eval`.
-      Current result: **18/18 cases, 44/44 checks** - read carefully in
-      `DOCUMENTATION.md`, not as a finish line. It means the eval hasn't
-      found a failure yet; it doesn't mean there isn't one. Known gaps:
-      no adversarial-input cases, doesn't probe the metric-choice
-      non-determinism observed by hand (same ranking question picked a
-      different, still-defensible metric on different runs).
+- [x] **Stress-tested it**, deliberately trying to break the 18/18 rather
+      than treat it as done: expanded to 26 cases (off-topic input, a
+      prompt-injection attempt, a typo, a self-contradictory ranking
+      question, weird casing, a relative time range) plus a repeatability
+      check (same ambiguous query, 5 runs). Result: **26/26 cases, 59/59
+      checks, 5/5 repeatability**. Read this as "didn't find a failure
+      this round," not "solved" - passing every adversarial case on the
+      first attempt is at least as likely to mean the cases weren't hard
+      enough as it is to mean genuine robustness. See
+      `PRODUCT_REVIEW.md` for what harder testing would look like next.
 
 ## Phase 2 — Visual redesign
 - [ ] Replace the current generic/flat UI with the industrial,

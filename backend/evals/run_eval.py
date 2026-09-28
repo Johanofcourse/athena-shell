@@ -44,9 +44,11 @@ def check_case(db, case: dict) -> tuple[list[str], list[str]]:
         (passed if ok else failed).append(f"bed_size={filters.bed_size} (expected {case['expect_bed_size']})")
 
     if "expect_start_period_prefix" in case:
-        ok = bool(filters.start_period) and filters.start_period.startswith(case["expect_start_period_prefix"])
+        prefixes = case["expect_start_period_prefix"]
+        prefixes = tuple(prefixes) if isinstance(prefixes, list) else (prefixes,)
+        ok = bool(filters.start_period) and filters.start_period.startswith(prefixes)
         (passed if ok else failed).append(
-            f"start_period={filters.start_period} (expected prefix {case['expect_start_period_prefix']})"
+            f"start_period={filters.start_period} (expected prefix one of {prefixes})"
         )
 
     if case.get("expect_unsupported_nonempty"):
@@ -64,6 +66,25 @@ def check_case(db, case: dict) -> tuple[list[str], list[str]]:
             (passed if ok else failed).append(f"unmatched_metros={unmatched}")
 
     return passed, failed
+
+
+def check_repeatability(query: str, n: int = 5) -> None:
+    """Not a pass/fail check - a documented observation. We already saw by
+    hand that the same ambiguous ranking question can pick a different,
+    still-defensible metric on different runs. This reports how often that
+    actually happens rather than leaving it as a one-off anecdote."""
+    metrics_seen = []
+    for _ in range(n):
+        filters = interpret_query(query)
+        metrics_seen.append(filters.metric.value)
+
+    unique = set(metrics_seen)
+    print(f'Repeatability check ("{query}"), {n} runs:')
+    print(f"  metrics chosen: {metrics_seen}")
+    if len(unique) == 1:
+        print(f"  -> stable: always picked '{metrics_seen[0]}'")
+    else:
+        print(f"  -> NOT stable: {len(unique)} different metrics across {n} runs ({unique})")
 
 
 def main() -> None:
@@ -97,6 +118,8 @@ def main() -> None:
     print()
     print(f"Cases fully passed: {fully_passed_cases}/{len(CASES)}")
     print(f"Individual checks passed: {passed_checks}/{total_checks}")
+    print()
+    check_repeatability("Which metros have the biggest price drops right now?")
 
 
 if __name__ == "__main__":

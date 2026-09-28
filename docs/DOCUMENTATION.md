@@ -88,20 +88,29 @@ query - plain SQLAlchemy `select()`s, no raw SQL, no string interpolation.
 `tool_choice` outright (undocumented by DeepSeek - found by testing
 directly). Fixed with `extra_body={"thinking": {"type": "disabled"}}`.
 
-**Eval set** (`backend/evals/`): 18 cases covering every metric category,
-both query modes, bed_size/time-range parsing, and all three honesty
-behaviors above. Run with `python -m evals.run_eval` (costs a small amount
-of real DeepSeek usage). Current result: 18/18 cases, 44/44 individual
-checks. Read that number carefully, not proudly - it means this eval
-hasn't found a failure yet, which is different from there being none. It's
-an 18-case first pass, not a comprehensive suite; some checks accept
-multiple correct answers by design (e.g. any of three metrics for
-"price drop trends", since that's a genuinely ambiguous question). It
-doesn't yet cover adversarial input, multi-part queries, or the
-metric-choice non-determinism observed during manual testing (the same
-"biggest price drops" question picked different-but-defensible metrics on
-different runs). A 100% score that never moves is itself a reason to add
-harder cases, not a finish line.
+**Eval set** (`backend/evals/`): 26 cases covering every metric category,
+both query modes, bed_size/time-range parsing, all three honesty
+behaviors above, and (added in a second, adversarial pass) off-topic
+input, a prompt-injection attempt, a typo, a self-contradictory ranking
+question, weird casing, and a relative time range - plus a repeatability
+check that re-runs one ambiguous ranking query 5 times and reports whether
+the chosen metric stays consistent. Run with `python -m evals.run_eval`
+(costs a small amount of real DeepSeek usage). Current result: 26/26
+cases, 59/59 individual checks, 5/5 repeatability.
+
+Read that carefully, not proudly. It means these 26 attempts (including
+ones written specifically to break it) didn't find a failure - that's
+weaker evidence than it sounds, since everything passing on the first
+adversarial attempt is at least as consistent with "the cases weren't hard
+enough" as with "the system is robust." Two specific nuances: the typo
+case likely passes because DeepSeek normalizes the input before our
+metro-matcher (plain substring matching, not fuzzy) ever sees it - real
+robustness, but from the LLM layer, not this codebase; and the
+repeatability check coming back stable does not contradict the
+metric-choice variance observed earlier by hand (two separate manual
+tests picked different metrics for the same ranking question) - 5 samples
+simply didn't reproduce it. A perfect score is a reason to write harder
+cases, not a finish line.
 
 ### Guardrails / abuse prevention
 
