@@ -47,6 +47,7 @@ class MetroOut(BaseModel):
     has_sale_data: bool
     has_rent_data: bool
     has_income_data: bool
+    census_gross_rent_county: str | None
 
 
 class MarketMetricPoint(BaseModel):

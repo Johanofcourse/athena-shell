@@ -28,6 +28,7 @@ export interface Metro {
   has_sale_data: boolean;
   has_rent_data: boolean;
   has_income_data: boolean;
+  census_gross_rent_county: string | null;
 }
 
 export interface MarketMetricPoint {

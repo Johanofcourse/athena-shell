@@ -21,6 +21,7 @@ def list_metros(db: Session = Depends(get_db)) -> list[dict]:
             "has_sale_data": m.redfin_name is not None,
             "has_rent_data": m.aptlist_name is not None,
             "has_income_data": m.census_income_name is not None,
+            "census_gross_rent_county": m.census_gross_rent_county,
         }
         for m in metros
     ]

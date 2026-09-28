@@ -54,8 +54,9 @@ export function MetroDetailPanel({ metro, onClose }: Props) {
                 {!metro.has_rent_data && (
                   <p className="empty-state">
                     Apartment List doesn't publish rent for {metro.canonical_name} at this
-                    granularity - showing Census ACS median gross rent instead, a related but
-                    methodologically different measure.
+                    granularity - showing{" "}
+                    {metro.census_gross_rent_county ?? "county-level"} median gross rent (Census
+                    ACS) instead, a related but methodologically different measure.
                   </p>
                 )}
                 <TrendChart points={rentPoints} metric="median_rent" />

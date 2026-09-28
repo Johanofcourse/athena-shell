@@ -262,6 +262,11 @@ def ingest_census_gross_rent_fallback(db) -> int:
                     value=value,
                 )
             )
+            # Recorded on the metro itself (not just derivable from this
+            # function's file list) so the caveat shown to a user can name
+            # the specific county behind the number - "Orange County, CA",
+            # not just a generic "Census data" gesture.
+            db.get(Metro, metro_id).census_gross_rent_county = county_name
             count += 1
     return count
 
