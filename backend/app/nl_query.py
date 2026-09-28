@@ -417,10 +417,14 @@ def explain_filters(
     unmatched_metros: list[str],
     no_data_metros: list[str],
     approximated_metros: list[str],
+    db: Session,
 ) -> str:
     """Built from the resolved filter object and query outcome, not a
     second model call - deterministic, free, and can't say something
-    different from what actually ran."""
+    different from what actually ran. The only DB access here is looking
+    up the county name behind an approximated_metros entry, purely to make
+    that caveat specific ("Orange County, CA") instead of a generic
+    gesture at "Census data"."""
     metric_label = METRIC_LABELS.get(filters.metric, filters.metric.value)
     parts = [metric_label]
 
@@ -449,8 +453,18 @@ def explain_filters(
             "(this metro isn't covered by that data source at this granularity)."
         )
     if approximated_metros:
+        counties = dict(
+            db.execute(
+                select(Metro.canonical_name, Metro.census_gross_rent_county).where(
+                    Metro.canonical_name.in_(approximated_metros)
+                )
+            ).all()
+        )
+        labeled = [
+            f"{name} ({counties[name]})" if counties.get(name) else name for name in approximated_metros
+        ]
         notes.append(
-            f"For {', '.join(approximated_metros)}, Apartment List doesn't publish rent at this "
+            f"For {', '.join(labeled)}, Apartment List doesn't publish rent at this "
             "granularity - showing Census ACS median gross rent instead, a related but "
             "methodologically different measure."
         )

@@ -31,6 +31,11 @@ class Metro(Base):
     redfin_name: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
     aptlist_name: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
     census_income_name: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    # The specific county backing the median_gross_rent fallback (e.g.
+    # "Orange County, California" for Anaheim) - set only for the 10
+    # metro-division metros, so the caveat can name exactly what's being
+    # shown instead of a generic "Census data" gesture.
+    census_gross_rent_county: Mapped[str | None] = mapped_column(String, nullable=True)
 
     metrics: Mapped[list["MarketMetric"]] = relationship(back_populates="metro")
 
