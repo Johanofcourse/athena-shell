@@ -63,15 +63,26 @@ def check_case(db, case: dict) -> tuple[list[str], list[str]]:
         ok = len(filters.unsupported_aspects) > 0
         (passed if ok else failed).append(f"unsupported_aspects={filters.unsupported_aspects}")
 
-    needs_query = case.get("expect_no_data_nonempty") or case.get("expect_unmatched_nonempty")
+    needs_query = (
+        case.get("expect_no_data_nonempty")
+        or case.get("expect_unmatched_nonempty")
+        or case.get("expect_approximated_nonempty")
+        or case.get("expect_no_data_empty")
+    )
     if needs_query:
-        _, unmatched, no_data = run_market_query(db, filters)
+        _, unmatched, no_data, approximated = run_market_query(db, filters)
         if case.get("expect_no_data_nonempty"):
             ok = len(no_data) > 0
             (passed if ok else failed).append(f"no_data_metros={no_data}")
+        if case.get("expect_no_data_empty"):
+            ok = len(no_data) == 0
+            (passed if ok else failed).append(f"no_data_metros empty (got {no_data})")
         if case.get("expect_unmatched_nonempty"):
             ok = len(unmatched) > 0
             (passed if ok else failed).append(f"unmatched_metros={unmatched}")
+        if case.get("expect_approximated_nonempty"):
+            ok = len(approximated) > 0
+            (passed if ok else failed).append(f"approximated_metros={approximated}")
 
     return passed, failed
 

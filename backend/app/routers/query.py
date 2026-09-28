@@ -37,14 +37,15 @@ def run_query(request: Request, payload: QueryRequest, db: Session = Depends(get
     except APIError as exc:
         raise HTTPException(status_code=502, detail=f"DeepSeek API error: {exc}") from exc
 
-    results, unmatched_metros, no_data_metros = run_market_query(db, filters)
-    explanation = explain_filters(filters, unmatched_metros, no_data_metros)
+    results, unmatched_metros, no_data_metros, approximated_metros = run_market_query(db, filters)
+    explanation = explain_filters(filters, unmatched_metros, no_data_metros, approximated_metros)
 
     return MarketQueryResponse(
         filters=filters,
         explanation=explanation,
         unmatched_metros=unmatched_metros,
         no_data_metros=no_data_metros,
+        approximated_metros=approximated_metros,
         results=results,
     )
 

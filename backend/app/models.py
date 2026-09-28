@@ -9,14 +9,18 @@ from app.database import Base
 
 class Metro(Base):
     """A metro area, the geography unit for the real market-trend data
-    (Phase 3). Redfin and Apartment List name the same metro differently
-    (and Redfin sometimes tracks a metropolitan *division* - e.g. Anaheim -
-    that Apartment List only publishes as part of a larger combined metro -
-    e.g. Los Angeles), so this table is also the crosswalk: each source's
-    native name is stored alongside the canonical one. A metro missing
-    aptlist_name genuinely has no rent-side data at this granularity -
-    that's a real gap, not something to paper over by borrowing a parent
-    metro's numbers."""
+    (Phase 3). Redfin, Apartment List, and Census name the same metro
+    differently (and Redfin sometimes tracks a metropolitan *division* -
+    e.g. Anaheim - that Apartment List and Census's metro-level tables
+    only publish as part of a larger combined metro - e.g. Los Angeles),
+    so this table is also the crosswalk: each source's native name is
+    stored alongside the canonical one. A metro missing aptlist_name or
+    census_income_name genuinely has no data at this granularity from
+    that source - a real gap, not something to paper over by borrowing a
+    parent metro's numbers. (The one exception, deliberately narrower:
+    median_gross_rent, ingested from Census's county-level table for
+    exactly those metro-division metros, as an explicitly flagged
+    approximation of median_rent - see run_market_query.)"""
 
     __tablename__ = "metros"
 
@@ -26,6 +30,7 @@ class Metro(Base):
 
     redfin_name: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
     aptlist_name: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    census_income_name: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
 
     metrics: Mapped[list["MarketMetric"]] = relationship(back_populates="metro")
 
@@ -33,6 +38,7 @@ class Metro(Base):
 class MetricSource(str, enum.Enum):
     REDFIN = "redfin"
     APARTMENT_LIST = "apartment_list"
+    CENSUS = "census"
 
 
 class MarketMetric(Base):

@@ -2,7 +2,13 @@ import type { MetricName } from "./types";
 
 // median_sale_price/median_rent are whole dollars; median_price_per_sqft
 // carries cents (e.g. 213.4) - one formatter handles both correctly.
-const CURRENCY_METRICS = new Set<MetricName>(["median_sale_price", "median_rent", "median_price_per_sqft"]);
+const CURRENCY_METRICS = new Set<MetricName>([
+  "median_sale_price",
+  "median_rent",
+  "median_price_per_sqft",
+  "median_household_income",
+  "median_gross_rent",
+]);
 
 // Stored as a 0-1 fraction (0.0848 = 8.48%), unlike the metrics below.
 const FRACTION_PERCENT_METRICS = new Set<MetricName>(["vacancy_rate"]);
@@ -13,6 +19,7 @@ const PERCENT_METRICS = new Set<MetricName>([
   "pct_active_with_price_drop",
   "share_delisted_pct",
   "share_relisted_pct",
+  "rent_to_income_pct",
 ]);
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {

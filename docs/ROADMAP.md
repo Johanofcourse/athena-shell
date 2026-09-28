@@ -154,7 +154,7 @@ metro** instead - a genuine scope change ("any address's history" becomes
 |---|---|---|
 | Redfin Data Center | **In production** | Price Drops, Home Delistings & Relistings, Housing Market Tracker. Metro-level, top 50 metros, monthly, Jan 2012 - Aug 2026 (176 months). Downloads page is bot-gated for automation (403, confirmed via headless browser) but works in a real browser. |
 | Apartment List | **In production (rent side)** | Rent Estimates (split by bed size), Vacancy Index, Time on Market. Jan 2017/2019 - Aug 2026. Pulled as direct CDN links, no bot-gate. Metro naming doesn't match Redfin's, and isn't even consistent across Apartment List's own files (one file suffixes " Metro Area", others don't) - see the crosswalk bug below. |
-| Census ACS | **In production (income), commute time in progress** | The `api.census.gov` API key signup never worked (multiple attempts, two different emails, validation link consistently broken/unreceived - a known, documented issue with institutional email scanners rewriting the one-time link). **Worked around entirely** by using `data.census.gov`'s own table browser to download CSVs directly - no API key needed at all, same "manual browser download" pattern that worked for Redfin/Apartment List. Table `B19013` (median household income), 2024, all US+PR metro areas, both 1-Year and 5-Year estimates - spot-checked (Austin ~$100k, Denver ~$105-108k, both plausible and internally consistent between the two estimate types). Table `S0801` (commuting characteristics, mean travel time to work) in progress the same way. |
+| Census ACS | **In production (income + gross-rent fallback)** | The `api.census.gov` API key signup never worked (multiple attempts, two different emails, validation link consistently broken/unreceived - a known, documented issue with institutional email scanners rewriting the one-time link). **Worked around entirely** by using `data.census.gov`'s own table browser to download CSVs directly - no API key needed at all, same "manual browser download" pattern that worked for Redfin/Apartment List. Table `B19013` (median household income), 5-Year 2024 estimate, all 50 metros crosswalked (40 direct, 10 genuine gaps) - spot-checked (Austin $100,431). Table `B25064` (median gross rent), 5-Year 2024, county-level, for the 10 metro-division metros only - a deliberately narrower fallback used to fill the `median_rent` gap, always flagged as an approximation. `S0801` (commute time) not pursued this round - see Still open. |
 | Zillow Research (ZHVI/ZORI) | **Deprioritized** | 403 on every attempt (3 tries). Apartment List covers the same need. |
 | HUD Fair Market Rents | **Unverified, low priority** | Annual cadence, same "benchmark not trend" role as Census. |
 
@@ -194,29 +194,56 @@ metro** instead - a genuine scope change ("any address's history" becomes
   the actual SVG path data and raw network responses before concluding
   anything, not by assuming the first odd screenshot was real.
 
+### Census income + gross-rent fallback + rent-to-income (done, 2026-09-28)
+- [x] **Third crosswalk entry added** (`census_income_name` on `Metro`):
+      matched all 50 metros against Census's B19013 metro-name column
+      headers using the same first-city-token + state-overlap heuristic as
+      the original Redfin/Apartment List crosswalk, then hand-reviewed.
+      40/50 matched cleanly with zero ambiguity (confirming the
+      "Austin-Round Rock-San Marcos" / "Denver-Aurora-Centennial" boundary
+      drift noted below is real but didn't break the heuristic). The other
+      10 are the exact same metro-division metros already missing
+      `aptlist_name` - Census's metro-level income table only publishes
+      the larger combined metro too, so left as a genuine gap rather than
+      borrowed from the parent metro, consistent with the existing
+      rent-side precedent.
+- [x] **Census median household income** (`median_household_income`,
+      `MetricSource.CENSUS`): ingested from the B19013 5-Year 2024
+      estimate as a single snapshot per metro (not a monthly series - the
+      shared fact table handles a one-point "series" fine). 40 rows.
+      Spot-checked: Austin $100,431, matching the earlier manual check.
+- [x] **Median rent honesty fallback** (`median_gross_rent`,
+      `MetricSource.CENSUS`): for the same 10 metro-division metros,
+      county-level Census gross rent (table B25064, since metro divisions
+      are officially defined as whole counties) substitutes for the
+      missing `median_rent` - always under its own metric name, never
+      silently relabeled, and only offered for bedroom-unspecific
+      questions (Census doesn't split by bed size). `run_market_query`
+      returns a new `approximated_metros` list whenever this fires, and
+      `explain_filters()` surfaces it as an explicit caveat. Applied on
+      both the NL query path and the metro-detail-panel browsing path
+      (`GET /metros/{id}/series`), so the two never disagree about
+      whether a metro "has" rent data.
+- [x] **Rent-to-income ratio** (`rent_to_income_pct`, computed): (median
+      rent x 12) / median household income, as a percent. Income is a
+      single snapshot held constant across whatever rent periods exist -
+      a real combination of two real numbers, not a fabricated trend.
+      Metros missing either leg are reported as `no_data_metros`, never
+      silently dropped or blended.
+- [x] Verified end to end: direct `run_market_query` checks (Austin
+      income, Anaheim rent fallback, Anaheim income gap, Denver
+      rent-to-income trend, cross-metro ranking, bed-size-specific rent
+      with no fallback offered), the full eval suite (**31/31, up from
+      27/27** - 5 new cases), a multi-turn sanitize check (bed_size
+      correctly cleared switching into `rent_to_income_pct`), and a real
+      browser (the metro grid's new "Income data" badge, Anaheim's detail
+      panel now showing a flagged fallback chart instead of "no data",
+      and a live rent-to-income ranking query rendering correctly).
+
 ### Still open
-- [ ] **Census needs a third crosswalk entry.** Redfin says "Austin, TX
-      metro area", Apartment List says "Austin-Round Rock-Georgetown, TX",
-      Census says "Austin-Round Rock-San Marcos, TX Metro Area" - three
-      different naming conventions for the same metro, now confirmed
-      across all three sources. Worse than the Redfin/Apartment List case:
-      Census's names can also drift *within the same source* across time,
-      because the federal government periodically redraws and renames
-      official metro-area (CBSA) boundaries - e.g. Apartment List's
-      crosswalk entry has Denver as "Denver-Aurora-Lakewood, CO", but
-      Census's 2024 data calls the same metro "Denver-Aurora-Centennial,
-      CO". This isn't a formatting inconsistency to normalize away, it's
-      a real "which vintage of the official boundary are we matching
-      against" question - `market_crosswalk.py` will need a `census_name`
-      column and manual review the same way the first crosswalk did, not
-      an automated string match.
-- [ ] Census ACS data is **wide-format** (one column pair per metro, like
-      Apartment List), needs the same melt-to-long-format treatment in
-      the ETL as `ingest_market_data.py` already does for Apartment List.
-- [ ] Once `B19013` (median household income) and `S0801` (commute time)
-      are both in hand: extend the crosswalk, extend `MarketMetric` with
-      `median_household_income` and `mean_commute_minutes`, and build the
-      rent-to-income ratio feature this was actually for.
+- [ ] Census `S0801` (commute time) - the API key signup issue from
+      before is unresolved; not pursued further this round since Johan
+      deferred pulling more Census tables for now.
 - [ ] Re-verify Zillow Research / HUD FMR via a real browser - low
       priority, not blocking anything.
 

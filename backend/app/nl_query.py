@@ -10,9 +10,9 @@ from app.models import MarketMetric, Metro
 from app.schemas import ConversationTurn, MarketMetricPoint, MarketQueryFilters, MetricName
 
 SYSTEM_PROMPT = """You translate a person's natural-language question about real estate market trends \
-(home sale prices, rents, days on market, price drops, relistings, vacancy) into a structured call \
-against a metro-level time-series database covering 50 US metros. Always call query_market_metrics \
-exactly once.
+(home sale prices, rents, days on market, price drops, relistings, vacancy, household income, rent-to- \
+income burden) into a structured call against a metro-level database covering 50 US metros. Always \
+call query_market_metrics exactly once.
 
 Pick ONE metric per call - the one the question is actually about. If the question names specific \
 metros (e.g. "Austin", "Denver vs Seattle"), list them in `metros`. If it's a ranking/comparison \
@@ -51,7 +51,15 @@ METRIC_DESCRIPTIONS = {
     MetricName.MEDIAN_RENT: "Median asking rent for a new lease - use bed_size overall/1br/2br (Apartment List)",
     MetricName.VACANCY_RATE: "Rental vacancy rate, 0-1 (Apartment List)",
     MetricName.TIME_ON_MARKET_DAYS: "Median days a rental sits vacant before leasing (Apartment List)",
+    MetricName.MEDIAN_HOUSEHOLD_INCOME: "Median household income, annual, a single latest-estimate snapshot not a monthly series (Census ACS 5-Year 2024)",
+    MetricName.RENT_TO_INCOME_PCT: "Rent burden: (median rent x 12) / median household income, as a percent (computed)",
 }
+
+# query_market_metrics' metric enum, deliberately excluding
+# MEDIAN_GROSS_RENT: it's never a user-selectable choice, only an internal
+# substitution run_market_query makes for median_rent requests on the 10
+# metro-division metros - see schemas.MetricName.
+SELECTABLE_METRICS = [m for m in MetricName if m != MetricName.MEDIAN_GROSS_RENT]
 
 # Short, clean labels for user-facing explanation text - METRIC_DESCRIPTIONS
 # above is tool-schema hint text (includes usage notes, source tags) and
@@ -75,6 +83,9 @@ METRIC_LABELS = {
     MetricName.MEDIAN_RENT: "median rent",
     MetricName.VACANCY_RATE: "vacancy rate",
     MetricName.TIME_ON_MARKET_DAYS: "time on market (rentals)",
+    MetricName.MEDIAN_HOUSEHOLD_INCOME: "median household income",
+    MetricName.RENT_TO_INCOME_PCT: "rent as a percent of income",
+    MetricName.MEDIAN_GROSS_RENT: "median gross rent (Census)",
 }
 
 QUERY_MARKET_METRICS_TOOL = {
@@ -92,7 +103,7 @@ QUERY_MARKET_METRICS_TOOL = {
                 },
                 "metric": {
                     "type": "string",
-                    "enum": [m.value for m in MetricName],
+                    "enum": [m.value for m in SELECTABLE_METRICS],
                     "description": " | ".join(f"{m.value}: {d}" for m, d in METRIC_DESCRIPTIONS.items()),
                 },
                 "bed_size": {"type": "string", "enum": ["overall", "1br", "2br"]},
@@ -220,13 +231,117 @@ def _parse_period(raw: str | None) -> date | None:
     return date(int(year), int(month), 1)
 
 
+def _query_metric_rows(
+    db: Session,
+    metro: Metro,
+    metric_value: str,
+    bed_size: str | None,
+    start: date | None,
+    end: date | None,
+    latest_only: bool = False,
+) -> list[MarketMetric]:
+    stmt = select(MarketMetric).where(
+        MarketMetric.metro_id == metro.id,
+        MarketMetric.metric == metric_value,
+    )
+    if bed_size:
+        stmt = stmt.where(MarketMetric.bed_size == bed_size)
+    if start:
+        stmt = stmt.where(MarketMetric.period >= start)
+    if end:
+        stmt = stmt.where(MarketMetric.period <= end)
+    stmt = stmt.order_by(MarketMetric.period.desc() if latest_only else MarketMetric.period.asc())
+    if latest_only:
+        stmt = stmt.limit(1)
+    return list(db.execute(stmt).scalars().all())
+
+
+def _fetch_rent_rows(
+    db: Session,
+    metro: Metro,
+    bed_size: str | None,
+    start: date | None,
+    end: date | None,
+    latest_only: bool = False,
+) -> tuple[list[MarketMetric], bool]:
+    """Real median_rent rows, or - for the 10 metro-division metros
+    Apartment List doesn't cover at this granularity - the Census median
+    gross rent for the corresponding county as an explicitly flagged
+    approximation. Different survey (Census ACS vs. Apartment List
+    asking-rent estimates) with no bed-size breakdown, so the fallback is
+    only offered when the question wasn't bedroom-specific, and it's
+    always returned under its own metric name (median_gross_rent), never
+    silently relabeled as median_rent. Returns (rows, used_fallback)."""
+    rows = _query_metric_rows(db, metro, MetricName.MEDIAN_RENT.value, bed_size, start, end, latest_only)
+    if rows or bed_size not in (None, "overall"):
+        return rows, False
+    fallback_rows = _query_metric_rows(
+        db, metro, MetricName.MEDIAN_GROSS_RENT.value, None, start, end, latest_only
+    )
+    return fallback_rows, bool(fallback_rows)
+
+
+def _fetch_income(db: Session, metro: Metro) -> float | None:
+    rows = _query_metric_rows(
+        db, metro, MetricName.MEDIAN_HOUSEHOLD_INCOME.value, None, None, None, latest_only=True
+    )
+    return rows[0].value if rows else None
+
+
+def _run_rent_to_income_query(
+    db: Session,
+    filters: MarketQueryFilters,
+    target_metros: list[Metro],
+    metros_named: bool,
+    start: date | None,
+    end: date | None,
+    unmatched: list[str],
+) -> tuple[list[MarketMetricPoint], list[str], list[str], list[str]]:
+    """rent_to_income_pct = (median monthly rent x 12) / median household
+    income x 100. Income is a single ACS snapshot, not a monthly series,
+    so it's held constant across whatever rent periods exist - a real
+    combination of two real numbers, not a fabricated trend. Metros
+    missing either leg (mostly the same 10 metro-division metros lacking
+    both Apartment List rent and a direct Census income match) are
+    reported as no_data, never silently dropped."""
+    no_data: list[str] = []
+    approximated: list[str] = []
+    points: list[MarketMetricPoint] = []
+    latest_only = filters.sort_by == "value"
+    effective_start = None if latest_only else start
+
+    for metro in target_metros:
+        rent_rows, used_fallback = _fetch_rent_rows(db, metro, "overall", effective_start, end, latest_only)
+        income = _fetch_income(db, metro)
+        if not rent_rows or income is None:
+            if metros_named or not latest_only:
+                no_data.append(metro.canonical_name)
+            continue
+        if used_fallback:
+            approximated.append(metro.canonical_name)
+        for row in rent_rows:
+            ratio = (row.value * 12 / income) * 100
+            points.append(MarketMetricPoint(metro=metro.canonical_name, period=row.period, value=ratio))
+
+    if latest_only:
+        points.sort(key=lambda p: p.value, reverse=(filters.sort_order != "asc"))
+        limit = max(1, min(filters.limit or 60, 200))
+        points = points[:limit]
+
+    return points, unmatched, no_data, approximated
+
+
 def run_market_query(
     db: Session, filters: MarketQueryFilters
-) -> tuple[list[MarketMetricPoint], list[str], list[str]]:
-    """Returns (results, unmatched_metros, no_data_metros). unmatched_metros
-    are names that don't correspond to any metro we track; no_data_metros
-    are real metros with zero rows for the requested metric (e.g. asking
-    for rent in a metro Apartment List doesn't cover)."""
+) -> tuple[list[MarketMetricPoint], list[str], list[str], list[str]]:
+    """Returns (results, unmatched_metros, no_data_metros,
+    approximated_metros). unmatched_metros are names that don't correspond
+    to any metro we track; no_data_metros are real metros with zero rows
+    for the requested metric; approximated_metros are metros where a
+    median_rent (or rent_to_income_pct) request was answered using the
+    Census median_gross_rent fallback instead of real Apartment List
+    data - a real number, just a different, coarser measure, always
+    flagged rather than presented as if it were the same thing."""
 
     all_metros = list(db.execute(select(Metro)).scalars().all())
 
@@ -242,61 +357,66 @@ def run_market_query(
     start = _parse_period(filters.start_period)
     end = _parse_period(filters.end_period)
 
+    if filters.metric == MetricName.RENT_TO_INCOME_PCT:
+        if filters.sort_by == "value":
+            target = resolved if filters.metros else all_metros
+        else:
+            target = resolved
+        return _run_rent_to_income_query(db, filters, target, bool(filters.metros), start, end, unmatched)
+
     if filters.sort_by == "value":
         # Ranking mode: one point per metro at its latest available period
         # (or the latest period <= end, if given).
         target_metros = resolved if filters.metros else all_metros
         no_data: list[str] = []
+        approximated: list[str] = []
         points: list[MarketMetricPoint] = []
         for metro in target_metros:
-            stmt = select(MarketMetric).where(
-                MarketMetric.metro_id == metro.id,
-                MarketMetric.metric == filters.metric.value,
-            )
-            if filters.bed_size:
-                stmt = stmt.where(MarketMetric.bed_size == filters.bed_size)
-            if end:
-                stmt = stmt.where(MarketMetric.period <= end)
-            stmt = stmt.order_by(MarketMetric.period.desc()).limit(1)
-            row = db.execute(stmt).scalars().first()
-            if row is None:
+            if filters.metric == MetricName.MEDIAN_RENT:
+                rows, used_fallback = _fetch_rent_rows(db, metro, filters.bed_size, None, end, latest_only=True)
+            else:
+                rows = _query_metric_rows(db, metro, filters.metric.value, filters.bed_size, None, end, latest_only=True)
+                used_fallback = False
+            if not rows:
                 if filters.metros:
                     no_data.append(metro.canonical_name)
                 continue
+            if used_fallback:
+                approximated.append(metro.canonical_name)
+            row = rows[0]
             points.append(MarketMetricPoint(metro=metro.canonical_name, period=row.period, value=row.value))
 
         points.sort(key=lambda p: p.value, reverse=(filters.sort_order != "asc"))
         limit = max(1, min(filters.limit or 60, 200))
-        return points[:limit], unmatched, no_data
+        return points[:limit], unmatched, no_data, approximated
 
     # Trend mode: full time series for the named metro(s). Deliberately
     # does not fall back to "all metros" when none are named - that would
     # silently dump up to 50 time series instead of prompting for a metro.
     no_data = []
+    approximated = []
     points = []
     for metro in resolved:
-        stmt = select(MarketMetric).where(
-            MarketMetric.metro_id == metro.id,
-            MarketMetric.metric == filters.metric.value,
-        )
-        if filters.bed_size:
-            stmt = stmt.where(MarketMetric.bed_size == filters.bed_size)
-        if start:
-            stmt = stmt.where(MarketMetric.period >= start)
-        if end:
-            stmt = stmt.where(MarketMetric.period <= end)
-        stmt = stmt.order_by(MarketMetric.period.asc())
-        rows = db.execute(stmt).scalars().all()
+        if filters.metric == MetricName.MEDIAN_RENT:
+            rows, used_fallback = _fetch_rent_rows(db, metro, filters.bed_size, start, end)
+        else:
+            rows = _query_metric_rows(db, metro, filters.metric.value, filters.bed_size, start, end)
+            used_fallback = False
         if not rows:
             no_data.append(metro.canonical_name)
             continue
+        if used_fallback:
+            approximated.append(metro.canonical_name)
         points.extend(MarketMetricPoint(metro=metro.canonical_name, period=r.period, value=r.value) for r in rows)
 
-    return points, unmatched, no_data
+    return points, unmatched, no_data, approximated
 
 
 def explain_filters(
-    filters: MarketQueryFilters, unmatched_metros: list[str], no_data_metros: list[str]
+    filters: MarketQueryFilters,
+    unmatched_metros: list[str],
+    no_data_metros: list[str],
+    approximated_metros: list[str],
 ) -> str:
     """Built from the resolved filter object and query outcome, not a
     second model call - deterministic, free, and can't say something
@@ -327,6 +447,12 @@ def explain_filters(
         notes.append(
             f"No {metric_label.lower()} data available for: {', '.join(no_data_metros)} "
             "(this metro isn't covered by that data source at this granularity)."
+        )
+    if approximated_metros:
+        notes.append(
+            f"For {', '.join(approximated_metros)}, Apartment List doesn't publish rent at this "
+            "granularity - showing Census ACS median gross rent instead, a related but "
+            "methodologically different measure."
         )
     if filters.unsupported_aspects:
         notes.append(
