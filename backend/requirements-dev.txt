@@ -1,0 +1,5 @@
+# Test-only dependencies, kept separate from requirements.txt so a
+# production install (Phase 5 deployment) doesn't pull in test tooling.
+-r requirements.txt
+pytest>=8.0
+httpx>=0.27

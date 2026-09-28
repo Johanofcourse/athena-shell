@@ -6,7 +6,7 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-28 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, and Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source)
+**Last updated:** 2026-09-28 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source, and Phase 4 - engineering rigor - finally landed after seven deferrals)
 
 ## What this is being judged against
 
@@ -84,16 +84,21 @@ review holds the project to both, not just "does it run."
   finding described above - not a coincidence. Harder features surface
   more real problems, which is the point of building them before a
   portfolio review does it for you.
-- **Zero automated tests** for general code correctness. The eval set
-  tests NL-layer behavior specifically; it isn't a substitute for testing
-  the ETL, the crosswalk, or the API contracts.
-- **No auth, no deployment, no CI.** This bullet used to say "fine for
-  local development" and leave it there - that undersold it. Real user
-  accounts, multi-tenancy, and payments are a stated, co-equal pillar of
-  this project's purpose (Apollo Shell had none of this; see
-  `ROADMAP.md`'s top section and Phase 7), not a nice-to-have. Zero
-  progress on it is a real gap against the project's own stated goals,
-  not just a limitation to disclose.
+- **Automated tests now exist and run in CI** (Phase 4, closed out this
+  session after seven deferrals - see below): 60 backend pytest tests
+  (query logic, crosswalk invariants, ETL, API contracts) and 26 frontend
+  Vitest tests, both wired into GitHub Actions on every push/PR. Worth
+  saying plainly: the very first frontend test run found a real,
+  previously-unnoticed bug (a timezone issue in `analysis.ts` that named
+  the wrong month in every peak/trough callout for any US-timezone
+  viewer, live since Phase 2) - direct evidence this wasn't
+  rigor-for-its-own-sake.
+- **No auth, no deployment.** Real user accounts, multi-tenancy, and
+  payments are a stated, co-equal pillar of this project's purpose
+  (Apollo Shell had none of this; see `ROADMAP.md`'s top section and
+  Phase 7), not a nice-to-have. Zero progress on it is a real gap against
+  the project's own stated goals, not just a limitation to disclose. This
+  is now the largest remaining gap - see below.
 
 ## What actually derisked this project, in order
 
@@ -114,26 +119,31 @@ above, not any single screen.
 
 ## Biggest risk to the job goal specifically
 
-The largest single risk, and it's a pattern now, not a one-off: **engineering
-rigor (Phase 4 - tests, CI) has been deprioritized behind every single
-other thing for the entire project so far** - real data, the NL layer, the
-visual redesign, three more features, and now a third data source. Each
-individual deferral was defensible. Seven in a row is worth naming as a
-pattern rather than re-litigating each time: at some point "there's always
-something more valuable to build first" stops being a sequencing decision
-and starts being the actual answer to "why no tests." An interviewer will
-notice the pattern, not just the current excuse. This update is not an
-exception to that pattern - it's another instance of it, and it should be
-named as one rather than quietly extending the streak.
+**Phase 4 is closed out** (this update) - the pattern named here across
+the last seven updates (engineering rigor deprioritized behind every new
+feature) finally broke. Worth being just as honest about the resolution
+as the previous versions of this document were about the pattern: it took
+seven deferrals and an explicit ask from Johan ("I like tests... so what
+is phase 4 exactly?") to get here, not proactive prioritization. That's
+still worth naming, not smoothing over.
+
+The risk that replaces it: **Phase 7 (real user accounts, multi-tenancy,
+payments) has zero progress**, and it's a stated co-equal pillar of this
+project's purpose, not an optional add-on - the whole point of choosing
+this over Apollo Shell again was to demonstrate real SaaS patterns Apollo
+Shell never had. Six things have now shipped ahead of it (real data, the
+NL layer, the visual redesign, three feature rounds, a third data source,
+and now Phase 4) with legitimate reasons each time - but the same
+pattern-recognition problem applies here as it did to testing: at some
+point the reasons for going elsewhere first stop being sequencing
+decisions and start being the actual answer to "why no accounts."
 
 ## Recommendation
 
-Phase 4 needs to actually happen next, not be deferred an eighth time for
-the next feature idea that comes up. The counter-argument ("one more
-feature is more impressive") is exactly the reasoning that produced the
-pattern above - and it's a weaker argument now than it's ever been, given
-how much real AI-layer work already exists to point to. The eval set is
-carrying real weight it wasn't designed for (it caught the Anaheim
-fallback distinction correctly this session, for what it's worth) but it
-tests NL-layer behavior, not the ETL/crosswalk/ingest code that just grew
-by roughly 150 lines with zero unit tests behind it.
+Phase 7 should be the next thing seriously scoped, before another feature
+round extends the same pattern that just took seven updates to break on
+the testing side. Not necessarily built immediately - the roadmap's own
+Phase 5 (deployment) arguably needs to exist first, since real payments
+without a deployed target is a strange order of operations - but at least
+scoped and sequenced deliberately, rather than deferred by default the
+way tests were.

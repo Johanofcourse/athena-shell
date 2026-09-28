@@ -247,12 +247,50 @@ metro** instead - a genuine scope change ("any address's history" becomes
 - [ ] Re-verify Zillow Research / HUD FMR via a real browser - low
       priority, not blocking anything.
 
-## Phase 4 — Engineering rigor
-- [ ] Automated backend tests (data model, ETL, API contracts) - distinct
-      from the eval set, which tests NL-layer behavior, not general code
-      correctness.
-- [ ] Frontend component tests
-- [ ] CI: run the suite (and the eval set) on every push
+## Phase 4 — Engineering rigor (done, 2026-09-28)
+Deferred seven times before this (see `PRODUCT_REVIEW.md`) - done now, not
+an eighth deferral.
+- [x] **Backend test suite** (`backend/tests/`, pytest, 60 tests, 0.68s,
+      zero external API calls): `test_query_logic.py` covers the
+      deterministic pieces of `nl_query.py` the eval suite only exercises
+      *indirectly* through whatever filters DeepSeek happens to produce -
+      the median_rent fallback, the rent_to_income_pct math (checked
+      against exact values), `explain_filters`' text for every honesty
+      behavior. `test_crosswalk.py` checks structural invariants on
+      `market_crosswalk.py` (unique ids/names, the rent-gap and
+      income-gap sets are identical). `test_ingest.py` runs the ETL
+      functions against tiny fixture CSVs, including a regression fixture
+      for the real " Metro Area" suffix bug found earlier. `test_api.py`
+      hits `/metros`, `/metros/{id}/series`, `/query/feedback` through
+      FastAPI's TestClient against a synthetic fixture db - never the
+      real `athena.db`. `POST /query` itself is deliberately excluded -
+      that's the eval suite's job, since it needs a live DeepSeek call.
+- [x] **Frontend test suite** (Vitest + React Testing Library, 26 tests):
+      `format.ts` and `analysis.ts` (pure functions) plus component tests
+      for `MetroGrid` (badge logic), `InterpretationPanel` (the
+      transparency panel's actual rendered output), and `QueryResults`'
+      empty-state path. Chart rendering (Recharts) is intentionally left
+      to the existing real-browser Playwright checks - jsdom doesn't
+      implement the layout/ResizeObserver behavior Recharts needs.
+- [x] **Real bug found immediately, not a metaphor for why testing
+      matters:** the very first frontend test run caught a genuine
+      timezone bug in `analysis.ts`. Period strings like `"2024-02-01"`
+      parse as UTC midnight; the peak/trough month formatter rendered in
+      the browser's *local* timezone with no `timeZone` pin, which for
+      anyone west of UTC (all of the US) pushes the 1st of the month back
+      into the previous day - every "peaked in Feb 2024" callout was
+      silently naming the wrong month. Fixed by pinning the formatter to
+      `timeZone: "UTC"`. This had been live and unnoticed since the
+      result-analysis feature shipped in Phase 2.
+- [x] **CI** (`.github/workflows/ci.yml`, GitHub Actions): pytest and the
+      frontend suite + `tsc -b` run on every push to `main` and every PR.
+      Deliberately does **not** include the DeepSeek-backed eval suite -
+      that costs real API money per run, and Johan wants the project in
+      "demo mode" (near-zero ongoing cost) while applying for jobs. The
+      eval suite instead runs manually, about twice a week, per his
+      explicit instruction - a deviation from this phase's original plan
+      ("run the eval set on every push"), made deliberately, not by
+      default.
 
 ## Phase 5 — Deployment
 - [ ] Pick a host, wire real CD (auto-deploy on merge to main)

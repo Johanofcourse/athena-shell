@@ -1,7 +1,13 @@
 import { formatMetricValue } from "./format";
 import type { MarketMetricPoint, MetricName } from "./types";
 
-const monthYearFormatter = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" });
+// timeZone: "UTC" is load-bearing, not decorative: period strings are
+// date-only ("2024-02-01"), which `new Date()` parses as UTC midnight.
+// Without pinning the formatter to UTC too, anyone west of UTC (all of
+// the US) sees that rendered in their local timezone - which pushes the
+// 1st of the month back into the previous day, so every peak/trough
+// callout silently named the wrong month. Caught by a test, not by eye.
+const monthYearFormatter = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
 
 /** Deterministic, computed straight from the returned data - not a second
  * LLM call, so it can never claim something the numbers don't back up. */
