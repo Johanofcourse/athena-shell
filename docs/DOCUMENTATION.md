@@ -301,13 +301,43 @@ python -m app.ingest_market_data   # loads data/samples/*.csv into athena.db
 
 There's no synthetic-data seed script anymore - real data replaced it.
 
+## Testing
+
+Two distinct layers, deliberately not merged into one suite:
+
+- **`backend/tests/`** (pytest, `cd backend && pytest`) - general code
+  correctness: the deterministic parts of `nl_query.py` (the median_rent
+  fallback, `rent_to_income_pct` math, `explain_filters`' text),
+  structural invariants on `market_crosswalk.py`, the ETL functions in
+  `ingest_market_data.py` against tiny fixture CSVs, and API contract
+  tests via FastAPI's `TestClient`. Everything runs against a synthetic
+  fixture database (fake metros - Testville, Gapford, Emptyburg - never
+  the real `athena.db`), takes well under a second, and needs no
+  DeepSeek key. `POST /query` itself is out of scope here - it needs a
+  live LLM call, which is what the eval suite is for.
+- **`frontend/` tests** (Vitest + React Testing Library,
+  `cd frontend && npm run test`) - `format.ts` and `analysis.ts` as pure
+  functions, plus component tests for `MetroGrid`, `InterpretationPanel`,
+  and `QueryResults`' empty-state path. Chart rendering (Recharts) is
+  intentionally left to real-browser verification (Playwright) rather
+  than jsdom, which doesn't implement the layout/`ResizeObserver`
+  behavior Recharts needs to size itself.
+- **`backend/evals/`** (the NL-layer eval suite) is a third, separate
+  thing - see the NL query layer section above. It costs real DeepSeek
+  API usage per run, so it's run manually (about twice a week) rather
+  than wired into CI.
+
+**CI** (`.github/workflows/ci.yml`): the pytest and Vitest suites plus
+`tsc -b` run on every push to `main` and every PR - all free, no live
+keys required. The eval suite is deliberately excluded from CI for the
+cost reason above.
+
 ## Current limitations
 
-- No automated test suite (backend or frontend) - the eval set tests the
-  NL layer specifically, not general code correctness.
 - No auth - every endpoint is open. Fine for a local portfolio demo, not
   for anything deployed publicly as-is.
-- No deployment/CI pipeline configured yet.
+- No deployment pipeline configured yet (CI exists; CD doesn't - see
+  `ROADMAP.md` Phase 5).
 - Census `S0801` (commute time) not pulled - the `api.census.gov` API key
   signup issue is unresolved, and this wasn't pursued further via manual
   table-browser downloads this round. See `ROADMAP.md` Phase 3.
