@@ -110,7 +110,55 @@ repeatability check coming back stable does not contradict the
 metric-choice variance observed earlier by hand (two separate manual
 tests picked different metrics for the same ranking question) - 5 samples
 simply didn't reproduce it. A perfect score is a reason to write harder
-cases, not a finish line.
+cases, not a finish line. Current count is 27 cases (26 plus a permanent
+regression test, see below), last run 26/27 - the failure is a real,
+documented, low-severity finding, not a stale number left unupdated.
+
+### Multi-turn conversation
+
+There's no server-side session store - the client holds conversation
+state and resends it. `QueryRequest.history` is a list of up to 5 prior
+`{query, filters}` turns (`ConversationTurn`). `interpret_query()` replays
+each one as a real `user` message, a synthetic `assistant` message
+carrying the tool_call `filters` as its arguments, and a `tool` message
+acknowledging it - OpenAI-compatible chat format requires that shape
+(a tool_calls message must be followed by a matching tool message before
+the next turn). This isn't a paraphrase of history fed to the model as
+text; it's the same structure a real multi-turn tool-calling conversation
+would have.
+
+Verified against the live API: a follow-up ("what about Denver?") that
+depends entirely on prior context correctly carries the metric forward
+and swaps the metro; a later follow-up in the same conversation correctly
+overrides the metric while keeping the metro - so it's using context, not
+just repeating the first answer.
+
+**Real bug found while verifying this, not before:** `bed_size` (only
+meaningful for `median_rent`) could carry over from a rent question into
+a follow-up about an unrelated metric. Every non-rent metric is stored
+with `bed_size=NULL`, so filtering on a stale `"overall"` value silently
+returned zero rows - the `no_data_metros` honesty path firing for the
+wrong reason (a real bug dressed as correct behavior). Fixed with
+`_sanitize_filters()` in `nl_query.py`: a deterministic post-processing
+step that clears `bed_size` whenever the metric isn't `median_rent`,
+regardless of what the model produced. A prompt-wording fix was
+considered and rejected - it wouldn't guarantee the behavior the way a
+code-level check does. Added as a permanent case in the eval set
+(`regression_stale_bed_size_across_metric_switch`) so it can't silently
+regress.
+
+### Transparency panel and feedback loop (`frontend/src/components/`)
+
+`InterpretationPanel` renders the exact `MarketQueryFilters` object
+returned by `/query` - not a paraphrase, the real resolved arguments.
+The API already returned this; the panel is where it becomes visible
+instead of just being true in principle.
+
+`FeedbackWidget` posts `{query, filters, rating}` to `POST
+/query/feedback`, stored in `QueryFeedback` (query text + filters as JSON
++ rating + timestamp). No admin UI yet - review it with a direct query
+against the table. This is meant to be the raw material for growing the
+eval set from real usage over time, not just hand-written cases.
 
 ### Guardrails / abuse prevention
 
@@ -186,7 +234,8 @@ second LLM call, so it can never claim something the data doesn't back up.
 | GET | `/health` | Liveness check |
 | GET | `/metros` | All tracked metros, with sale/rent data availability flags |
 | GET | `/metros/{id}/series?metric=&bed_size=` | Raw time series for one metro/metric, for direct charting |
-| POST | `/query` | `{"query": "<natural language>"}` -> `{filters, explanation, unmatched_metros, no_data_metros, results}` |
+| POST | `/query` | `{"query": "<natural language>", "history": [{"query", "filters"}, ...]}` -> `{filters, explanation, unmatched_metros, no_data_metros, results}`. `history` is optional, max 5 turns. |
+| POST | `/query/feedback` | `{"query", "filters", "rating": "up"\|"down"}` -> 204. Logged to `QueryFeedback` for eval growth. |
 
 Full request/response schemas: `backend/app/schemas.py`, or run the backend
 and check `/docs` (FastAPI's auto-generated Swagger UI).

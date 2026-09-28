@@ -51,3 +51,8 @@ export interface MarketQueryResponse {
   no_data_metros: string[];
   results: MarketMetricPoint[];
 }
+
+export interface ConversationTurn {
+  query: string;
+  filters: MarketQueryFilters;
+}

@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { fetchMetros, runQuery } from "./api";
+import { ConversationHistory } from "./components/ConversationHistory";
 import { MetroDetailPanel } from "./components/MetroDetailPanel";
 import { MetroGrid } from "./components/MetroGrid";
 import { QueryResults } from "./components/QueryResults";
 import { SearchBar } from "./components/SearchBar";
-import type { MarketQueryResponse, Metro } from "./types";
+import type { ConversationTurn, MarketQueryResponse, Metro } from "./types";
+
+const MAX_HISTORY_TURNS = 5;
 
 export default function App() {
   const [metros, setMetros] = useState<Metro[]>([]);
   const [queryResponse, setQueryResponse] = useState<MarketQueryResponse | null>(null);
+  const [lastQuery, setLastQuery] = useState("");
+  const [history, setHistory] = useState<ConversationTurn[]>([]);
+  const [queryId, setQueryId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedMetro, setSelectedMetro] = useState<Metro | null>(null);
@@ -23,8 +29,11 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await runQuery(query);
+      const response = await runQuery(query, history);
       setQueryResponse(response);
+      setLastQuery(query);
+      setQueryId((id) => id + 1);
+      setHistory((prev) => [...prev, { query, filters: response.filters }].slice(-MAX_HISTORY_TURNS));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
     } finally {
@@ -35,6 +44,7 @@ export default function App() {
   function handleReset() {
     setQueryResponse(null);
     setError(null);
+    setHistory([]);
   }
 
   return (
@@ -55,7 +65,8 @@ export default function App() {
           <button className="back-link" onClick={handleReset}>
             ← Back to browse
           </button>
-          <QueryResults response={queryResponse} />
+          <ConversationHistory history={history.slice(0, -1)} />
+          <QueryResults key={queryId} response={queryResponse} query={lastQuery} />
         </>
       ) : (
         <>

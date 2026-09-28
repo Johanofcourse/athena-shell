@@ -14,6 +14,12 @@ docs/PRODUCT_REVIEW.md's recommendation not to treat a static perfect
 score as a finish line. These probe: off-topic input, a prompt-injection
 attempt, a typo the fuzzy matcher may not handle, a genuinely ambiguous
 query, a self-contradictory one, weird casing, and a relative time range.
+
+The final case is a regression test for a real bug found while building
+multi-turn conversation support (not by this suite) - see its comment.
+Cases can carry an optional "history" list of prior query strings, each
+interpreted in sequence to build real conversation context before the
+final query is checked.
 """
 
 CASES = [
@@ -198,5 +204,23 @@ CASES = [
         "query": "Compare price drops in Austin and Denver, and also tell me about school ratings and crime stats there.",
         "expect_metros_contains": ["austin", "denver"],
         "expect_unsupported_nonempty": True,
+    },
+    # --- Regression case: caught by hand while building multi-turn, not by
+    # this eval suite. Added so it can't silently come back. ---
+    {
+        "id": "regression_stale_bed_size_across_metric_switch",
+        # bed_size is only meaningful for median_rent. A real bug: asking a
+        # rent question (which sets bed_size), then switching metric to
+        # something bed_size doesn't apply to, could leave a stale
+        # bed_size value that zeroes out real results (every non-rent
+        # metric is stored with bed_size=NULL, so filtering on a leftover
+        # "overall" finds nothing). Fixed with a deterministic sanitize
+        # step in interpret_query - this case guards against it silently
+        # regressing if that guardrail is ever removed or bypassed.
+        "history": ["how has rent changed in Denver"],
+        "query": "and what's the vacancy rate there?",
+        "expect_metric": ["vacancy_rate"],
+        "expect_metros_contains": ["denver"],
+        "expect_bed_size": None,
     },
 ]

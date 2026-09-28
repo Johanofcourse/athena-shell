@@ -351,3 +351,101 @@ header h1 {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+.interpretation-panel {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.interpretation-panel summary {
+  padding: 10px 14px;
+  cursor: pointer;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.interpretation-panel summary:hover {
+  color: var(--accent);
+}
+
+.interpretation-panel dl {
+  margin: 0;
+  padding: 0 14px 14px;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+}
+
+.interpretation-row {
+  display: contents;
+}
+
+.interpretation-row dt {
+  color: var(--text-muted);
+}
+
+.interpretation-row dd {
+  margin: 0;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.feedback-widget {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.feedback-widget button {
+  padding: 5px 12px;
+  border-radius: 0;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.feedback-widget button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.feedback-widget button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.feedback-sent {
+  color: var(--success);
+}
+
+.feedback-error {
+  color: var(--danger);
+}
+
+.conversation-history {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.conversation-history li {
+  padding: 8px 12px;
+  border-left: 2px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
