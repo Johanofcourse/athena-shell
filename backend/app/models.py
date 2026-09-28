@@ -1,7 +1,7 @@
 import enum
-from datetime import date
+from datetime import date, datetime
 
-from sqlalchemy import Date, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import JSON, Date, DateTime, Enum, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -72,3 +72,25 @@ class QueryUsage(Base):
     ip: Mapped[str] = mapped_column(String, primary_key=True)
     date: Mapped[date] = mapped_column(Date, primary_key=True)
     count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class FeedbackRating(str, enum.Enum):
+    UP = "up"
+    DOWN = "down"
+
+
+class QueryFeedback(Base):
+    """One user rating on one query's interpretation - the raw material
+    for turning real production usage into eval growth over time, per the
+    ROADMAP goal. Stores the natural-language query and the exact
+    resolved filters (not just a foreign key to a request we don't
+    otherwise persist), so a later review pass can see both the question
+    and what the model did with it without needing anything else."""
+
+    __tablename__ = "query_feedback"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    query: Mapped[str] = mapped_column(String, nullable=False)
+    filters: Mapped[dict] = mapped_column(JSON, nullable=False)
+    rating: Mapped[FeedbackRating] = mapped_column(Enum(FeedbackRating), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)

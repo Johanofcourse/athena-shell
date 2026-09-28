@@ -75,8 +75,21 @@ class MarketQueryFilters(BaseModel):
     )
 
 
+class ConversationTurn(BaseModel):
+    """One prior turn, as sent back by the client. The client is the only
+    place conversation state lives - there's no server-side session store -
+    so it resends the turns it wants remembered on every request."""
+
+    query: str = Field(min_length=1, max_length=300)
+    filters: MarketQueryFilters
+
+
 class QueryRequest(BaseModel):
     query: str = Field(min_length=1, max_length=300)
+    history: list[ConversationTurn] = Field(
+        default_factory=list,
+        max_length=5,  # bounds how much context (and DeepSeek cost) one request can carry
+    )
 
 
 class MarketQueryResponse(BaseModel):
@@ -85,3 +98,15 @@ class MarketQueryResponse(BaseModel):
     unmatched_metros: list[str]
     no_data_metros: list[str]
     results: list[MarketMetricPoint]
+
+
+class FeedbackRequest(BaseModel):
+    """The frontend resends the original query and the exact filters it
+    was shown, rather than referencing a stored request by ID - there's
+    no session/request store to reference, and this keeps feedback
+    self-contained: the row alone tells a later reviewer everything
+    needed to judge whether the rating was fair."""
+
+    query: str = Field(min_length=1, max_length=300)
+    filters: MarketQueryFilters
+    rating: str = Field(pattern="^(up|down)$")

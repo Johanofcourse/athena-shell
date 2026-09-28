@@ -77,6 +77,48 @@ probed hardest in an interview.
       first attempt is at least as likely to mean the cases weren't hard
       enough as it is to mean genuine robustness. See
       `PRODUCT_REVIEW.md` for what harder testing would look like next.
+- [x] **Three AI-capability extensions**, all verified live, not just
+      built: (1) a transparency panel showing the exact resolved
+      `MarketQueryFilters` DeepSeek produced - the tool-calling
+      architecture always made this auditable in principle, this is where
+      it becomes visible; (2) a thumbs up/down feedback widget logging
+      `{query, filters, rating}` to a new `QueryFeedback` table - real
+      material for growing the eval set from production usage rather than
+      only hand-written cases; (3) multi-turn conversation support -
+      prior turns are replayed as real user/assistant/tool messages
+      (OpenAI-compatible format), verified to both carry context forward
+      ("what about Denver?" correctly keeps the prior metric) and
+      override it when asked (a follow-up correctly swaps the metric
+      while keeping the metro).
+    - **Real bug found while verifying multi-turn, not before:**
+      `bed_size` (only meaningful for `median_rent`) could get carried
+      over from a rent question into a follow-up about an unrelated
+      metric, silently zeroing out real results (every non-rent metric is
+      stored with `bed_size=NULL`, so filtering on a stale "overall"
+      value finds nothing) - the exact "no_data" honesty path firing for
+      the wrong reason. Fixed with a deterministic sanitize step in
+      `interpret_query()` (not a prompt-wording fix, which wouldn't
+      guarantee it every time) and added as a permanent regression case
+      in the eval set.
+    - **Re-running the full eval after this work found a second, real,
+      independent issue**: `adversarial_off_topic` failed on that run
+      (26/27) - re-tested 10x afterward and it recurred roughly 1-in-6
+      times. When it happens, `unsupported_aspects` comes back empty
+      instead of flagging the request - but the model still never
+      fabricates data (metros stays empty, metric defaults to something
+      inert), so it falls through to the existing "no metro specified"
+      message rather than anything misleading. Low severity, real, and
+      exactly the kind of thing this eval exists to keep finding.
+    - **Fixed the same day, not left open**: strengthened `SYSTEM_PROMPT`
+      to explicitly require `unsupported_aspects` to describe the request
+      even when the *entire* question is off-topic, not just leave it
+      empty. Re-tested 10/10 clean afterward (up from ~5/6). Full suite
+      re-run: **27/27 cases, 62/62 checks** - and the repeatability check
+      on the *same run* reproduced the metric-choice variance seen only
+      by hand before now (2 different metrics across 5 runs, vs. 5/5
+      stable the run before) - real, recurring, non-determinism, not a
+      one-off anecdote, and not something a prompt fix should be expected
+      to eliminate the way the bed_size fix structurally did.
 
 ## Phase 2 — Visual redesign (done)
 - [x] Replaced the generic/flat UI with the industrial, hazard-signage
@@ -112,7 +154,7 @@ metro** instead - a genuine scope change ("any address's history" becomes
 |---|---|---|
 | Redfin Data Center | **In production** | Price Drops, Home Delistings & Relistings, Housing Market Tracker. Metro-level, top 50 metros, monthly, Jan 2012 - Aug 2026 (176 months). Downloads page is bot-gated for automation (403, confirmed via headless browser) but works in a real browser. |
 | Apartment List | **In production (rent side)** | Rent Estimates (split by bed size), Vacancy Index, Time on Market. Jan 2017/2019 - Aug 2026. Pulled as direct CDN links, no bot-gate. Metro naming doesn't match Redfin's, and isn't even consistent across Apartment List's own files (one file suffixes " Metro Area", others don't) - see the crosswalk bug below. |
-| Census ACS (`api.census.gov`) | **Pending - free key, signup issues** | Two signup attempts: validation email either didn't arrive or the one-time link was already invalid by the time it was clicked. Not blocking anything - Apartment List already covers the rent-trend need. Would add an independent, annually-updated benchmark (different methodology: surveys *all* current renters, not just new-lease asking prices - a real, useful distinction, not a duplicate). |
+| Census ACS | **In production (income), commute time in progress** | The `api.census.gov` API key signup never worked (multiple attempts, two different emails, validation link consistently broken/unreceived - a known, documented issue with institutional email scanners rewriting the one-time link). **Worked around entirely** by using `data.census.gov`'s own table browser to download CSVs directly - no API key needed at all, same "manual browser download" pattern that worked for Redfin/Apartment List. Table `B19013` (median household income), 2024, all US+PR metro areas, both 1-Year and 5-Year estimates - spot-checked (Austin ~$100k, Denver ~$105-108k, both plausible and internally consistent between the two estimate types). Table `S0801` (commuting characteristics, mean travel time to work) in progress the same way. |
 | Zillow Research (ZHVI/ZORI) | **Deprioritized** | 403 on every attempt (3 tries). Apartment List covers the same need. |
 | HUD Fair Market Rents | **Unverified, low priority** | Annual cadence, same "benchmark not trend" role as Census. |
 
@@ -153,7 +195,28 @@ metro** instead - a genuine scope change ("any address's history" becomes
   anything, not by assuming the first odd screenshot was real.
 
 ### Still open
-- [ ] Census ACS integration once a key exists.
+- [ ] **Census needs a third crosswalk entry.** Redfin says "Austin, TX
+      metro area", Apartment List says "Austin-Round Rock-Georgetown, TX",
+      Census says "Austin-Round Rock-San Marcos, TX Metro Area" - three
+      different naming conventions for the same metro, now confirmed
+      across all three sources. Worse than the Redfin/Apartment List case:
+      Census's names can also drift *within the same source* across time,
+      because the federal government periodically redraws and renames
+      official metro-area (CBSA) boundaries - e.g. Apartment List's
+      crosswalk entry has Denver as "Denver-Aurora-Lakewood, CO", but
+      Census's 2024 data calls the same metro "Denver-Aurora-Centennial,
+      CO". This isn't a formatting inconsistency to normalize away, it's
+      a real "which vintage of the official boundary are we matching
+      against" question - `market_crosswalk.py` will need a `census_name`
+      column and manual review the same way the first crosswalk did, not
+      an automated string match.
+- [ ] Census ACS data is **wide-format** (one column pair per metro, like
+      Apartment List), needs the same melt-to-long-format treatment in
+      the ETL as `ingest_market_data.py` already does for Apartment List.
+- [ ] Once `B19013` (median household income) and `S0801` (commute time)
+      are both in hand: extend the crosswalk, extend `MarketMetric` with
+      `median_household_income` and `mean_commute_minutes`, and build the
+      rent-to-income ratio feature this was actually for.
 - [ ] Re-verify Zillow Research / HUD FMR via a real browser - low
       priority, not blocking anything.
 

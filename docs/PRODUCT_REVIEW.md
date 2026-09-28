@@ -6,7 +6,7 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-27 (full cutover to real data + verified NL layer + adversarial eval pass)
+**Last updated:** 2026-09-28 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, and the eval caught a second real issue on re-run)
 
 ## What this is being judged against
 
@@ -36,30 +36,43 @@ review holds the project to both, not just "does it run."
   metro name is surfaced, not swallowed (`unmatched_metros`). All three
   exist because manual testing found the failure mode first - not because
   they were anticipated up front.
-- **Eval set, now stress-tested, still 100%.** Expanded from 18 to 26
-  cases specifically to try to break it: an off-topic request, a
-  prompt-injection attempt, a typo, a self-contradictory ranking question,
-  weird casing, a relative time range. All 26 passed. Read this
-  carefully, not proudly: passing everything thrown at it could mean
-  genuine robustness, or it could mean the adversarial cases weren't hard
-  enough - given they all passed on the first attempt, the honest lean is
-  toward the latter, not "case closed." One nuance worth keeping: the
-  typo case passing is likely DeepSeek normalizing "Astin" -> "Austin"
-  before our matcher (plain substring matching, not fuzzy) ever sees it -
-  robustness from the LLM layer, not the code. A separate repeatability
-  check (same ranking question, 5 runs) came back fully stable this time
-  - that does **not** contradict the metric-choice variance observed
-  earlier by hand (two different manual tests picked different metrics
-  for the same question); it just means 5 samples didn't reproduce it.
-  Non-determinism that shows up occasionally doesn't show up in every
-  small sample, and a clean 5/5 isn't proof it's gone.
-- **Frontend** - fully rewired to the real data (metro browser, trend
-  charts, ranking charts), verified in an actual browser (not just typed
-  correctly) - zero console errors across the query flow. Still visually
-  generic: rounded cards, blue accent, centered layout. This directly
-  contradicts the project's own stated design bar (`PREFERENCES.md`), and
-  hasn't moved since it was first flagged - it's been correctly
-  deprioritized behind the data/AI work each time, but it's still true.
+- **Eval set: 27 cases now, and it just proved its own point.** Expanded
+  to 26 to try to break the first 100% (off-topic, prompt-injection, typo,
+  self-contradiction, casing, relative time) - all 26 passed, and this
+  review said plainly that a clean first pass was weak evidence, more
+  likely to mean the cases weren't hard enough than that the system was
+  robust. Building multi-turn support proved that literally: it surfaced
+  a real bug (see below), and re-running the *same 26 cases* afterward
+  produced a genuinely different result - `adversarial_off_topic` failed
+  this time, then reproduced roughly 1-in-6 on repeated runs. Same test,
+  different outcome, because the underlying behavior is probabilistic.
+  That's not a regression to be alarmed by; it's the eval doing exactly
+  what it's for. Fixed the same day: strengthened the system prompt to
+  require `unsupported_aspects` even for fully off-topic questions,
+  re-tested 10/10 clean (up from ~5/6), full suite now **27/27, 62/62**.
+  The repeatability check on that same run reproduced the metric-choice
+  variance previously seen only by hand - real and recurring, and a
+  prompt fix wouldn't be expected to eliminate that the way the bed_size
+  fix structurally did (that one was a code-level guardrail; this one is
+  inherently the model's judgment call).
+- **Frontend** - redesigned (industrial/hazard-signage direction, per
+  `PREFERENCES.md`) and verified in a real browser at every step, not
+  just typed correctly - a genuine readability bug (overlapping chart date
+  labels) and a genuine UX gap (no way back from results to the metro
+  grid) were both caught this way, not by assumption. This was the
+  standing risk this document flagged repeatedly ("deprioritized again");
+  it's resolved now, which matters as much as the fix itself given how
+  many times it got pushed.
+- **Three AI-capability extensions, all verified live**: a transparency
+  panel exposing the exact tool-call arguments DeepSeek produced (the
+  audit story this whole architecture was built around, made visible
+  instead of just true in principle); a feedback widget logging real
+  usage toward future eval growth; and multi-turn conversation support,
+  confirmed to both carry context forward and correctly override it when
+  asked. Building the third one is what found the bug and the eval
+  finding described above - not a coincidence. Harder features surface
+  more real problems, which is the point of building them before a
+  portfolio review does it for you.
 - **Zero automated tests** for general code correctness. The eval set
   tests NL-layer behavior specifically; it isn't a substitute for testing
   the ETL, the crosswalk, or the API contracts.
@@ -90,25 +103,20 @@ above, not any single screen.
 
 ## Biggest risk to the job goal specifically
 
-Twenty-six hand-written cases that all pass, including the adversarial
-ones, is still not proof of reliability - it's evidence that these
-particular 26 attempts didn't find a failure. An interviewer who asks "how
-do you know it's reliable" deserves "here's what I tried to break it with,
-here's what I'd try next" as an answer, not a static perfect score
-presented as a conclusion. The honest next step if this gets picked back
-up is harder still: many more repeatability runs (5 wasn't enough to
-resurface the variance already seen once by hand), and inputs that are
-actually malformed rather than just adversarially phrased (empty-ish
-strings, near the 300-char limit, non-English input).
-
-Second risk, unchanged for a while now: the visual design still
-contradicts the project's own stated bar. It kept getting correctly
-deprioritized behind this work - that's now done, so this is next.
+The largest single risk, and it's a pattern now, not a one-off: **engineering
+rigor (Phase 4 - tests, CI) has been deprioritized behind every single
+other thing for the entire project so far** - real data, the NL layer, the
+visual redesign, three more features. Each individual deferral was
+defensible. Six in a row is worth naming as a pattern rather than
+re-litigating each time: at some point "there's always something more
+valuable to build first" stops being a sequencing decision and starts
+being the actual answer to "why no tests." An interviewer will notice the
+pattern, not just the current excuse.
 
 ## Recommendation
 
-The eval work has hit a reasonable stopping point for now: it's been
-stress-tested once, honestly, and documented as "no failure found yet,"
-not "solved." Move to the visual redesign next - it's been correctly
-deferred multiple times, and there's no more data/AI-layer work left to
-justify deferring it again right now.
+Phase 4 needs to actually happen next, not be deferred a seventh time for
+the next feature idea that comes up. The counter-argument ("one more
+feature is more impressive") is exactly the reasoning that produced the
+pattern above - and it's a weaker argument now than it's ever been, given
+how much real AI-layer work already exists to point to.

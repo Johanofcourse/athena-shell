@@ -8,6 +8,7 @@ Costs real (small) DeepSeek API usage - 18 queries at deepseek-flash rates.
 
 from app.database import SessionLocal
 from app.nl_query import interpret_query, run_market_query
+from app.schemas import ConversationTurn
 from evals.cases import CASES
 
 
@@ -15,7 +16,14 @@ def check_case(db, case: dict) -> tuple[list[str], list[str]]:
     """Returns (passed_checks, failed_checks) as human-readable strings."""
     passed, failed = [], []
 
-    filters = interpret_query(case["query"])
+    # Multi-turn cases give a list of prior query strings under "history" -
+    # each is interpreted in sequence to build real ConversationTurns,
+    # exactly as the frontend would, before checking the final query.
+    history: list[ConversationTurn] = []
+    for prior_query in case.get("history", []):
+        history.append(ConversationTurn(query=prior_query, filters=interpret_query(prior_query, history)))
+
+    filters = interpret_query(case["query"], history)
 
     if "expect_metric" in case:
         ok = filters.metric.value in case["expect_metric"]
