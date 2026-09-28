@@ -1,9 +1,27 @@
 # Roadmap
 
 Athena Shell has two goals that both need to hold up: a genuinely useful
-market-trend tool, and a portfolio piece that demonstrates forward-deployed
-AI engineering skill. Phases below are ordered by what actually derisks
-those goals, not by what's easiest to build next.
+market-trend tool, and a portfolio piece. The portfolio goal rests on
+three deliberate pillars (stated explicitly 2026-09-27), each chosen
+because Apollo Shell (the prior project) didn't cover it:
+
+1. **React + TypeScript frontend** - Apollo Shell was Flask/Jinja,
+   server-rendered, no modern frontend framework at all.
+2. **Real LLM/AI integration, done properly** - structured tool-calling
+   over real data, not a bolted-on chatbot. The "forward-deployed AI
+   engineer" angle. See Phase 1.
+3. **Real user accounts + payments** - Apollo Shell has zero auth, zero
+   multi-user support, zero billing. Meant to demonstrate real SaaS
+   patterns (auth, multi-tenancy, billing), not a minimal login gate.
+   Foreshadowed in `PREFERENCES.md` ("real payment/auth credentials are
+   coming") but not scoped as its own phase until now - see Phase 7.
+   **This was previously tracked as an accepted "no auth" limitation in
+   `PRODUCT_REVIEW.md`; that undersold it. It's a co-equal pillar, not a
+   nice-to-have, and shouldn't be left deprioritized indefinitely the way
+   the visual redesign was for a while.**
+
+Phases below are ordered by what actually derisks these goals, not by
+what's easiest to build next.
 
 ## Phase 0 — Scaffold (done, PR #1)
 Originally built against a synthetic per-listing dataset (`Listing` +
@@ -21,6 +39,16 @@ probed hardest in an interview.
       returns `429`). Still open: no auth, no spend cap on the DeepSeek
       key itself (must be set in DeepSeek's own dashboard). See
       `DOCUMENTATION.md` -> Guardrails.
+- [x] **Persistent free-tier quota** (10 queries/IP/UTC day, `QueryUsage`
+      table): the burst limiter above resets every minute and doesn't cap
+      overall usage - this does. Checked before the paid DeepSeek call, so
+      a rejected request costs nothing. Honest rejection message (no
+      subscription mentioned, since none exists yet) rather than a fake
+      paywall pointing at a Phase 7 feature that isn't built - this table
+      is meant to be the actual foundation Phase 7 builds tier enforcement
+      on top of later. Verified at the real boundary against the live
+      endpoint: 10th call succeeds, 11th returns 429 without reaching
+      DeepSeek.
 - [x] Wire a real `DEEPSEEK_API_KEY` and run `/query` end to end. Two real
       fixes needed, not a clean first try: a stale model name
       (`deepseek-chat` -> `deepseek-flash`), and `deepseek-flash`'s
@@ -39,18 +67,33 @@ probed hardest in an interview.
 - [x] Build a real eval set: 18 cases in `backend/evals/`, covering every
       metric category, both query modes (trend/ranking), and all three
       honesty behaviors above. Run with `python -m evals.run_eval`.
-      Current result: **18/18 cases, 44/44 checks** - read carefully in
-      `DOCUMENTATION.md`, not as a finish line. It means the eval hasn't
-      found a failure yet; it doesn't mean there isn't one. Known gaps:
-      no adversarial-input cases, doesn't probe the metric-choice
-      non-determinism observed by hand (same ranking question picked a
-      different, still-defensible metric on different runs).
+- [x] **Stress-tested it**, deliberately trying to break the 18/18 rather
+      than treat it as done: expanded to 26 cases (off-topic input, a
+      prompt-injection attempt, a typo, a self-contradictory ranking
+      question, weird casing, a relative time range) plus a repeatability
+      check (same ambiguous query, 5 runs). Result: **26/26 cases, 59/59
+      checks, 5/5 repeatability**. Read this as "didn't find a failure
+      this round," not "solved" - passing every adversarial case on the
+      first attempt is at least as likely to mean the cases weren't hard
+      enough as it is to mean genuine robustness. See
+      `PRODUCT_REVIEW.md` for what harder testing would look like next.
 
-## Phase 2 — Visual redesign
-- [ ] Replace the current generic/flat UI with the industrial,
-      hazard-signage-inspired direction from `PREFERENCES.md`. Not started
-      - deliberately deprioritized behind proving the data/AI layer, per
-      the recommendation in `PRODUCT_REVIEW.md`.
+## Phase 2 — Visual redesign (done)
+- [x] Replaced the generic/flat UI with the industrial, hazard-signage
+      direction from `PREFERENCES.md` - dark theme, stencil display type,
+      monospace data readouts, hazard-stripe accent, sharp corners.
+      Verified in a real browser at every step, not just visually eyeballed
+      once: caught and fixed a genuine readability bug along the way
+      (crowded, overlapping X-axis date labels on the long time-series
+      charts - fixed with an explicit tick interval, tuned again after a
+      later request to show full 4-digit years).
+- [x] Fixed a real UX gap found during review: there was no way back from
+      NL query results to the metro browse grid except reloading the page.
+      Added a "back to browse" link and a clickable logo, both verified to
+      actually work, not just added.
+- [x] Metric-aware value formatting (currency, percent, plain number - see
+      `DOCUMENTATION.md` -> Frontend) and a deterministic per-result
+      analysis summary, both added in response to live review feedback.
 
 ## Phase 3 — Real data: aggregate market trends (done)
 
@@ -130,6 +173,24 @@ metro** instead - a genuine scope change ("any address's history" becomes
 - [ ] README/demo polish (short walkthrough, screenshots or a clip)
 - [ ] A short writeup connecting this project's decisions to what a
       forward-deployed AI engineer role actually needs
+
+## Phase 7 — Real user accounts + payments
+Numbered last, but a **co-equal pillar** with Phases 1-2 (see the top of
+this file) - not a nice-to-have to fit in if time allows. The point is
+real SaaS patterns, not a minimal login gate:
+- [ ] User accounts (signup/login, real session handling - JWT or
+      server sessions, per `PREFERENCES.md`'s mention of "session/JWT
+      secrets")
+- [ ] Multi-tenancy: decide what's actually scoped per-user on a tool
+      that's fundamentally about shared public market data - likely
+      saved searches, watched metros, or query history, not the
+      underlying data itself. Worth a real design pass, not an assumption.
+- [ ] Real payments (Stripe per `PREFERENCES.md`) gating *something*
+      concrete - decide what tier/feature split actually makes sense
+      before wiring billing to it.
+- [ ] Threat-model this properly once real accounts and payment data
+      exist - `PREFERENCES.md` calls out that secrets discipline "matters
+      even more here" once this lands.
 
 See `PRODUCT_REVIEW.md` for an honest read on where this currently stands
 against these phases, and `DOCUMENTATION.md` for the technical reference.

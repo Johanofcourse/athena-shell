@@ -43,13 +43,13 @@ export function MetroDetailPanel({ metro, onClose }: Props) {
             {metro.has_sale_data && (
               <>
                 <h3>Median sale price</h3>
-                <TrendChart points={salePoints} />
+                <TrendChart points={salePoints} metric="median_sale_price" />
               </>
             )}
             {metro.has_rent_data ? (
               <>
                 <h3>Median rent</h3>
-                <TrendChart points={rentPoints} />
+                <TrendChart points={rentPoints} metric="median_rent" />
               </>
             ) : (
               <p className="empty-state">

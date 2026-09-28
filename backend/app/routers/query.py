@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from openai import APIError
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -7,6 +8,7 @@ from app.database import get_db
 from app.nl_query import explain_filters, interpret_query, run_market_query
 from app.rate_limit import limiter
 from app.schemas import MarketQueryResponse, QueryRequest
+from app.usage import FREE_DAILY_QUERY_LIMIT, check_and_increment_usage
 
 router = APIRouter(prefix="/query", tags=["query"])
 
@@ -18,6 +20,15 @@ def run_query(request: Request, payload: QueryRequest, db: Session = Depends(get
         raise HTTPException(
             status_code=503,
             detail="DEEPSEEK_API_KEY is not configured on the server.",
+        )
+
+    # Checked before the (paid) DeepSeek call, not after - a rejected
+    # request shouldn't still cost an API call.
+    allowed, _remaining = check_and_increment_usage(db, get_remote_address(request))
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail=f"You've used today's free {FREE_DAILY_QUERY_LIMIT} queries. This resets tomorrow (UTC).",
         )
 
     try:

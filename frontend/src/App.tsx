@@ -32,10 +32,17 @@ export default function App() {
     }
   }
 
+  function handleReset() {
+    setQueryResponse(null);
+    setError(null);
+  }
+
   return (
     <div className="app">
       <header>
-        <h1>Athena</h1>
+        <button className="home-link" onClick={handleReset} aria-label="Back to browse">
+          <h1>Athena</h1>
+        </button>
         <p className="tagline">Real estate market trends, searchable in plain English.</p>
       </header>
 
@@ -44,7 +51,12 @@ export default function App() {
       {error && <p className="error-banner">{error}</p>}
 
       {queryResponse ? (
-        <QueryResults response={queryResponse} />
+        <>
+          <button className="back-link" onClick={handleReset}>
+            ← Back to browse
+          </button>
+          <QueryResults response={queryResponse} />
+        </>
       ) : (
         <>
           <p className="explanation">Browse all 50 tracked metros, or search above.</p>

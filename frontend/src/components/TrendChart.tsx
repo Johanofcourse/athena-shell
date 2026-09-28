@@ -8,11 +8,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { MarketMetricPoint } from "../types";
+import { formatMetricValue } from "../format";
+import type { MarketMetricPoint, MetricName } from "../types";
 
-const COLORS = ["#2563eb", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2"];
+const COLORS = ["#f5b400", "#ff5a36", "#8bc34a", "#5b7c99", "#b5651d", "#c9c9c9"];
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit" });
+const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" });
 
 function pivotByPeriod(points: MarketMetricPoint[]): { rows: Record<string, string | number>[]; metros: string[] } {
   const metros = Array.from(new Set(points.map((p) => p.metro)));
@@ -31,38 +32,48 @@ function pivotByPeriod(points: MarketMetricPoint[]): { rows: Record<string, stri
 
 interface Props {
   points: MarketMetricPoint[];
+  metric: MetricName;
 }
 
-export function TrendChart({ points }: Props) {
+export function TrendChart({ points, metric }: Props) {
   if (points.length === 0) return null;
   const { rows, metros } = pivotByPeriod(points);
 
   return (
     <div className="chart-card">
       <ResponsiveContainer width="100%" height={320}>
-        <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 8 }}>
+        <LineChart data={rows} margin={{ top: 8, right: 24, bottom: 0, left: 8 }}>
           <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 12, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 12, fill: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
             axisLine={{ stroke: "var(--border)" }}
             tickLine={false}
+            interval={Math.max(0, Math.floor(rows.length / 6) - 1)}
+            padding={{ left: 8, right: 8 }}
           />
           <YAxis
-            tick={{ fontSize: 12, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 12, fill: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
             axisLine={false}
             tickLine={false}
-            width={70}
+            width={90}
+            tickFormatter={(v: number) => formatMetricValue(metric, v)}
           />
           <Tooltip
             contentStyle={{
               background: "var(--surface)",
               border: "1px solid var(--border)",
-              borderRadius: 8,
+              borderRadius: 0,
               fontSize: 13,
+              fontFamily: "var(--font-mono)",
+              color: "var(--text)",
             }}
+            labelStyle={{ color: "var(--text)" }}
+            formatter={(value) => formatMetricValue(metric, Number(value))}
           />
-          {metros.length > 1 && <Legend wrapperStyle={{ fontSize: 13 }} />}
+          {metros.length > 1 && (
+            <Legend wrapperStyle={{ fontSize: 13, fontFamily: "var(--font-mono)", color: "var(--text-muted)" }} />
+          )}
           {metros.map((metro, i) => (
             <Line
               key={metro}

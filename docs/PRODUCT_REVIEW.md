@@ -6,7 +6,7 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-27 (full cutover to real data + verified NL layer + first real eval)
+**Last updated:** 2026-09-27 (full cutover to real data + verified NL layer + adversarial eval pass)
 
 ## What this is being judged against
 
@@ -36,13 +36,23 @@ review holds the project to both, not just "does it run."
   metro name is surfaced, not swallowed (`unmatched_metros`). All three
   exist because manual testing found the failure mode first - not because
   they were anticipated up front.
-- **A real eval set exists**: 18 cases, 44 checks, currently 100%. Read
-  that number as "hasn't found a failure yet," not "is correct" - it's an
-  18-case first pass that doesn't cover adversarial input or the
-  metric-choice non-determinism already observed by hand (the same
-  ranking question picked a different, still-defensible metric on
-  different runs). A score that never moves again would itself be a
-  reason to write harder cases.
+- **Eval set, now stress-tested, still 100%.** Expanded from 18 to 26
+  cases specifically to try to break it: an off-topic request, a
+  prompt-injection attempt, a typo, a self-contradictory ranking question,
+  weird casing, a relative time range. All 26 passed. Read this
+  carefully, not proudly: passing everything thrown at it could mean
+  genuine robustness, or it could mean the adversarial cases weren't hard
+  enough - given they all passed on the first attempt, the honest lean is
+  toward the latter, not "case closed." One nuance worth keeping: the
+  typo case passing is likely DeepSeek normalizing "Astin" -> "Austin"
+  before our matcher (plain substring matching, not fuzzy) ever sees it -
+  robustness from the LLM layer, not the code. A separate repeatability
+  check (same ranking question, 5 runs) came back fully stable this time
+  - that does **not** contradict the metric-choice variance observed
+  earlier by hand (two different manual tests picked different metrics
+  for the same question); it just means 5 samples didn't reproduce it.
+  Non-determinism that shows up occasionally doesn't show up in every
+  small sample, and a clean 5/5 isn't proof it's gone.
 - **Frontend** - fully rewired to the real data (metro browser, trend
   charts, ranking charts), verified in an actual browser (not just typed
   correctly) - zero console errors across the query flow. Still visually
@@ -53,8 +63,13 @@ review holds the project to both, not just "does it run."
 - **Zero automated tests** for general code correctness. The eval set
   tests NL-layer behavior specifically; it isn't a substitute for testing
   the ETL, the crosswalk, or the API contracts.
-- **No auth, no deployment, no CI.** Fine for local development, not
-  hidden - see `ROADMAP.md` Phases 4-5.
+- **No auth, no deployment, no CI.** This bullet used to say "fine for
+  local development" and leave it there - that undersold it. Real user
+  accounts, multi-tenancy, and payments are a stated, co-equal pillar of
+  this project's purpose (Apollo Shell had none of this; see
+  `ROADMAP.md`'s top section and Phase 7), not a nice-to-have. Zero
+  progress on it is a real gap against the project's own stated goals,
+  not just a limitation to disclose.
 
 ## What actually derisked this project, in order
 
@@ -75,24 +90,25 @@ above, not any single screen.
 
 ## Biggest risk to the job goal specifically
 
-The eval set is real but thin. Eighteen hand-written cases that all pass
-is a good start and a weak final claim - the honest read is "no known
-failures yet," and an interviewer who asks "how do you know it's
-reliable" deserves a better answer than a static 18/18. The next
-highest-value work is adversarial and ambiguous cases that might actually
-fail something, not more UI polish and not a bigger eval set for its own
-sake.
+Twenty-six hand-written cases that all pass, including the adversarial
+ones, is still not proof of reliability - it's evidence that these
+particular 26 attempts didn't find a failure. An interviewer who asks "how
+do you know it's reliable" deserves "here's what I tried to break it with,
+here's what I'd try next" as an answer, not a static perfect score
+presented as a conclusion. The honest next step if this gets picked back
+up is harder still: many more repeatability runs (5 wasn't enough to
+resurface the variance already seen once by hand), and inputs that are
+actually malformed rather than just adversarially phrased (empty-ish
+strings, near the 300-char limit, non-English input).
 
 Second risk, unchanged for a while now: the visual design still
-contradicts the project's own stated bar. It keeps getting correctly
-deprioritized, but "correctly deprioritized" three times in a row is
-worth naming as a pattern, not just repeating the deferral.
+contradicts the project's own stated bar. It kept getting correctly
+deprioritized behind this work - that's now done, so this is next.
 
 ## Recommendation
 
-Before touching the frontend: try to break the eval. Write cases designed
-to fail - ambiguous metric choices, conflicting instructions, queries that
-mix a supported and unsupported aspect in ways the 18 current cases don't.
-A number that only ever goes up because nothing hard was tried isn't
-evidence of reliability. If it's still solid after that, *then* the visual
-redesign is next in line.
+The eval work has hit a reasonable stopping point for now: it's been
+stress-tested once, honestly, and documented as "no failure found yet,"
+not "solved." Move to the visual redesign next - it's been correctly
+deferred multiple times, and there's no more data/AI-layer work left to
+justify deferring it again right now.
