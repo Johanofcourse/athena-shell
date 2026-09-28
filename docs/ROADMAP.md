@@ -39,6 +39,16 @@ probed hardest in an interview.
       returns `429`). Still open: no auth, no spend cap on the DeepSeek
       key itself (must be set in DeepSeek's own dashboard). See
       `DOCUMENTATION.md` -> Guardrails.
+- [x] **Persistent free-tier quota** (10 queries/IP/UTC day, `QueryUsage`
+      table): the burst limiter above resets every minute and doesn't cap
+      overall usage - this does. Checked before the paid DeepSeek call, so
+      a rejected request costs nothing. Honest rejection message (no
+      subscription mentioned, since none exists yet) rather than a fake
+      paywall pointing at a Phase 7 feature that isn't built - this table
+      is meant to be the actual foundation Phase 7 builds tier enforcement
+      on top of later. Verified at the real boundary against the live
+      endpoint: 10th call succeeds, 11th returns 429 without reaching
+      DeepSeek.
 - [x] Wire a real `DEEPSEEK_API_KEY` and run `/query` end to end. Two real
       fixes needed, not a clean first try: a stale model name
       (`deepseek-chat` -> `deepseek-flash`), and `deepseek-flash`'s
@@ -68,11 +78,22 @@ probed hardest in an interview.
       enough as it is to mean genuine robustness. See
       `PRODUCT_REVIEW.md` for what harder testing would look like next.
 
-## Phase 2 — Visual redesign
-- [ ] Replace the current generic/flat UI with the industrial,
-      hazard-signage-inspired direction from `PREFERENCES.md`. Not started
-      - deliberately deprioritized behind proving the data/AI layer, per
-      the recommendation in `PRODUCT_REVIEW.md`.
+## Phase 2 — Visual redesign (done)
+- [x] Replaced the generic/flat UI with the industrial, hazard-signage
+      direction from `PREFERENCES.md` - dark theme, stencil display type,
+      monospace data readouts, hazard-stripe accent, sharp corners.
+      Verified in a real browser at every step, not just visually eyeballed
+      once: caught and fixed a genuine readability bug along the way
+      (crowded, overlapping X-axis date labels on the long time-series
+      charts - fixed with an explicit tick interval, tuned again after a
+      later request to show full 4-digit years).
+- [x] Fixed a real UX gap found during review: there was no way back from
+      NL query results to the metro browse grid except reloading the page.
+      Added a "back to browse" link and a clickable logo, both verified to
+      actually work, not just added.
+- [x] Metric-aware value formatting (currency, percent, plain number - see
+      `DOCUMENTATION.md` -> Frontend) and a deterministic per-result
+      analysis summary, both added in response to live review feedback.
 
 ## Phase 3 — Real data: aggregate market trends (done)
 

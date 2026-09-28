@@ -125,15 +125,59 @@ someone hammering the endpoint to run up the API bill. Mitigated by:
   `max_length`) - rejects oversized payloads before they reach the model.
 - `POST /query` is rate-limited to 10 requests/minute per client IP
   (`slowapi`, in-memory) - verified locally: request 11 in a burst
-  returns `429`.
+  returns `429`. This guards against rapid-fire abuse, not overall usage.
+- **Free-tier daily quota** (`backend/app/usage.py`, `QueryUsage` table):
+  10 queries per IP per UTC calendar day, persisted in the database (not
+  in-memory, so it survives a restart unlike the burst limiter above).
+  Checked *before* the DeepSeek call, so a rejected request never costs
+  anything. Returns 429 with an honest message - "you've used today's
+  free 10 queries, resets tomorrow" - deliberately with no mention of a
+  subscription, since none exists yet. This table is meant to be the
+  foundation Phase 7 (real accounts/payments) builds tier enforcement on
+  top of later, not a throwaway stopgap. Verified against the real
+  endpoint at the boundary: the 10th call succeeds, the 11th returns 429
+  without reaching DeepSeek.
+  **Loopback (127.0.0.1/::1) is exempt outright** - needed for local
+  dev/testing, verified for both address forms directly and through the
+  real endpoint. Safe for local development; if a reverse proxy is ever
+  added in front of this (Phase 5), the IP extraction and this exemption
+  both need revisiting together, since a misconfigured proxy could make
+  every real request look like it's coming from loopback.
 
-Known limits of this: in-memory rate limiting doesn't survive a restart
-or scale across multiple backend instances - fine for a single-instance
-deployment, would need a shared store (Redis) if this ever runs
-horizontally scaled. There's also still no auth, and no server-side spend
-cap on the DeepSeek key itself - that has to be set directly in
-DeepSeek's dashboard, it isn't something the app can enforce from the
-outside.
+Known limits: in-memory rate limiting (the burst limiter, not the daily
+quota) doesn't scale across multiple backend instances - fine for a
+single-instance deployment, would need a shared store (Redis) if this
+ever runs horizontally scaled. The daily quota keys on IP alone, which
+over- or under-counts for shared/NAT'd or VPN'd connections - an accepted
+approximation until real accounts exist. There's also still no auth, and
+no server-side spend cap on the DeepSeek key itself - that has to be set
+directly in DeepSeek's dashboard, it isn't something the app can enforce
+from the outside.
+
+## Frontend (`frontend/src/`)
+
+**Visual design**: the industrial/hazard-signage direction from
+`PREFERENCES.md` (Phase 2) - dark, high-contrast, stencil display type
+(Big Shoulders Stencil Display), monospace data readouts (IBM Plex Mono),
+sharp corners, a hazard-stripe accent bar. One deliberate identity, not a
+theme that softens for `prefers-color-scheme: light`.
+
+**Value formatting** (`format.ts`): metrics aren't all the same *kind* of
+number - `median_sale_price`/`median_rent`/`median_price_per_sqft` are
+currency, `vacancy_rate` is a 0-1 fraction needing percent conversion,
+`price_drop_pct_avg` and similar are already percent numbers needing only
+a `%` suffix, and everything else (counts, days) is a plain comma-grouped
+number. `formatMetricValue(metric, value)` picks the right one - applying
+`$` formatting to a percentage or a day-count would be wrong, not just
+inconsistent, so this is metric-aware rather than a single blanket
+formatter.
+
+**Result analysis** (`analysis.ts`): a plain-language summary line
+(`summarizeResults()`) computed directly from the returned data points -
+first/last value, percent change, peak/trough with date for trend mode;
+leader/laggard for ranking mode. Same reasoning as `explain_filters()` on
+the backend: deterministic and derived from the real numbers, not a
+second LLM call, so it can never claim something the data doesn't back up.
 
 ## API reference
 

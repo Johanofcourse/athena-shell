@@ -57,3 +57,18 @@ class MarketMetric(Base):
     value: Mapped[float] = mapped_column(Float, nullable=False)
 
     metro: Mapped["Metro"] = relationship(back_populates="metrics")
+
+
+class QueryUsage(Base):
+    """Persistent per-IP, per-day query count for the free-tier cap on
+    POST /query - distinct from the slowapi burst limiter (which resets
+    every minute and only guards against rapid-fire abuse). This is a
+    cumulative daily quota, and it's the first piece of what Phase 7
+    (real accounts/payments) will eventually build tier enforcement on
+    top of - not throwaway work."""
+
+    __tablename__ = "query_usage"
+
+    ip: Mapped[str] = mapped_column(String, primary_key=True)
+    date: Mapped[date] = mapped_column(Date, primary_key=True)
+    count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
