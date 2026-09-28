@@ -63,8 +63,13 @@ review holds the project to both, not just "does it run."
 - **Zero automated tests** for general code correctness. The eval set
   tests NL-layer behavior specifically; it isn't a substitute for testing
   the ETL, the crosswalk, or the API contracts.
-- **No auth, no deployment, no CI.** Fine for local development, not
-  hidden - see `ROADMAP.md` Phases 4-5.
+- **No auth, no deployment, no CI.** This bullet used to say "fine for
+  local development" and leave it there - that undersold it. Real user
+  accounts, multi-tenancy, and payments are a stated, co-equal pillar of
+  this project's purpose (Apollo Shell had none of this; see
+  `ROADMAP.md`'s top section and Phase 7), not a nice-to-have. Zero
+  progress on it is a real gap against the project's own stated goals,
+  not just a limitation to disclose.
 
 ## What actually derisked this project, in order
 

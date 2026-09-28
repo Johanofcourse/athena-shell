@@ -1,9 +1,27 @@
 # Roadmap
 
 Athena Shell has two goals that both need to hold up: a genuinely useful
-market-trend tool, and a portfolio piece that demonstrates forward-deployed
-AI engineering skill. Phases below are ordered by what actually derisks
-those goals, not by what's easiest to build next.
+market-trend tool, and a portfolio piece. The portfolio goal rests on
+three deliberate pillars (stated explicitly 2026-09-27), each chosen
+because Apollo Shell (the prior project) didn't cover it:
+
+1. **React + TypeScript frontend** - Apollo Shell was Flask/Jinja,
+   server-rendered, no modern frontend framework at all.
+2. **Real LLM/AI integration, done properly** - structured tool-calling
+   over real data, not a bolted-on chatbot. The "forward-deployed AI
+   engineer" angle. See Phase 1.
+3. **Real user accounts + payments** - Apollo Shell has zero auth, zero
+   multi-user support, zero billing. Meant to demonstrate real SaaS
+   patterns (auth, multi-tenancy, billing), not a minimal login gate.
+   Foreshadowed in `PREFERENCES.md` ("real payment/auth credentials are
+   coming") but not scoped as its own phase until now - see Phase 7.
+   **This was previously tracked as an accepted "no auth" limitation in
+   `PRODUCT_REVIEW.md`; that undersold it. It's a co-equal pillar, not a
+   nice-to-have, and shouldn't be left deprioritized indefinitely the way
+   the visual redesign was for a while.**
+
+Phases below are ordered by what actually derisks these goals, not by
+what's easiest to build next.
 
 ## Phase 0 — Scaffold (done, PR #1)
 Originally built against a synthetic per-listing dataset (`Listing` +
@@ -134,6 +152,24 @@ metro** instead - a genuine scope change ("any address's history" becomes
 - [ ] README/demo polish (short walkthrough, screenshots or a clip)
 - [ ] A short writeup connecting this project's decisions to what a
       forward-deployed AI engineer role actually needs
+
+## Phase 7 — Real user accounts + payments
+Numbered last, but a **co-equal pillar** with Phases 1-2 (see the top of
+this file) - not a nice-to-have to fit in if time allows. The point is
+real SaaS patterns, not a minimal login gate:
+- [ ] User accounts (signup/login, real session handling - JWT or
+      server sessions, per `PREFERENCES.md`'s mention of "session/JWT
+      secrets")
+- [ ] Multi-tenancy: decide what's actually scoped per-user on a tool
+      that's fundamentally about shared public market data - likely
+      saved searches, watched metros, or query history, not the
+      underlying data itself. Worth a real design pass, not an assumption.
+- [ ] Real payments (Stripe per `PREFERENCES.md`) gating *something*
+      concrete - decide what tier/feature split actually makes sense
+      before wiring billing to it.
+- [ ] Threat-model this properly once real accounts and payment data
+      exist - `PREFERENCES.md` calls out that secrets discipline "matters
+      even more here" once this lands.
 
 See `PRODUCT_REVIEW.md` for an honest read on where this currently stands
 against these phases, and `DOCUMENTATION.md` for the technical reference.
