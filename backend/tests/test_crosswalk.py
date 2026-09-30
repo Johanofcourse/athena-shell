@@ -7,7 +7,7 @@ future hand-edit could introduce: a typo'd duplicate, a metro dropped
 from one field but not another, or the two known-gap sets drifting apart.
 """
 
-from app.market_crosswalk import BLS_AREA_CODES, METRO_CROSSWALK
+from app.market_crosswalk import BLS_AREA_CODES, FHFA_HPI_SERIES_IDS, METRO_CROSSWALK
 
 # The 10 metro-division metros (Anaheim, Fort Lauderdale, Fort Worth,
 # Montgomery County PA, Nassau County NY, New Brunswick NJ, Newark NJ,
@@ -118,3 +118,25 @@ def test_bls_area_codes_are_fifteen_characters_matching_series_id_format():
     for metro_id, area_code in BLS_AREA_CODES.items():
         assert len(area_code) == 15, (metro_id, area_code)
         assert area_code[:2] in ("MT", "DV"), (metro_id, area_code)
+
+
+def test_fhfa_hpi_series_ids_are_a_real_subset_not_all_fifty():
+    """Unlike BLS, FHFA genuinely doesn't publish one combined index for
+    large multi-division metros (LA, Chicago, SF, Seattle, DC, Miami,
+    Philadelphia, Dallas, Detroit) - a real, meaningfully different
+    coverage gap from every other source. This should stay a real
+    subset, not accidentally regress to "all 50" (which would mean
+    someone quietly started approximating from a division) or shrink
+    further without anyone noticing."""
+    ids = set(FHFA_HPI_SERIES_IDS)
+    all_metros = {row[0] for row in METRO_CROSSWALK}
+    assert ids < all_metros  # strict subset
+    assert len(ids) == 38
+    for big_metro in ("los-angeles-ca", "chicago-il", "san-francisco-ca", "washington-dc"):
+        assert big_metro not in ids
+
+
+def test_fhfa_hpi_series_ids_are_unique_and_well_formed():
+    assert len(FHFA_HPI_SERIES_IDS.values()) == len(set(FHFA_HPI_SERIES_IDS.values()))
+    for metro_id, series_id in FHFA_HPI_SERIES_IDS.items():
+        assert series_id.startswith("ATNHPIUS") and series_id.endswith("Q"), (metro_id, series_id)

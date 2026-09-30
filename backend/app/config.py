@@ -8,8 +8,10 @@ class Settings(BaseSettings):
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-flash"
 
-    # For the planned BLS metro-unemployment ingest (not built yet).
     bls_api_key: str = ""
+
+    # For the planned FRED (FHFA House Price Index by metro) ingest, not built yet.
+    fred_api_key: str = ""
 
     database_url: str = "sqlite:///./athena.db"
 

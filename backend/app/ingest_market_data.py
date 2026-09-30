@@ -11,7 +11,7 @@ from pathlib import Path
 
 from app.database import Base, SessionLocal, engine
 from app.ingest_national_data import ingest_pmms
-from app.market_crosswalk import BLS_AREA_CODES, METRO_CROSSWALK
+from app.market_crosswalk import BLS_AREA_CODES, FHFA_HPI_SERIES_IDS, METRO_CROSSWALK
 from app.models import MarketMetric, MetricSource, Metro
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "samples"
@@ -318,6 +318,46 @@ def ingest_bls_unemployment(db) -> int:
     return count
 
 
+FHFA_HPI_FILE = "fred_house_price_index.json"
+
+
+def ingest_fhfa_hpi(db) -> int:
+    """Parses the raw responses saved by fetch_fred_house_price_index.py
+    (38 live FRED API calls, not a bulk download) into MarketMetric rows.
+    Optional, like ingest_bls_unemployment - skips cleanly if the file
+    hasn't been fetched yet rather than failing the whole ingest run."""
+    path = DATA_DIR / FHFA_HPI_FILE
+    if not path.exists():
+        print(f"{FHFA_HPI_FILE} not found - run `python -m app.fetch_fred_house_price_index` first. Skipping.")
+        return 0
+
+    with open(path, encoding="utf-8") as f:
+        payload = json.load(f)
+
+    count = 0
+    for metro_id, series in payload.items():
+        if metro_id not in FHFA_HPI_SERIES_IDS:
+            continue
+        for point in series["observations"]:
+            value = _parse_float(point.get("value"))
+            if value is None:
+                continue
+            year, month, _ = point["date"].split("-")
+            period = date(int(year), int(month), 1)
+            db.add(
+                MarketMetric(
+                    metro_id=metro_id,
+                    period=period,
+                    source=MetricSource.FRED,
+                    metric="house_price_index",
+                    bed_size=None,
+                    value=value,
+                )
+            )
+            count += 1
+    return count
+
+
 def ingest() -> None:
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
@@ -352,6 +392,10 @@ def ingest() -> None:
         bls_count = ingest_bls_unemployment(db)
         db.commit()
         print(f"Ingested {bls_count} BLS unemployment rate rows.")
+
+        fhfa_count = ingest_fhfa_hpi(db)
+        db.commit()
+        print(f"Ingested {fhfa_count} FHFA house price index rows.")
     finally:
         db.close()
 

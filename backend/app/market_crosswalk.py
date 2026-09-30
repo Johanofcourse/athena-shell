@@ -136,3 +136,58 @@ BLS_AREA_CODES: dict[str, str] = {
     "washington-dc": "MT1147900000000",  # Washington-Arlington-Alexandria, DC-VA-MD-WV
     "west-palm-beach-fl": "DV1248424000000",  # West Palm Beach-Boca Raton-Delray Beach, FL
 }
+
+# A fifth naming/coding convention: FHFA's House Price Index series IDs
+# on FRED (Federal Reserve Economic Data), matched using FRED's own API
+# metadata (series titles), the same pattern as BLS_AREA_CODES above -
+# not matched against a downloaded file, used to call FRED's API
+# directly. Real, meaningfully different coverage gap from every other
+# source: FHFA doesn't publish one combined index for large
+# multi-division metros at all (Los Angeles, Chicago, San Francisco,
+# Seattle, Washington DC, Miami, Philadelphia, Dallas, Detroit) - a
+# division's number isn't the combined metro's number, so these are left
+# as genuine gaps rather than approximated from one division, same
+# reasoning as the metro-division gaps elsewhere in this file. Three of
+# the 10 metro-division gap metros (Anaheim, Montgomery County PA, New
+# Brunswick) also have no current FHFA division series - discontinued or
+# never published. 38/50 real matches.
+FHFA_HPI_SERIES_IDS: dict[str, str] = {
+    "atlanta-ga": "ATNHPIUS12060Q",  # Atlanta-Sandy Springs-Alpharetta, GA
+    "austin-tx": "ATNHPIUS12420Q",  # Austin-Round Rock-Georgetown, TX
+    "baltimore-md": "ATNHPIUS12580Q",  # Baltimore-Columbia-Towson, MD
+    "boston-ma": "ATNHPIUS14454Q",  # Boston, MA (MSAD)
+    "charlotte-nc": "ATNHPIUS16740Q",  # Charlotte-Concord-Gastonia, NC-SC
+    "cincinnati-oh": "ATNHPIUS17140Q",  # Cincinnati, OH-KY-IN
+    "cleveland-oh": "ATNHPIUS17460Q",  # Cleveland-Elyria, OH
+    "columbus-oh": "ATNHPIUS18140Q",  # Columbus, OH
+    "denver-co": "ATNHPIUS19740Q",  # Denver-Aurora-Lakewood, CO
+    "fort-lauderdale-fl": "ATNHPIUS22744Q",  # Ft. Lauderdale-Pompano Beach-Sunrise, FL
+    "fort-worth-tx": "ATNHPIUS23104Q",  # Fort Worth-Arlington-Grapevine, TX
+    "houston-tx": "ATNHPIUS26420Q",  # Houston-The Woodlands-Sugar Land, TX
+    "indianapolis-in": "ATNHPIUS26900Q",  # Indianapolis-Carmel-Anderson, IN
+    "jacksonville-fl": "ATNHPIUS27260Q",  # Jacksonville, FL
+    "kansas-city-mo": "ATNHPIUS28140Q",  # Kansas City, MO-KS
+    "las-vegas-nv": "ATNHPIUS29820Q",  # Las Vegas-Henderson-Paradise, NV
+    "milwaukee-wi": "ATNHPIUS33340Q",  # Milwaukee-Waukesha, WI
+    "minneapolis-mn": "ATNHPIUS33460Q",  # Minneapolis-St. Paul-Bloomington, MN-WI
+    "nashville-tn": "ATNHPIUS34980Q",  # Nashville-Davidson--Murfreesboro--Franklin, TN
+    "nassau-county-ny": "ATNHPIUS35004Q",  # Nassau County-Suffolk County, NY
+    "new-york-ny": "ATNHPIUS35614Q",  # New York-Jersey City-White Plains, NY-NJ (MSAD)
+    "newark-nj": "ATNHPIUS35084Q",  # Newark, NJ-PA
+    "oakland-ca": "ATNHPIUS36084Q",  # Oakland-Berkeley-Livermore, CA
+    "orlando-fl": "ATNHPIUS36740Q",  # Orlando-Kissimmee-Sanford, FL
+    "phoenix-az": "ATNHPIUS38060Q",  # Phoenix-Mesa-Chandler, AZ
+    "pittsburgh-pa": "ATNHPIUS38300Q",  # Pittsburgh, PA
+    "portland-or": "ATNHPIUS38900Q",  # Portland-Vancouver-Hillsboro, OR-WA
+    "providence-ri": "ATNHPIUS39300Q",  # Providence-Warwick, RI-MA
+    "riverside-ca": "ATNHPIUS40140Q",  # Riverside-San Bernardino-Ontario, CA
+    "sacramento-ca": "ATNHPIUS40900Q",  # Sacramento-Roseville-Folsom, CA
+    "san-antonio-tx": "ATNHPIUS41700Q",  # San Antonio-New Braunfels, TX
+    "san-diego-ca": "ATNHPIUS41740Q",  # San Diego-Chula Vista-Carlsbad, CA
+    "san-jose-ca": "ATNHPIUS41940Q",  # San Jose-Sunnyvale-Santa Clara, CA
+    "st-louis-mo": "ATNHPIUS41180Q",  # St. Louis, MO-IL
+    "tampa-fl": "ATNHPIUS45300Q",  # Tampa-St. Petersburg-Clearwater, FL
+    "virginia-beach-va": "ATNHPIUS47260Q",  # Virginia Beach-Norfolk-Newport News, VA-NC
+    "warren-mi": "ATNHPIUS47644Q",  # Warren-Troy-Farmington Hills, MI
+    "west-palm-beach-fl": "ATNHPIUS48424Q",  # West Palm Beach-Boca Raton-Boynton Beach, FL
+}

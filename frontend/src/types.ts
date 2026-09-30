@@ -20,6 +20,7 @@ export type MetricName =
   | "median_household_income"
   | "rent_to_income_pct"
   | "unemployment_rate"
+  | "house_price_index"
   | "median_gross_rent"
   | "mortgage_rate_30yr_fixed"
   | "mortgage_rate_15yr_fixed"

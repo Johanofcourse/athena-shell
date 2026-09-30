@@ -347,3 +347,50 @@ def test_ingest_bls_unemployment_missing_file_returns_zero_without_erroring(db_s
     monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
     monkeypatch.setattr(ingest, "BLS_UNEMPLOYMENT_FILE", "does_not_exist.json")
     assert ingest.ingest_bls_unemployment(db_session) == 0
+
+
+# --- ingest_fhfa_hpi (live-API source, offline-parsed from a saved JSON) ---
+
+
+def test_ingest_fhfa_hpi_parses_response_and_skips_blanks_and_unmapped_metros(db_session, monkeypatch, tmp_path):
+    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
+    db_session.commit()
+
+    # Mirrors fetch_fred_house_price_index.py's saved shape: keyed by
+    # metro_id (not seriesID, unlike BLS - FRED's per-series endpoint
+    # doesn't echo the series ID back in each observation the way BLS's
+    # batch endpoint does).
+    payload = {
+        "testville-ts": {
+            "series_id": "ATNHPIUS00000Q",
+            "observations": [
+                {"date": "2024-01-01", "value": "310.5"},
+                {"date": "2024-04-01", "value": "."},  # FRED's own missing-value marker
+                {"date": "2024-07-01", "value": "315.2"},
+            ],
+        },
+        "not-a-real-metro": {
+            "series_id": "ATNHPIUS99999Q",
+            "observations": [{"date": "2024-01-01", "value": "100.0"}],
+        },
+    }
+    path = tmp_path / "fhfa.json"
+    path.write_text(json.dumps(payload))
+
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "FHFA_HPI_FILE", "fhfa.json")
+    monkeypatch.setattr(ingest, "FHFA_HPI_SERIES_IDS", {"testville-ts": "ATNHPIUS00000Q"})
+
+    count = ingest.ingest_fhfa_hpi(db_session)
+    db_session.commit()
+    assert count == 2  # the "." value and the unmapped metro are both skipped
+
+    rows = db_session.query(MarketMetric).filter_by(metro_id="testville-ts").all()
+    assert {(r.period, r.value) for r in rows} == {(date(2024, 1, 1), 310.5), (date(2024, 7, 1), 315.2)}
+    assert all(r.metric == "house_price_index" and r.source == MetricSource.FRED for r in rows)
+
+
+def test_ingest_fhfa_hpi_missing_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "FHFA_HPI_FILE", "does_not_exist.json")
+    assert ingest.ingest_fhfa_hpi(db_session) == 0
