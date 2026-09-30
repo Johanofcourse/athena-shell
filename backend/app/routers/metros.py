@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.market_crosswalk import METRO_COORDINATES
 from app.models import Metro
 from app.nl_query import _fetch_rent_rows, _query_metric_rows
 from app.schemas import MarketMetricPoint, MetricName, MetroOut
@@ -22,6 +23,8 @@ def list_metros(db: Session = Depends(get_db)) -> list[dict]:
             "has_rent_data": m.aptlist_name is not None,
             "has_income_data": m.census_income_name is not None,
             "census_gross_rent_county": m.census_gross_rent_county,
+            "latitude": METRO_COORDINATES[m.id][0],
+            "longitude": METRO_COORDINATES[m.id][1],
         }
         for m in metros
     ]

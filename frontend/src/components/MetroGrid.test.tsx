@@ -12,6 +12,8 @@ function metro(overrides: Partial<Metro>): Metro {
     has_rent_data: true,
     has_income_data: true,
     census_gross_rent_county: null,
+    latitude: 30.0,
+    longitude: -97.0,
     ...overrides,
   };
 }

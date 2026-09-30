@@ -7,7 +7,7 @@ future hand-edit could introduce: a typo'd duplicate, a metro dropped
 from one field but not another, or the two known-gap sets drifting apart.
 """
 
-from app.market_crosswalk import BLS_AREA_CODES, FHFA_HPI_SERIES_IDS, METRO_CROSSWALK
+from app.market_crosswalk import BLS_AREA_CODES, FHFA_HPI_SERIES_IDS, METRO_COORDINATES, METRO_CROSSWALK
 
 # The 10 metro-division metros (Anaheim, Fort Lauderdale, Fort Worth,
 # Montgomery County PA, Nassau County NY, New Brunswick NJ, Newark NJ,
@@ -140,3 +140,23 @@ def test_fhfa_hpi_series_ids_are_unique_and_well_formed():
     assert len(FHFA_HPI_SERIES_IDS.values()) == len(set(FHFA_HPI_SERIES_IDS.values()))
     for metro_id, series_id in FHFA_HPI_SERIES_IDS.items():
         assert series_id.startswith("ATNHPIUS") and series_id.endswith("Q"), (metro_id, series_id)
+
+
+def test_metro_coordinates_cover_every_metro_with_no_gaps():
+    """Unlike every other crosswalk in this file, coordinates aren't tied
+    to one source's data-availability convention - every metro has a real
+    named place (either its own CBSA, or the specific city/place within
+    a metro-division gap), so this is the one crosswalk with zero gaps."""
+    assert set(METRO_COORDINATES) == {row[0] for row in METRO_CROSSWALK}
+
+
+def test_metro_coordinates_are_within_continental_us_bounds_or_ak_hi():
+    # Loose sanity bounds, not a precision check (that was done by hand
+    # against the real Census Gazetteer files) - catches a genuinely
+    # malformed entry (swapped lat/long, a stray zero, wrong sign) rather
+    # than a real but unusual coordinate.
+    for metro_id, (lat, lon) in METRO_COORDINATES.items():
+        in_continental_us = 24 <= lat <= 50 and -125 <= lon <= -66
+        in_alaska = 51 <= lat <= 72 and -180 <= lon <= -129
+        in_hawaii = 18 <= lat <= 23 and -161 <= lon <= -154
+        assert in_continental_us or in_alaska or in_hawaii, (metro_id, lat, lon)

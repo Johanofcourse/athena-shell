@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { fetchMetros, runQuery } from "./api";
 import { ConversationHistory } from "./components/ConversationHistory";
 import { MetroDetailPanel } from "./components/MetroDetailPanel";
-import { MetroGrid } from "./components/MetroGrid";
 import { QueryResults } from "./components/QueryResults";
 import { SearchBar } from "./components/SearchBar";
+import { UsMetroMap } from "./components/UsMetroMap";
 import type { ConversationTurn, MarketQueryResponse, Metro } from "./types";
 
 const MAX_HISTORY_TURNS = 5;
@@ -71,7 +71,7 @@ export default function App() {
       ) : (
         <>
           <p className="explanation">Browse all 50 tracked metros, or search above.</p>
-          <MetroGrid metros={metros} onSelect={setSelectedMetro} />
+          <UsMetroMap metros={metros} onSelect={setSelectedMetro} />
         </>
       )}
 

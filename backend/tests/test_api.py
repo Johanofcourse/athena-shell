@@ -40,7 +40,19 @@ def _client_for_noop():
     return TestClient(app)
 
 
-def test_list_metros_shape_and_flags(seeded_db):
+def test_list_metros_shape_and_flags(seeded_db, monkeypatch):
+    # METRO_COORDINATES is a static dict keyed by the 50 real metro ids -
+    # genuinely never missing an entry for a real ingested Metro (see
+    # test_crosswalk.py), but the synthetic fixture metros here aren't in
+    # it, so the router needs fake coordinates for them specifically.
+    from app.routers import metros as metros_router
+
+    monkeypatch.setattr(
+        metros_router,
+        "METRO_COORDINATES",
+        {"testville-ts": (30.0, -97.0), "gapford-gf": (33.8, -117.8), "emptyburg-eb": (0.0, 0.0)},
+    )
+
     client = _client_for(seeded_db)
     try:
         resp = client.get("/metros")
@@ -53,6 +65,8 @@ def test_list_metros_shape_and_flags(seeded_db):
         assert testville["has_rent_data"] is True
         assert testville["has_income_data"] is True
         assert testville["census_gross_rent_county"] is None
+        assert testville["latitude"] == 30.0
+        assert testville["longitude"] == -97.0
 
         gapford = by_id["gapford-gf"]
         assert gapford["has_rent_data"] is False
