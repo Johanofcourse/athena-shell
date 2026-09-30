@@ -270,4 +270,20 @@ CASES = [
         "expect_metros_contains": ["denver"],
         "expect_bed_size": None,
     },
+    {
+        "id": "mortgage_rate_national",
+        "query": "What are current mortgage rates?",
+        "expect_metric": ["mortgage_rate_30yr_fixed", "mortgage_rate_15yr_fixed", "mortgage_rate_5_1_arm"],
+        "expect_metros_empty": True,
+    },
+    {
+        "id": "mortgage_rate_ignores_named_metro",
+        # Mortgage rates are national, not metro-specific - a metro named
+        # in the question is structurally meaningless here and must not
+        # end up in the resolved filters (guarded by _sanitize_filters
+        # regardless of what the model itself does).
+        "query": "What's the 30 year mortgage rate in Austin?",
+        "expect_metric": ["mortgage_rate_30yr_fixed"],
+        "expect_metros_empty": True,
+    },
 ]

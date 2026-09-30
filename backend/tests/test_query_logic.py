@@ -20,7 +20,7 @@ from app.nl_query import (
     explain_filters,
     run_market_query,
 )
-from app.models import Metro
+from app.models import MetricSource, Metro, NationalMetric
 from app.schemas import MarketQueryFilters, MetricName
 from tests.conftest import GAPFORD_GROSS_RENT, TESTVILLE_INCOME, TESTVILLE_RENT_FEB, TESTVILLE_RENT_JAN
 
@@ -261,3 +261,72 @@ def test_explain_filters_surfaces_unsupported_aspects():
     )
     text = explain_filters(filters, [], [], [], None)
     assert "This system can't evaluate: school quality." in text
+
+
+# --- National metrics (Freddie Mac mortgage rates - no metro dimension) ---
+
+
+def _add_pmms(db, metric, period, value):
+    db.add(NationalMetric(period=period, source=MetricSource.FREDDIE_MAC, metric=metric, value=value))
+
+
+def test_sanitize_clears_metros_for_national_metric():
+    filters = MarketQueryFilters(metros=["Austin, TX"], metric=MetricName.MORTGAGE_RATE_30YR_FIXED)
+    assert _sanitize_filters(filters).metros == []
+
+
+def test_national_query_trend_ignores_metros_entirely(db_session):
+    _add_pmms(db_session, "mortgage_rate_30yr_fixed", date(2024, 1, 5), 6.62)
+    _add_pmms(db_session, "mortgage_rate_30yr_fixed", date(2024, 1, 12), 6.66)
+    _add_pmms(db_session, "mortgage_rate_15yr_fixed", date(2024, 1, 5), 5.89)  # different metric, must be excluded
+    db_session.commit()
+
+    filters = MarketQueryFilters(metric=MetricName.MORTGAGE_RATE_30YR_FIXED)
+    points, unmatched, no_data, approximated = run_market_query(db_session, filters)
+    assert [p.value for p in points] == [6.62, 6.66]
+    assert all(p.metro == "United States" for p in points)
+    assert unmatched == no_data == approximated == []
+
+
+def test_national_query_ranking_mode_returns_latest_single_point(db_session):
+    _add_pmms(db_session, "mortgage_rate_30yr_fixed", date(2024, 1, 5), 6.62)
+    _add_pmms(db_session, "mortgage_rate_30yr_fixed", date(2024, 1, 12), 6.66)
+    db_session.commit()
+
+    filters = MarketQueryFilters(metric=MetricName.MORTGAGE_RATE_30YR_FIXED, sort_by="value")
+    points, *_ = run_market_query(db_session, filters)
+    assert len(points) == 1
+    assert points[0].period == date(2024, 1, 12)
+    assert points[0].value == 6.66
+
+
+def test_national_query_no_data_when_range_excludes_everything(db_session):
+    _add_pmms(db_session, "mortgage_rate_30yr_fixed", date(2024, 1, 5), 6.62)
+    db_session.commit()
+
+    filters = MarketQueryFilters(metric=MetricName.MORTGAGE_RATE_30YR_FIXED, start_period="2030-01")
+    points, unmatched, no_data, approximated = run_market_query(db_session, filters)
+    assert points == []
+    assert no_data == ["United States"]
+
+
+def test_explain_filters_national_trend_has_no_metro_language(db_session):
+    _add_pmms(db_session, "mortgage_rate_30yr_fixed", date(2024, 1, 5), 6.62)
+    db_session.commit()
+    filters = MarketQueryFilters(metric=MetricName.MORTGAGE_RATE_30YR_FIXED)
+    _, unmatched, no_data, approximated = run_market_query(db_session, filters)
+    text = explain_filters(filters, unmatched, no_data, approximated, db_session)
+    assert text == "Showing 30-year fixed mortgage rate."
+    assert "no metro specified" not in text.lower()
+
+
+def test_explain_filters_national_ranking_has_no_ranking_language(db_session):
+    _add_pmms(db_session, "mortgage_rate_30yr_fixed", date(2024, 1, 5), 6.62)
+    db_session.commit()
+    filters = MarketQueryFilters(metric=MetricName.MORTGAGE_RATE_30YR_FIXED, sort_by="value")
+    _, unmatched, no_data, approximated = run_market_query(db_session, filters)
+    text = explain_filters(filters, unmatched, no_data, approximated, db_session)
+    # Ranking mode is meaningless for a single national series - must not
+    # claim to be ranking across metros that were never involved.
+    assert "across all metros" not in text
+    assert "ranked" not in text

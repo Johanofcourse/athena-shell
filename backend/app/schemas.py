@@ -36,6 +36,12 @@ class MetricName(str, enum.Enum):
     # returned under this distinct name so it's never confused with real
     # median_rent data. See run_market_query.
     MEDIAN_GROSS_RENT = "median_gross_rent"
+    # National series, no metro dimension - metros is always sanitized to
+    # empty for these (see _sanitize_filters). Points are labeled
+    # "United States" rather than a real Metro.
+    MORTGAGE_RATE_30YR_FIXED = "mortgage_rate_30yr_fixed"
+    MORTGAGE_RATE_15YR_FIXED = "mortgage_rate_15yr_fixed"
+    MORTGAGE_RATE_5_1_ARM = "mortgage_rate_5_1_arm"
 
 
 class MetroOut(BaseModel):

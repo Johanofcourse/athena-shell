@@ -6,13 +6,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import MarketMetric, Metro
+from app.models import MarketMetric, Metro, NationalMetric
 from app.schemas import ConversationTurn, MarketMetricPoint, MarketQueryFilters, MetricName
 
 SYSTEM_PROMPT = """You translate a person's natural-language question about real estate market trends \
 (home sale prices, rents, days on market, price drops, relistings, vacancy, household income, rent-to- \
-income burden) into a structured call against a metro-level database covering 50 US metros. Always \
-call query_market_metrics exactly once.
+income burden, national mortgage rates) into a structured call against a metro-level database covering \
+50 US metros. Always call query_market_metrics exactly once.
 
 Pick ONE metric per call - the one the question is actually about. If the question names specific \
 metros (e.g. "Austin", "Denver vs Seattle"), list them in `metros`. If it's a ranking/comparison \
@@ -53,6 +53,9 @@ METRIC_DESCRIPTIONS = {
     MetricName.TIME_ON_MARKET_DAYS: "Median days a rental sits vacant before leasing (Apartment List)",
     MetricName.MEDIAN_HOUSEHOLD_INCOME: "Median household income, annual, a single latest-estimate snapshot not a monthly series (Census ACS 5-Year 2024)",
     MetricName.RENT_TO_INCOME_PCT: "Rent burden: (median rent x 12) / median household income, as a percent (computed)",
+    MetricName.MORTGAGE_RATE_30YR_FIXED: "National average 30-year fixed mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
+    MetricName.MORTGAGE_RATE_15YR_FIXED: "National average 15-year fixed mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
+    MetricName.MORTGAGE_RATE_5_1_ARM: "National average 5/1 adjustable-rate mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
 }
 
 # query_market_metrics' metric enum, deliberately excluding
@@ -86,6 +89,19 @@ METRIC_LABELS = {
     MetricName.MEDIAN_HOUSEHOLD_INCOME: "median household income",
     MetricName.RENT_TO_INCOME_PCT: "rent as a percent of income",
     MetricName.MEDIAN_GROSS_RENT: "median gross rent (Census)",
+    MetricName.MORTGAGE_RATE_30YR_FIXED: "30-year fixed mortgage rate",
+    MetricName.MORTGAGE_RATE_15YR_FIXED: "15-year fixed mortgage rate",
+    MetricName.MORTGAGE_RATE_5_1_ARM: "5/1 ARM rate",
+}
+
+# Mortgage rates are a national series with no metro dimension - metros
+# is always sanitized to empty for these (see _sanitize_filters), and
+# run_market_query routes them to _run_national_query instead of
+# resolving/filtering by metro at all.
+NATIONAL_METRICS = {
+    MetricName.MORTGAGE_RATE_30YR_FIXED,
+    MetricName.MORTGAGE_RATE_15YR_FIXED,
+    MetricName.MORTGAGE_RATE_5_1_ARM,
 }
 
 QUERY_MARKET_METRICS_TOOL = {
@@ -209,6 +225,12 @@ def _sanitize_filters(filters: MarketQueryFilters) -> MarketQueryFilters:
     rather than relying on prompt wording to prevent it every time."""
     if filters.bed_size is not None and filters.metric != MetricName.MEDIAN_RENT:
         filters = filters.model_copy(update={"bed_size": None})
+    # National metrics (mortgage rates) have no metro dimension - a metro
+    # named in the question (or carried over from a prior turn) is
+    # structurally meaningless here and would otherwise silently do
+    # nothing, same class of bug as the bed_size case above.
+    if filters.metros and filters.metric in NATIONAL_METRICS:
+        filters = filters.model_copy(update={"metros": []})
     return filters
 
 
@@ -331,6 +353,29 @@ def _run_rent_to_income_query(
     return points, unmatched, no_data, approximated
 
 
+def _run_national_query(
+    db: Session, filters: MarketQueryFilters, start: date | None, end: date | None
+) -> tuple[list[MarketMetricPoint], list[str], list[str], list[str]]:
+    """Mortgage rates have no metro dimension - metros is always already
+    empty here (see _sanitize_filters), so there's nothing to resolve or
+    filter by. Points are labeled "United States" so they fit the
+    existing MarketMetricPoint shape without a schema change."""
+    stmt = select(NationalMetric).where(NationalMetric.metric == filters.metric.value)
+    if start:
+        stmt = stmt.where(NationalMetric.period >= start)
+    if end:
+        stmt = stmt.where(NationalMetric.period <= end)
+    if filters.sort_by == "value":
+        stmt = stmt.order_by(NationalMetric.period.desc()).limit(1)
+    else:
+        stmt = stmt.order_by(NationalMetric.period.asc())
+
+    rows = list(db.execute(stmt).scalars().all())
+    no_data = ["United States"] if not rows else []
+    points = [MarketMetricPoint(metro="United States", period=r.period, value=r.value) for r in rows]
+    return points, [], no_data, []
+
+
 def run_market_query(
     db: Session, filters: MarketQueryFilters
 ) -> tuple[list[MarketMetricPoint], list[str], list[str], list[str]]:
@@ -356,6 +401,9 @@ def run_market_query(
 
     start = _parse_period(filters.start_period)
     end = _parse_period(filters.end_period)
+
+    if filters.metric in NATIONAL_METRICS:
+        return _run_national_query(db, filters, start, end)
 
     if filters.metric == MetricName.RENT_TO_INCOME_PCT:
         if filters.sort_by == "value":
@@ -431,15 +479,16 @@ def explain_filters(
     if filters.bed_size:
         parts.append(f"({filters.bed_size})")
 
+    is_national = filters.metric in NATIONAL_METRICS
     if filters.metros:
         parts.append("for " + ", ".join(filters.metros))
-    elif filters.sort_by == "value":
+    elif filters.sort_by == "value" and not is_national:
         parts.append("across all metros")
 
     if filters.start_period or filters.end_period:
         parts.append(f"from {filters.start_period or 'earliest'} to {filters.end_period or 'latest'}")
 
-    if filters.sort_by == "value":
+    if filters.sort_by == "value" and not is_national:
         parts.append(f"ranked {filters.sort_order}")
 
     summary = "Showing " + " ".join(parts) + "."
@@ -472,7 +521,7 @@ def explain_filters(
         notes.append(
             "This system can't evaluate: " + ", ".join(filters.unsupported_aspects) + "."
         )
-    if not filters.metros and filters.sort_by == "period":
+    if not is_national and not filters.metros and filters.sort_by == "period":
         notes.append("No metro specified for a trend query - name one or more metros, or ask a ranking question instead.")
 
     return summary + (" " + " ".join(notes) if notes else "")

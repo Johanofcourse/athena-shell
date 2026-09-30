@@ -155,6 +155,7 @@ metro** instead - a genuine scope change ("any address's history" becomes
 | Redfin Data Center | **In production** | Price Drops, Home Delistings & Relistings, Housing Market Tracker. Metro-level, top 50 metros, monthly, Jan 2012 - Aug 2026 (176 months). Downloads page is bot-gated for automation (403, confirmed via headless browser) but works in a real browser. |
 | Apartment List | **In production (rent side)** | Rent Estimates (split by bed size), Vacancy Index, Time on Market. Jan 2017/2019 - Aug 2026. Pulled as direct CDN links, no bot-gate. Metro naming doesn't match Redfin's, and isn't even consistent across Apartment List's own files (one file suffixes " Metro Area", others don't) - see the crosswalk bug below. |
 | Census ACS | **In production (income + gross-rent fallback)** | The `api.census.gov` API key signup never worked (multiple attempts, two different emails, validation link consistently broken/unreceived - a known, documented issue with institutional email scanners rewriting the one-time link). **Worked around entirely** by using `data.census.gov`'s own table browser to download CSVs directly - no API key needed at all, same "manual browser download" pattern that worked for Redfin/Apartment List. Table `B19013` (median household income), 5-Year 2024 estimate, all 50 metros crosswalked (40 direct, 10 genuine gaps) - spot-checked (Austin $100,431). Table `B25064` (median gross rent), 5-Year 2024, county-level, for the 10 metro-division metros only - a deliberately narrower fallback used to fill the `median_rent` gap, always flagged as an approximation. `S0801` (commute time) not pursued this round - see Still open. |
+| Freddie Mac PMMS | **In production (national mortgage rates)** | `www.freddiemac.com/pmms/docs/PMMS_history.csv` - a plain, directly-linked public CSV with zero bot-gating (confirmed: a clean 200, not a 403/challenge), unlike every other source above. Pulled directly rather than through a manual browser step, since there's no protection being routed around - the same distinction this project has drawn throughout (avoiding bot-gate evasion, not avoiding `curl` categorically). Weekly, 1971-present, 30-year fixed/15-year fixed/5-year ARM. |
 | Zillow Research (ZHVI/ZORI) | **Deprioritized** | 403 on every attempt (3 tries). Apartment List covers the same need. |
 | HUD Fair Market Rents | **Unverified, low priority** | Annual cadence, same "benchmark not trend" role as Census. |
 
@@ -240,12 +241,51 @@ metro** instead - a genuine scope change ("any address's history" becomes
       panel now showing a flagged fallback chart instead of "no data",
       and a live rent-to-income ranking query rendering correctly).
 
+### National mortgage rates (done, 2026-09-30)
+- [x] **First genuinely national (non-metro) series**: Freddie Mac's PMMS
+      mortgage rate history. Given its own table, `NationalMetric`
+      (`backend/app/models.py`) - `(period, source, metric, value)`, no
+      metro dimension at all - rather than forcing it into `MarketMetric`
+      via a fake "United States" `Metro` row, which would have shown up
+      oddly in the metro browsing grid and made the honesty-flag columns
+      (`has_rent_data` etc.) meaningless for it. `period` is the real
+      weekly reported date, not bucketed to first-of-month like
+      `MarketMetric` - no reason to throw away real granularity.
+- [x] Three headline series ingested (30-year fixed, 15-year fixed, 5/1
+      ARM) - not Freddie Mac's points/margin/spread columns, same
+      "measured values only" reasoning as skipping Redfin's precomputed
+      YOY columns. 5,659 rows. Real, unforced data quirk found and left
+      visible rather than smoothed over: the 5/1 ARM series stops dead
+      at November 2022 (Freddie Mac discontinued it) - a query for the
+      latest ARM rate honestly returns a 2022 value rather than silently
+      extrapolating or erroring.
+- [x] `query_market_metrics` gained a new class of metric with no metro
+      concept at all - `_sanitize_filters` now also clears `metros` when
+      one of these is selected (same deterministic-guardrail pattern as
+      the `bed_size` fix), and `explain_filters` was fixed to stop
+      claiming to be "ranking across all metros" for a single national
+      series in ranking mode - a real phrasing bug caught immediately by
+      testing this by hand before it shipped.
+- [x] Verified: 7 new backend tests, a frontend formatting test, 2 new
+      eval cases (including one confirming a metro named in the question
+      gets correctly dropped), and a real browser check of the rendered
+      chart, explanation, and analysis summary.
+
 ### Still open
 - [ ] Census `S0801` (commute time) - the API key signup issue from
       before is unresolved; not pursued further this round since Johan
       deferred pulling more Census tables for now.
 - [ ] Re-verify Zillow Research / HUD FMR via a real browser - low
       priority, not blocking anything.
+- [ ] **BLS metro-level unemployment rate** - free API key obtained
+      (`data.bls.gov/registrationEngine`, stored in `.env`, not
+      committed), ingest not yet built. This is the same BLS whose bulk
+      LAUS data file was bot-gated earlier in this project (only the
+      `la.area`/`la.area_type`/`la.series` reference files got through) -
+      the registered API (`api.bls.gov`) is a completely different,
+      legitimate access path, not scraping-adjacent, and should sidestep
+      that gate entirely. Real per-metro Local Area Unemployment
+      Statistics coverage, matching the existing crosswalk geography.
 
 ## Phase 4 — Engineering rigor (done, 2026-09-28)
 Deferred seven times before this (see `PRODUCT_REVIEW.md`) - done now, not

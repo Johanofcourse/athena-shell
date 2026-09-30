@@ -9,6 +9,7 @@ from datetime import date
 from pathlib import Path
 
 from app.database import Base, SessionLocal, engine
+from app.ingest_national_data import ingest_pmms
 from app.market_crosswalk import METRO_CROSSWALK
 from app.models import MarketMetric, MetricSource, Metro
 
@@ -297,6 +298,10 @@ def ingest() -> None:
         gross_rent_count = ingest_census_gross_rent_fallback(db)
         db.commit()
         print(f"Ingested {gross_rent_count} Census median gross rent fallback rows.")
+
+        pmms_count = ingest_pmms(db)
+        db.commit()
+        print(f"Ingested {pmms_count} Freddie Mac PMMS rows.")
     finally:
         db.close()
 

@@ -11,7 +11,8 @@ import csv
 from datetime import date
 
 from app import ingest_market_data as ingest
-from app.models import MarketMetric, MetricSource, Metro
+from app import ingest_national_data as ingest_national
+from app.models import MarketMetric, MetricSource, Metro, NationalMetric
 
 
 def _write_csv(path, header, rows):
@@ -253,3 +254,42 @@ def test_ingest_census_gross_rent_fallback_sets_metric_and_county(db_session, mo
     # itself gets tagged with which county backs the number.
     metro = db_session.get(Metro, "gapford-gf")
     assert metro.census_gross_rent_county == "Gap County, GF"
+
+
+# --- ingest_national_data (Freddie Mac PMMS - no metro dimension) ---
+
+
+def test_ingest_pmms_parses_three_series_and_skips_blanks(db_session, monkeypatch, tmp_path):
+    path = tmp_path / "pmms.csv"
+    _write_csv(
+        path,
+        ["date", "pmms30", "pmms30p", "pmms15", "pmms15p", "pmms51", "pmms51p", "pmms51m", "pmms51spread"],
+        [
+            # Mirrors the real file: pmms15/pmms51 genuinely start blank
+            # before Freddie Mac began surveying them.
+            ("4/2/1971", "7.33", " ", "", "", "", "", "", ""),
+            ("8/30/1991", "9.15", "1.9", "8.77", "1.9", "", "", "", ""),
+            ("1/6/2005", "5.77", "0.7", "5.21", "0.6", "5.03", "0.5", "2.78", ""),
+        ],
+    )
+    monkeypatch.setattr(ingest_national, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest_national, "PMMS_FILE", "pmms.csv")
+
+    count = ingest_national.ingest_pmms(db_session)
+    db_session.commit()
+    assert count == 1 + 2 + 3  # row1: only pmms30; row2: +pmms15; row3: +pmms51
+
+    rows = db_session.query(NationalMetric).all()
+    assert all(r.source == MetricSource.FREDDIE_MAC for r in rows)
+
+    thirty_yr = {r.period: r.value for r in rows if r.metric == "mortgage_rate_30yr_fixed"}
+    assert thirty_yr == {date(1971, 4, 2): 7.33, date(1991, 8, 30): 9.15, date(2005, 1, 6): 5.77}
+
+    fifteen_yr = {r.period: r.value for r in rows if r.metric == "mortgage_rate_15yr_fixed"}
+    assert fifteen_yr == {date(1991, 8, 30): 8.77, date(2005, 1, 6): 5.21}
+
+    arm = {r.period: r.value for r in rows if r.metric == "mortgage_rate_5_1_arm"}
+    assert arm == {date(2005, 1, 6): 5.03}
+
+    # Points/margin/spread columns are deliberately not ingested at all.
+    assert not any("p" in r.metric or "spread" in r.metric or "margin" in r.metric for r in rows)

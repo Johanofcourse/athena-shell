@@ -47,6 +47,17 @@ fact table handles a one-point "series" the same way it handles a
 176-point one. `backend/app/ingest_market_data.py` loads all real CSVs
 (`data/samples/`) into this table; run with `python -m app.ingest_market_data`.
 
+**`NationalMetric`** - one row per (period, source, metric), deliberately
+*not* `MarketMetric` with a fake "United States" `Metro` row. Genuinely
+national series (currently: Freddie Mac's PMMS mortgage rates) aren't a
+per-metro fact, and forcing one into the metro crosswalk would show up
+oddly in the metro browsing grid and make its honesty-flag columns
+meaningless. `period` is the real reported date (weekly for PMMS), not
+bucketed to first-of-month - there's no per-metro dimension to justify
+throwing away real granularity. Loaded by
+`backend/app/ingest_national_data.py`, called from
+`ingest_market_data.ingest()` so a fresh setup is still one command.
+
 This replaced an earlier `Listing`/`ListingEvent` model built against a
 synthetic per-listing dataset (see `git log` before this doc's current
 version, or `docs/PRODUCT_REVIEW.md` for why the pivot happened). It was
@@ -68,6 +79,15 @@ Two query modes, both going through the same tool:
 - **Ranking mode** (`sort_by: "value"`) - one point per metro at its
   latest value, sorted - for "which metro has the highest/lowest X"
   questions. `metros` is left empty to mean "all of them."
+
+A third category, **national metrics** (mortgage rates), has no metro
+dimension at all. `_sanitize_filters` clears `metros` for these
+deterministically regardless of what the model produced (same guardrail
+pattern as `bed_size`), and `run_market_query` routes them to
+`_run_national_query`, which queries `NationalMetric` directly - trend
+mode returns the full series, ranking mode returns the single latest
+point, and results are labeled `"United States"` to fit the existing
+`MarketMetricPoint` shape without a schema change.
 
 **Four honesty behaviors, deliberately built, not accidental:**
 1. `unsupported_aspects` - a field on the tool schema itself. When part of
@@ -118,20 +138,20 @@ for `median_rent` requests.
 `tool_choice` outright (undocumented by DeepSeek - found by testing
 directly). Fixed with `extra_body={"thinking": {"type": "disabled"}}`.
 
-**Eval set** (`backend/evals/`): 31 cases covering every metric category
-(including the Census-backed `median_household_income` and the computed
-`rent_to_income_pct`), both query modes, bed_size/time-range parsing, all
-four honesty behaviors above (including the `median_rent` ->
-`median_gross_rent` fallback and the genuine income gap it doesn't paper
-over), an adversarial pass (off-topic input, a prompt-injection attempt, a
-typo, a self-contradictory ranking question, weird casing, a relative time
-range), and a permanent regression case - plus a repeatability check that
-re-runs one ambiguous ranking query 5 times and reports whether the chosen
-metric stays consistent. Run with `python -m evals.run_eval` (costs a
-small amount of real DeepSeek usage). Current result: **31/31 cases,
-73/73 individual checks**; the repeatability check still reproduces the
-known metric-choice non-determinism below (2 different metrics across 5
-runs this time).
+**Eval set** (`backend/evals/`): 33 cases covering every metric category
+(including the Census-backed `median_household_income`, the computed
+`rent_to_income_pct`, and the national `mortgage_rate_*` series), both
+query modes, bed_size/time-range parsing, all four honesty behaviors above
+(including the `median_rent` -> `median_gross_rent` fallback and the
+genuine income gap it doesn't paper over), an adversarial pass (off-topic
+input, a prompt-injection attempt, a typo, a self-contradictory ranking
+question, weird casing, a relative time range), and a permanent regression
+case - plus a repeatability check that re-runs one ambiguous ranking query
+5 times and reports whether the chosen metric stays consistent. Run with
+`python -m evals.run_eval` (costs a small amount of real DeepSeek usage).
+Current result: **33/33 cases, 77/77 individual checks**; the
+repeatability check still reproduces the known metric-choice
+non-determinism below (2 different metrics across 5 runs this time).
 
 Read that carefully, not proudly. A clean run means these attempts
 (including ones written specifically to break it) didn't find a failure -

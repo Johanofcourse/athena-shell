@@ -26,6 +26,12 @@ describe("formatMetricValue", () => {
     expect(formatMetricValue("rent_to_income_pct", 24.5)).toBe("24.5%");
   });
 
+  it("formats national mortgage rates as a plain percent, same as rent_to_income_pct", () => {
+    expect(formatMetricValue("mortgage_rate_30yr_fixed", 6.71)).toBe("6.7%");
+    expect(formatMetricValue("mortgage_rate_15yr_fixed", 5.89)).toBe("5.9%");
+    expect(formatMetricValue("mortgage_rate_5_1_arm", 6.06)).toBe("6.1%");
+  });
+
   it("formats a plain count with thousands commas and no prefix/suffix", () => {
     expect(formatMetricValue("homes_sold", 12345)).toBe("12,345");
   });

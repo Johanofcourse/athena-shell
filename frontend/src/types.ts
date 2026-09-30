@@ -19,7 +19,10 @@ export type MetricName =
   | "time_on_market_days"
   | "median_household_income"
   | "rent_to_income_pct"
-  | "median_gross_rent";
+  | "median_gross_rent"
+  | "mortgage_rate_30yr_fixed"
+  | "mortgage_rate_15yr_fixed"
+  | "mortgage_rate_5_1_arm";
 
 export interface Metro {
   id: string;
