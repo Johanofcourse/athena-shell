@@ -320,5 +320,58 @@ real SaaS patterns, not a minimal login gate:
       exist - `PREFERENCES.md` calls out that secrets discipline "matters
       even more here" once this lands.
 
+## Phase 8 (under consideration) — Retrieval-augmented market commentary
+Not yet committed - a real open question (below) has to resolve first.
+The idea, motivated by wanting genuine RAG experience for the
+forward-deployed AI engineer angle, not by wanting RAG for its own sake:
+
+- A **second tool** alongside `query_market_metrics`, something like
+  `search_market_commentary`, for the "why" questions the structured
+  data can't answer ("why is Austin rent falling" vs. "what is Austin
+  rent"). The model would learn to pick between two genuinely different
+  tools for two genuinely different question types - itself a real
+  signal of judgment, not just tool-calling depth.
+- **Strictly separated from the structured answer, never blended** -
+  same honesty principle as the `median_gross_rent` fallback
+  (`approximated_metros`): a retrieved/summarized external passage is a
+  different *kind* of claim than an exact number from `MarketMetric`,
+  and the response has to make that distinction visible, with a real
+  citation (which document, which section) rather than a vague "sources
+  say."
+- **Candidate corpus: HUD's Comprehensive Housing Market Analysis (CHMA)
+  reports** - real, free, government-published, and they actually explain
+  *why* a market is moving (population/employment/construction trends),
+  not just *what* the numbers are. A different HUD product than the
+  Fair Market Rents data already noted as low-priority above.
+- **Real open blocker, not yet resolved:** CHMA reports are published
+  "as needed" (40-60/year, funding-dependent per HUD's own FAQ), not on
+  a fixed schedule or with guaranteed coverage of all 50 tracked metros -
+  the exact same "does this source actually cover our geography" problem
+  hit three times already with Redfin/Apartment List/Census. Confirming
+  real coverage requires checking HUD's state-by-state CHMA listing
+  pages (e.g. `huduser.gov/portal/chma/tx.html`) - which return empty,
+  gated responses to automated fetches (curl, WebFetch), the same
+  Akamai-style bot-gating already hit with Redfin and BLS. Per this
+  project's standing principle, that's not something to spoof past -
+  it needs a real browser check, by hand, before this phase can be
+  scoped further.
+- **Deliberately considered and rejected: a live web-search tool
+  instead of a pre-built corpus.** Technically possible (either a
+  provider's hosted search tool, or a custom tool the same way
+  `query_market_metrics` was built by hand) but rejected for this
+  project specifically: live results aren't reproducible enough for the
+  eval-suite-driven approach used everywhere else here, aren't
+  vetted the way every other data source in this project has been, would
+  hit the same live bot-gating unpredictably in production, and add real
+  per-query cost/latency a pre-indexed corpus doesn't.
+- Once coverage is confirmed: PDF text extraction (new to this project -
+  every prior source has been clean CSVs), an embedding step (local
+  embedding model preferred over a hosted API, to avoid a second paid
+  dependency alongside DeepSeek), and a deliberately lightweight
+  similarity search (in-process/SQLite-backed, not a dedicated vector DB
+  service) - matching the minimalist pattern used everywhere else in
+  this project rather than reaching for heavier infrastructure than the
+  actual corpus size (a few dozen reports) would ever need.
+
 See `PRODUCT_REVIEW.md` for an honest read on where this currently stands
 against these phases, and `DOCUMENTATION.md` for the technical reference.
