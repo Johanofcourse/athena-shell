@@ -5,19 +5,25 @@
   --border: #3c3c40;
   --text: #ececea;
   --text-muted: #9d9d96;
-  --accent: #f5b400;
-  --accent-ink: #14120a;
-  --danger: #ff5a36;
-  --success: #8bc34a;
+  --accent: #2f7dff;
+  --accent-ink: #f5f7fb;
+  --danger: #ff3b4e;
+  --success: #22c55e;
 
   --font-display: "Big Shoulders Stencil Display", sans-serif;
   --font-body: "Oswald", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
-/* One deliberate industrial identity - dark, high-contrast, hazard-yellow
-   accent. This doesn't soften for prefers-color-scheme: light; the whole
-   point is a specific look, not a theme that adapts away from it. */
+/* The same industrial bones as before (dark, high-contrast, sharp
+   corners, stencil display type) - just re-colored. The original
+   hazard-yellow/black read as literal caution tape ("construction site,"
+   real feedback from a real viewer), which fights a real-estate app's
+   positioning. Blue-against-red keeps the same bold, high-contrast
+   energy without the caution-tape association - and nods at the actual
+   data landscape this app sits in without copying any one brand
+   (Redfin's own red, paired with a trustworthy blue). Still doesn't
+   soften for prefers-color-scheme: light. */
 
 * {
   box-sizing: border-box;
@@ -46,8 +52,8 @@ body {
     45deg,
     var(--accent) 0px,
     var(--accent) 16px,
-    #000 16px,
-    #000 32px
+    var(--danger) 16px,
+    var(--danger) 32px
   );
 }
 
@@ -149,7 +155,7 @@ header h1 {
 }
 
 .search-bar button[type="submit"]:hover:not(:disabled) {
-  background: var(--accent-ink);
+  background: var(--bg);
   color: var(--accent);
 }
 
