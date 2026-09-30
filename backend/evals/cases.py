@@ -300,4 +300,21 @@ CASES = [
         "expect_sort_by": "value",
         "expect_sort_order": "asc",
     },
+    {
+        "id": "house_price_index_single_metro",
+        "query": "How has the house price index changed in Austin?",
+        "expect_metric": ["house_price_index"],
+        "expect_metros_contains": ["austin"],
+    },
+    {
+        "id": "house_price_index_genuine_gap",
+        # LA is one of the large multi-division metros FHFA doesn't
+        # publish a combined index for at all - a real gap, not
+        # approximated from one division (same reasoning as every other
+        # metro-division gap in this project).
+        "query": "What's the house price index for Los Angeles?",
+        "expect_metric": ["house_price_index"],
+        "expect_metros_contains": ["los angeles"],
+        "expect_no_data_nonempty": True,
+    },
 ]

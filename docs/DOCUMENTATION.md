@@ -76,6 +76,22 @@ metropolitan *divisions* separately, so the same 10 metros missing
 `aptlist_name`/`census_income_name` still get **real, non-approximated**
 unemployment data here - not another gap or fallback.
 
+**FHFA house price index** (metric `house_price_index`, source `FRED`)
+follows the same pattern as BLS unemployment - `FHFA_HPI_SERIES_IDS`
+(`market_crosswalk.py`), a live API fetch
+(`backend/app/fetch_fred_house_price_index.py`, saved to
+`data/samples/fred_house_price_index.json`), and an offline
+`ingest_fhfa_hpi()`. The coverage gap is real and meaningfully different
+from every other source, though: FHFA doesn't publish one combined index
+for large multi-division metros at all (Los Angeles, Chicago, San
+Francisco, Seattle, Washington DC, Miami, Philadelphia, Dallas, Detroit),
+and three of the usual 10 metro-division gap metros have no current
+division series either - 38/50 real matches, not 50/50 like BLS. Using
+one division's number to stand in for a combined metro's would have been
+the exact mistake this project has refused to make elsewhere, so those
+12 are genuine `no_data_metros` gaps - no new honesty mechanism needed,
+the existing one already covers it.
+
 This replaced an earlier `Listing`/`ListingEvent` model built against a
 synthetic per-listing dataset (see `git log` before this doc's current
 version, or `docs/PRODUCT_REVIEW.md` for why the pivot happened). It was
@@ -156,19 +172,20 @@ for `median_rent` requests.
 `tool_choice` outright (undocumented by DeepSeek - found by testing
 directly). Fixed with `extra_body={"thinking": {"type": "disabled"}}`.
 
-**Eval set** (`backend/evals/`): 35 cases covering every metric category
+**Eval set** (`backend/evals/`): 37 cases covering every metric category
 (including the Census-backed `median_household_income`, the computed
-`rent_to_income_pct`, the national `mortgage_rate_*` series, and BLS
-`unemployment_rate`), both query modes, bed_size/time-range parsing, all
-four honesty behaviors above (including the `median_rent` ->
-`median_gross_rent` fallback and the genuine income gap it doesn't paper
-over), an adversarial pass (off-topic input, a prompt-injection attempt, a
-typo, a self-contradictory ranking question, weird casing, a relative time
-range), and a permanent regression case - plus a repeatability check that
-re-runs one ambiguous ranking query 5 times and reports whether the chosen
-metric stays consistent. Run with `python -m evals.run_eval` (costs a
-small amount of real DeepSeek usage). Current result: **35/35 cases,
-83/83 individual checks**; the repeatability check came back stable this
+`rent_to_income_pct`, the national `mortgage_rate_*` series, BLS
+`unemployment_rate`, and FHFA `house_price_index`), both query modes,
+bed_size/time-range parsing, all four honesty behaviors above (including
+the `median_rent` -> `median_gross_rent` fallback and the genuine income
+gap it doesn't paper over), an adversarial pass (off-topic input, a
+prompt-injection attempt, a typo, a self-contradictory ranking question,
+weird casing, a relative time range), and a permanent regression case -
+plus a repeatability check that re-runs one ambiguous ranking query 5
+times and reports whether the chosen metric stays consistent. Run with
+`python -m evals.run_eval` (costs a small amount of real DeepSeek usage).
+Current result: **37/37 cases, 88/88 individual checks**; the
+repeatability check came back stable this
 run (5/5 same metric) - consistent with the known non-determinism being
 real but intermittent, not something a code fix should be expected to
 eliminate outright (see `PRODUCT_REVIEW.md`).

@@ -320,6 +320,46 @@ metro** instead - a genuine scope change ("any address's history" becomes
       invariants), 2 new eval cases, a live `curl` check, and a real
       browser screenshot of a ranking query.
 
+### FHFA house price index via FRED (done, 2026-09-30)
+- [x] A sixth data source (**FRED**, the St. Louis Fed's economic data
+      API - itself a republisher of real underlying sources like FHFA,
+      not a source unto itself), added the same night as BLS, for a
+      genuinely independent home-price benchmark alongside Redfin's own
+      median sale price - a repeat-sales index vs. a median transaction
+      price, methodologically different on purpose, never blended with
+      Redfin's numbers under one label.
+- [x] **A fifth naming/coding convention** (`FHFA_HPI_SERIES_IDS`,
+      `market_crosswalk.py`), matched via FRED's own API metadata (series
+      titles), same pattern as `BLS_AREA_CODES` - a plain lookup, not a
+      crosswalk column, used to call FRED's API directly.
+- [x] **A real, meaningfully different coverage gap, surfaced and
+      discussed before building, not discovered after:** unlike BLS,
+      FHFA doesn't publish one combined index for large multi-division
+      metros at all - Los Angeles, Chicago, San Francisco, Seattle,
+      Washington DC, Miami, Philadelphia, Dallas, and Detroit are
+      genuine gaps, not approximated from one division (a division's
+      number isn't the combined metro's number - the same reasoning as
+      every other metro-division gap in this project). Three of the 10
+      metro-division gap metros (Anaheim, Montgomery County PA, New
+      Brunswick) also have no current FHFA division series. **38/50
+      real matches** - decided deliberately with Johan mid-build once
+      the actual coverage picture was known, not defaulted into.
+      Existing `no_data_metros` honesty path covers all 12 gaps with no
+      new mechanism needed.
+- [x] Same offline/deterministic ingest pattern as BLS:
+      `fetch_fred_house_price_index.py` makes 38 live API calls (FRED's
+      endpoint takes one series per request, unlike BLS's batch
+      endpoint) and saves the raw responses; `ingest_fhfa_hpi()` only
+      reads that saved file. 2,186 rows, quarterly, Jan 2012-present.
+      `house_price_index` is a plain per-metro `MarketMetric` - no new
+      query-logic branch, and the tool-schema description explicitly
+      tells the model it's an index value, not a dollar amount.
+- [x] Verified: 5 new backend tests, 2 new eval cases (including one
+      confirming Los Angeles correctly returns a genuine gap, not a
+      substituted division number), a live `curl` check, and a real
+      browser screenshot showing Austin's well-documented 2022 price
+      peak in the actual rendered chart.
+
 ## Phase 4 — Engineering rigor (done, 2026-09-28)
 Deferred seven times before this (see `PRODUCT_REVIEW.md`) - done now, not
 an eighth deferral.

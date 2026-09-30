@@ -6,7 +6,7 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-30 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source, Phase 4 - engineering rigor - finally landed after seven deferrals, a real timezone bug found by the first frontend test ever run, a fourth data source - Freddie Mac's national mortgage rates - added with its own non-metro schema, and a fifth - BLS unemployment via its registered API - unexpectedly closed a real gap this project had previously given up on)
+**Last updated:** 2026-09-30 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source, Phase 4 - engineering rigor - finally landed after seven deferrals, a real timezone bug found by the first frontend test ever run, a fourth data source - Freddie Mac's national mortgage rates - added with its own non-metro schema, a fifth - BLS unemployment via its registered API - unexpectedly closed a real gap this project had previously given up on, and a sixth - FHFA house prices via FRED - shipped with a real, meaningfully worse coverage gap than any prior source, surfaced and decided on with Johan before building rather than after)
 
 ## What this is being judged against
 
@@ -16,7 +16,7 @@ review holds the project to both, not just "does it run."
 
 ## Where it actually stands
 
-- **Data** - real, not synthetic, now from five independent sources.
+- **Data** - real, not synthetic, now from six independent sources.
   Redfin (50 metros, monthly sale-side data, 2012-2026) and Apartment
   List (rent/vacancy/time-on-market, 2017/2019-2026), both independently
   spot-checked against known real-world market history (Austin's 2012
@@ -44,6 +44,14 @@ review holds the project to both, not just "does it run."
   separately, so the same 10 gap metros that have never had real
   rent-side or income-side data got **real, non-approximated**
   unemployment numbers instead of a sixth thing to flag as missing.
+  FHFA's house price index (via FRED) joined as a sixth source the same
+  night, and this one cut the other way: a real coverage gap
+  meaningfully worse than any other source (no combined index at all for
+  Los Angeles, Chicago, San Francisco, Seattle, Washington DC, Miami,
+  Philadelphia, Dallas, or Detroit) - surfaced and discussed with Johan
+  *before* building it, not discovered and quietly worked around after.
+  38/50 real metros, honestly labeled, no fudged substitutes for the 12
+  gaps.
 - **NL query layer** - verified live against DeepSeek, not just
   architected. Getting a working integration required two real,
   undocumented fixes (stale model name, a "thinking mode" incompatibility
