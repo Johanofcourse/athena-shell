@@ -11,7 +11,10 @@ import {
 import { formatMetricValue } from "../format";
 import type { MarketMetricPoint, MetricName } from "../types";
 
-const COLORS = ["#f5b400", "#ff5a36", "#8bc34a", "#5b7c99", "#b5651d", "#c9c9c9"];
+// Leads with the theme tokens (stays in sync if the palette ever changes
+// again) then falls back to a few extra hues, picked to read clearly
+// against blue/red without reintroducing the retired hazard-yellow.
+const COLORS = ["var(--accent)", "var(--danger)", "var(--success)", "#a855f7", "#f59e0b", "#38bdf8"];
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" });
 
