@@ -65,3 +65,74 @@ METRO_CROSSWALK = [
     ("washington-dc", "Washington, DC", "DC", "Washington, DC metro area", "Washington-Arlington-Alexandria, DC-VA-MD-WV", "Washington-Arlington-Alexandria, DC-VA-MD-WV Metro Area"),
     ("west-palm-beach-fl", "West Palm Beach, FL", "FL", "West Palm Beach, FL metro area", None, None),
 ]
+
+# A fourth, independent naming/coding convention: BLS's Local Area
+# Unemployment Statistics (LAUS) area codes. Unlike the fields above,
+# this isn't matched against a downloaded file's column headers - it's
+# used to construct BLS API series IDs directly ("LAU" + area_code +
+# measure_code), since LAUS data comes from BLS's registered public API,
+# not a manually-downloaded file. Kept as a separate dict rather than a
+# 7th crosswalk column since the lookup direction and purpose are
+# genuinely different from the rest of this file.
+#
+# Real find matching all 50 metros required: unlike Apartment List and
+# Census's income table, BLS's LAUS *does* publish metropolitan
+# *divisions* separately (area_type "C") - so all 10 of the metro-
+# division metros below have real, non-approximated area codes here,
+# not another gap. Matched via data/samples/la.area (BLS's own area
+# reference file) using the same first-city-token + state heuristic as
+# the other crosswalks, then hand-reviewed; one (New Brunswick, filed by
+# BLS under "Lakewood-New Brunswick, NJ") needed a manual match since it
+# doesn't start with the expected city token.
+BLS_AREA_CODES: dict[str, str] = {
+    "anaheim-ca": "DV0611244000000",  # Anaheim-Santa Ana-Irvine, CA
+    "atlanta-ga": "MT1312060000000",  # Atlanta-Sandy Springs-Roswell, GA
+    "austin-tx": "MT4812420000000",  # Austin-Round Rock-San Marcos, TX
+    "baltimore-md": "MT2412580000000",  # Baltimore-Columbia-Towson, MD
+    "boston-ma": "MT2514460000000",  # Boston-Cambridge-Newton, MA-NH
+    "charlotte-nc": "MT3716740000000",  # Charlotte-Concord-Gastonia, NC-SC
+    "chicago-il": "MT1716980000000",  # Chicago-Naperville-Elgin, IL-IN
+    "cincinnati-oh": "MT3917140000000",  # Cincinnati, OH-KY-IN
+    "cleveland-oh": "MT3917410000000",  # Cleveland, OH
+    "columbus-oh": "MT3918140000000",  # Columbus, OH
+    "dallas-tx": "MT4819100000000",  # Dallas-Fort Worth-Arlington, TX
+    "denver-co": "MT0819740000000",  # Denver-Aurora-Centennial, CO
+    "detroit-mi": "MT2619820000000",  # Detroit-Warren-Dearborn, MI
+    "fort-lauderdale-fl": "DV1222744000000",  # Fort Lauderdale-Pompano Beach-Sunrise, FL
+    "fort-worth-tx": "DV4823104000000",  # Fort Worth-Arlington-Grapevine, TX
+    "houston-tx": "MT4826420000000",  # Houston-Pasadena-The Woodlands, TX
+    "indianapolis-in": "MT1826900000000",  # Indianapolis-Carmel-Greenwood, IN
+    "jacksonville-fl": "MT1227260000000",  # Jacksonville, FL
+    "kansas-city-mo": "MT2928140000000",  # Kansas City, MO-KS
+    "las-vegas-nv": "MT3229820000000",  # Las Vegas-Henderson-North Las Vegas, NV
+    "los-angeles-ca": "MT0631080000000",  # Los Angeles-Long Beach-Anaheim, CA
+    "miami-fl": "MT1233100000000",  # Miami-Fort Lauderdale-West Palm Beach, FL
+    "milwaukee-wi": "MT5533340000000",  # Milwaukee-Waukesha, WI
+    "minneapolis-mn": "MT2733460000000",  # Minneapolis-St. Paul-Bloomington, MN-WI
+    "montgomery-county-pa": "DV4233874000000",  # Montgomery County-Bucks County-Chester County, PA
+    "nashville-tn": "MT4734980000000",  # Nashville-Davidson--Murfreesboro--Franklin, TN
+    "nassau-county-ny": "DV3635004000000",  # Nassau County-Suffolk County, NY
+    "new-brunswick-nj": "DV3429484000000",  # Lakewood-New Brunswick, NJ
+    "new-york-ny": "MT3635620000000",  # New York-Newark-Jersey City, NY-NJ
+    "newark-nj": "DV3435084000000",  # Newark, NJ
+    "oakland-ca": "DV0636084000000",  # Oakland-Fremont-Berkeley, CA
+    "orlando-fl": "MT1236740000000",  # Orlando-Kissimmee-Sanford, FL
+    "philadelphia-pa": "MT4237980000000",  # Philadelphia-Camden-Wilmington, PA-NJ-DE-MD
+    "phoenix-az": "MT0438060000000",  # Phoenix-Mesa-Chandler, AZ
+    "pittsburgh-pa": "MT4238300000000",  # Pittsburgh, PA
+    "portland-or": "MT4138900000000",  # Portland-Vancouver-Hillsboro, OR-WA
+    "providence-ri": "MT4439300000000",  # Providence-Warwick, RI-MA
+    "riverside-ca": "MT0640140000000",  # Riverside-San Bernardino-Ontario, CA
+    "sacramento-ca": "MT0640900000000",  # Sacramento-Roseville-Folsom, CA
+    "san-antonio-tx": "MT4841700000000",  # San Antonio-New Braunfels, TX
+    "san-diego-ca": "MT0641740000000",  # San Diego-Chula Vista-Carlsbad, CA
+    "san-francisco-ca": "MT0641860000000",  # San Francisco-Oakland-Fremont, CA
+    "san-jose-ca": "MT0641940000000",  # San Jose-Sunnyvale-Santa Clara, CA
+    "seattle-wa": "MT5342660000000",  # Seattle-Tacoma-Bellevue, WA
+    "st-louis-mo": "MT2941180000000",  # St. Louis, MO-IL
+    "tampa-fl": "MT1245300000000",  # Tampa-St. Petersburg-Clearwater, FL
+    "virginia-beach-va": "MT5147260000000",  # Virginia Beach-Chesapeake-Norfolk, VA-NC
+    "warren-mi": "DV2647664000000",  # Warren-Troy-Farmington Hills, MI
+    "washington-dc": "MT1147900000000",  # Washington-Arlington-Alexandria, DC-VA-MD-WV
+    "west-palm-beach-fl": "DV1248424000000",  # West Palm Beach-Boca Raton-Delray Beach, FL
+}

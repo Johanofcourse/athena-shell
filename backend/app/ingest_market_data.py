@@ -5,12 +5,13 @@ Run with: python -m app.ingest_market_data
 """
 
 import csv
+import json
 from datetime import date
 from pathlib import Path
 
 from app.database import Base, SessionLocal, engine
 from app.ingest_national_data import ingest_pmms
-from app.market_crosswalk import METRO_CROSSWALK
+from app.market_crosswalk import BLS_AREA_CODES, METRO_CROSSWALK
 from app.models import MarketMetric, MetricSource, Metro
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "samples"
@@ -272,6 +273,51 @@ def ingest_census_gross_rent_fallback(db) -> int:
     return count
 
 
+BLS_UNEMPLOYMENT_FILE = "bls_unemployment_rate.json"
+
+
+def ingest_bls_unemployment(db) -> int:
+    """Parses the raw response saved by fetch_bls_unemployment.py (a live,
+    registered BLS API call, not a bulk file download) into MarketMetric
+    rows. Optional: skips cleanly with a message if that file hasn't been
+    fetched yet, rather than failing the whole ingest run - this is the
+    newest source and the least likely to already be present on a fresh
+    checkout."""
+    path = DATA_DIR / BLS_UNEMPLOYMENT_FILE
+    if not path.exists():
+        print(f"{BLS_UNEMPLOYMENT_FILE} not found - run `python -m app.fetch_bls_unemployment` first. Skipping.")
+        return 0
+
+    with open(path, encoding="utf-8") as f:
+        payload = json.load(f)
+
+    area_code_to_metro_id = {area_code: metro_id for metro_id, area_code in BLS_AREA_CODES.items()}
+    count = 0
+    for series in payload["Results"]["series"]:
+        # series_id = "LAU" + area_code (15 chars) + 2-digit measure code.
+        area_code = series["seriesID"][3:-2]
+        metro_id = area_code_to_metro_id.get(area_code)
+        if metro_id is None:
+            continue
+        for point in series["data"]:
+            value = _parse_float(point.get("value"))
+            if value is None:
+                continue
+            period = date(int(point["year"]), int(point["period"][1:]), 1)
+            db.add(
+                MarketMetric(
+                    metro_id=metro_id,
+                    period=period,
+                    source=MetricSource.BLS,
+                    metric="unemployment_rate",
+                    bed_size=None,
+                    value=value,
+                )
+            )
+            count += 1
+    return count
+
+
 def ingest() -> None:
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
@@ -302,6 +348,10 @@ def ingest() -> None:
         pmms_count = ingest_pmms(db)
         db.commit()
         print(f"Ingested {pmms_count} Freddie Mac PMMS rows.")
+
+        bls_count = ingest_bls_unemployment(db)
+        db.commit()
+        print(f"Ingested {bls_count} BLS unemployment rate rows.")
     finally:
         db.close()
 

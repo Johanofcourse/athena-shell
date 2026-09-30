@@ -277,15 +277,48 @@ metro** instead - a genuine scope change ("any address's history" becomes
       deferred pulling more Census tables for now.
 - [ ] Re-verify Zillow Research / HUD FMR via a real browser - low
       priority, not blocking anything.
-- [ ] **BLS metro-level unemployment rate** - free API key obtained
-      (`data.bls.gov/registrationEngine`, stored in `.env`, not
-      committed), ingest not yet built. This is the same BLS whose bulk
-      LAUS data file was bot-gated earlier in this project (only the
-      `la.area`/`la.area_type`/`la.series` reference files got through) -
-      the registered API (`api.bls.gov`) is a completely different,
-      legitimate access path, not scraping-adjacent, and should sidestep
-      that gate entirely. Real per-metro Local Area Unemployment
-      Statistics coverage, matching the existing crosswalk geography.
+
+### BLS metro-level unemployment rate (done, 2026-09-30)
+- [x] **A genuinely different, legitimate access path solved a gap this
+      project had given up on.** BLS's bulk LAUS file was bot-gated
+      earlier (only the `la.area`/`la.area_type`/`la.series` reference
+      files got through, never the actual data). The registered public
+      API (`api.bls.gov`, free key from `data.bls.gov/registrationEngine`,
+      stored in `.env`, not committed) is a completely different,
+      intended-for-this access method - not scraping-adjacent - and
+      worked on the first real request.
+- [x] **A fourth independent naming/coding convention**, matched using
+      the already-downloaded (but previously unusable) `la.area`
+      reference file: BLS area codes, keyed by `metro_id` in a new
+      `BLS_AREA_CODES` dict (`market_crosswalk.py`) - a plain lookup, not
+      a 7th crosswalk column, since it's used to construct API series
+      IDs directly rather than matched against a downloaded file's
+      column headers. 49/50 matched automatically via the same
+      first-city-token + state heuristic as every other crosswalk here;
+      one (New Brunswick, which BLS files under "Lakewood-New Brunswick,
+      NJ") needed a manual match.
+- [x] **Real, unexpected win**: unlike Apartment List and Census's income
+      table, BLS's LAUS genuinely publishes metropolitan *divisions*
+      separately (area type "C") - so all 10 of the metro-division gap
+      metros (Anaheim, Fort Worth, etc.) got **real, non-approximated**
+      unemployment data, not another fallback. Confirmed live: Anaheim
+      and Montgomery County, PA both return real division-specific
+      values, and Montgomery County, PA appeared in a real "lowest
+      unemployment" ranking query in the actual UI.
+- [x] Ingest kept offline and deterministic like every other source:
+      `fetch_bls_unemployment.py` makes the one live API call (all 50
+      metros in a single request - 50 series per query is exactly the
+      registered-key limit) and saves the raw response to
+      `data/samples/bls_unemployment_rate.json`; the actual
+      `ingest_bls_unemployment()` only ever reads that saved file, run
+      manually/occasionally like the Redfin/Apartment List refresh, not
+      on every ingest. 8,703 rows, Jan 2012 - Jul 2026, plain per-metro
+      `unemployment_rate` metric - no new query-logic branch needed, it
+      fits the existing generic path exactly like every other per-metro
+      metric.
+- [x] Verified: 5 new backend tests (ingest parsing + crosswalk
+      invariants), 2 new eval cases, a live `curl` check, and a real
+      browser screenshot of a ranking query.
 
 ## Phase 4 — Engineering rigor (done, 2026-09-28)
 Deferred seven times before this (see `PRODUCT_REVIEW.md`) - done now, not

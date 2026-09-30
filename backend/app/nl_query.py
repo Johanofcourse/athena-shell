@@ -11,8 +11,8 @@ from app.schemas import ConversationTurn, MarketMetricPoint, MarketQueryFilters,
 
 SYSTEM_PROMPT = """You translate a person's natural-language question about real estate market trends \
 (home sale prices, rents, days on market, price drops, relistings, vacancy, household income, rent-to- \
-income burden, national mortgage rates) into a structured call against a metro-level database covering \
-50 US metros. Always call query_market_metrics exactly once.
+income burden, unemployment, national mortgage rates) into a structured call against a metro-level \
+database covering 50 US metros. Always call query_market_metrics exactly once.
 
 Pick ONE metric per call - the one the question is actually about. If the question names specific \
 metros (e.g. "Austin", "Denver vs Seattle"), list them in `metros`. If it's a ranking/comparison \
@@ -53,6 +53,7 @@ METRIC_DESCRIPTIONS = {
     MetricName.TIME_ON_MARKET_DAYS: "Median days a rental sits vacant before leasing (Apartment List)",
     MetricName.MEDIAN_HOUSEHOLD_INCOME: "Median household income, annual, a single latest-estimate snapshot not a monthly series (Census ACS 5-Year 2024)",
     MetricName.RENT_TO_INCOME_PCT: "Rent burden: (median rent x 12) / median household income, as a percent (computed)",
+    MetricName.UNEMPLOYMENT_RATE: "Metro-level unemployment rate, monthly, as a percent (BLS Local Area Unemployment Statistics)",
     MetricName.MORTGAGE_RATE_30YR_FIXED: "National average 30-year fixed mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
     MetricName.MORTGAGE_RATE_15YR_FIXED: "National average 15-year fixed mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
     MetricName.MORTGAGE_RATE_5_1_ARM: "National average 5/1 adjustable-rate mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
@@ -88,6 +89,7 @@ METRIC_LABELS = {
     MetricName.TIME_ON_MARKET_DAYS: "time on market (rentals)",
     MetricName.MEDIAN_HOUSEHOLD_INCOME: "median household income",
     MetricName.RENT_TO_INCOME_PCT: "rent as a percent of income",
+    MetricName.UNEMPLOYMENT_RATE: "unemployment rate",
     MetricName.MEDIAN_GROSS_RENT: "median gross rent (Census)",
     MetricName.MORTGAGE_RATE_30YR_FIXED: "30-year fixed mortgage rate",
     MetricName.MORTGAGE_RATE_15YR_FIXED: "15-year fixed mortgage rate",

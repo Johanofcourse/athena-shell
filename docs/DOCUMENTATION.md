@@ -58,6 +58,24 @@ throwing away real granularity. Loaded by
 `backend/app/ingest_national_data.py`, called from
 `ingest_market_data.ingest()` so a fresh setup is still one command.
 
+**BLS unemployment rate** is a normal per-metro `MarketMetric` (metric
+`unemployment_rate`, source `BLS`) - unlike mortgage rates, it's a real
+per-metro fact, so it doesn't need `NationalMetric`. What's different is
+the crosswalk and the ingest path: `BLS_AREA_CODES`
+(`market_crosswalk.py`) is a plain `{metro_id: area_code}` dict, not a
+7th crosswalk column, since it's used to construct BLS API series IDs
+(`"LAU" + area_code + measure_code`) rather than matched against a
+downloaded file's column headers. And unlike every other source, the
+data comes from a live, registered API call
+(`backend/app/fetch_bls_unemployment.py`, run manually/occasionally, not
+part of the regular ingest), whose raw JSON response is saved to
+`data/samples/bls_unemployment_rate.json` so the actual ingest step
+(`ingest_bls_unemployment()` in `ingest_market_data.py`) stays offline
+and deterministic like everything else. Real find: BLS's LAUS covers
+metropolitan *divisions* separately, so the same 10 metros missing
+`aptlist_name`/`census_income_name` still get **real, non-approximated**
+unemployment data here - not another gap or fallback.
+
 This replaced an earlier `Listing`/`ListingEvent` model built against a
 synthetic per-listing dataset (see `git log` before this doc's current
 version, or `docs/PRODUCT_REVIEW.md` for why the pivot happened). It was
@@ -138,20 +156,22 @@ for `median_rent` requests.
 `tool_choice` outright (undocumented by DeepSeek - found by testing
 directly). Fixed with `extra_body={"thinking": {"type": "disabled"}}`.
 
-**Eval set** (`backend/evals/`): 33 cases covering every metric category
+**Eval set** (`backend/evals/`): 35 cases covering every metric category
 (including the Census-backed `median_household_income`, the computed
-`rent_to_income_pct`, and the national `mortgage_rate_*` series), both
-query modes, bed_size/time-range parsing, all four honesty behaviors above
-(including the `median_rent` -> `median_gross_rent` fallback and the
-genuine income gap it doesn't paper over), an adversarial pass (off-topic
-input, a prompt-injection attempt, a typo, a self-contradictory ranking
-question, weird casing, a relative time range), and a permanent regression
-case - plus a repeatability check that re-runs one ambiguous ranking query
-5 times and reports whether the chosen metric stays consistent. Run with
-`python -m evals.run_eval` (costs a small amount of real DeepSeek usage).
-Current result: **33/33 cases, 77/77 individual checks**; the
-repeatability check still reproduces the known metric-choice
-non-determinism below (2 different metrics across 5 runs this time).
+`rent_to_income_pct`, the national `mortgage_rate_*` series, and BLS
+`unemployment_rate`), both query modes, bed_size/time-range parsing, all
+four honesty behaviors above (including the `median_rent` ->
+`median_gross_rent` fallback and the genuine income gap it doesn't paper
+over), an adversarial pass (off-topic input, a prompt-injection attempt, a
+typo, a self-contradictory ranking question, weird casing, a relative time
+range), and a permanent regression case - plus a repeatability check that
+re-runs one ambiguous ranking query 5 times and reports whether the chosen
+metric stays consistent. Run with `python -m evals.run_eval` (costs a
+small amount of real DeepSeek usage). Current result: **35/35 cases,
+83/83 individual checks**; the repeatability check came back stable this
+run (5/5 same metric) - consistent with the known non-determinism being
+real but intermittent, not something a code fix should be expected to
+eliminate outright (see `PRODUCT_REVIEW.md`).
 
 Read that carefully, not proudly. A clean run means these attempts
 (including ones written specifically to break it) didn't find a failure -
