@@ -11,3 +11,8 @@ dist/
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
+
+# Personal secrets/credentials Johan keeps alongside the repo for
+# convenience - never tracked, never committed, regardless of what ends
+# up in here.
+Classified/
