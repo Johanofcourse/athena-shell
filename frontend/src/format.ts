@@ -20,6 +20,9 @@ const PERCENT_METRICS = new Set<MetricName>([
   "share_delisted_pct",
   "share_relisted_pct",
   "rent_to_income_pct",
+  "mortgage_rate_30yr_fixed",
+  "mortgage_rate_15yr_fixed",
+  "mortgage_rate_5_1_arm",
 ]);
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {

@@ -6,7 +6,7 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-28 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source, and Phase 4 - engineering rigor - finally landed after seven deferrals)
+**Last updated:** 2026-09-30 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source, Phase 4 - engineering rigor - finally landed after seven deferrals, a real timezone bug found by the first frontend test ever run, and a fourth data source - Freddie Mac's national mortgage rates - added with its own non-metro schema)
 
 ## What this is being judged against
 
@@ -16,7 +16,7 @@ review holds the project to both, not just "does it run."
 
 ## Where it actually stands
 
-- **Data** - real, not synthetic, now from three independent sources.
+- **Data** - real, not synthetic, now from four independent sources.
   Redfin (50 metros, monthly sale-side data, 2012-2026) and Apartment
   List (rent/vacancy/time-on-market, 2017/2019-2026), both independently
   spot-checked against known real-world market history (Austin's 2012
@@ -26,11 +26,17 @@ review holds the project to both, not just "does it run."
   history - doesn't survive scrutiny, see `ROADMAP.md` Phase 3) and
   finding a legally clean alternative instead. Census ACS (median
   household income, plus a county-level gross-rent fallback for the 10
-  metro-division metros) joined this session as a third source, matched
-  against its own distinct metro-naming convention - a third crosswalk
-  entry, not a reuse of either existing one, since Census's own official
-  boundary names drift across time independent of both Redfin's and
-  Apartment List's.
+  metro-division metros) joined as a third source, matched against its
+  own distinct metro-naming convention - a third crosswalk entry, not a
+  reuse of either existing one, since Census's own official boundary
+  names drift across time independent of both Redfin's and Apartment
+  List's. Freddie Mac's mortgage rate history joined as a fourth source
+  this session, the first genuinely *national* one - deliberately not
+  squeezed into the metro crosswalk pattern the other three share (see
+  `NationalMetric` in `DOCUMENTATION.md`), since a national rate isn't a
+  per-metro fact and forcing one would have been the same kind of
+  quiet correctness compromise this project has refused to make
+  elsewhere.
 - **NL query layer** - verified live against DeepSeek, not just
   architected. Getting a working integration required two real,
   undocumented fixes (stale model name, a "thinking mode" incompatibility

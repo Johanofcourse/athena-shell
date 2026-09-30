@@ -44,6 +44,7 @@ class MetricSource(str, enum.Enum):
     REDFIN = "redfin"
     APARTMENT_LIST = "apartment_list"
     CENSUS = "census"
+    FREDDIE_MAC = "freddie_mac"
 
 
 class MarketMetric(Base):
@@ -68,6 +69,27 @@ class MarketMetric(Base):
     value: Mapped[float] = mapped_column(Float, nullable=False)
 
     metro: Mapped["Metro"] = relationship(back_populates="metrics")
+
+
+class NationalMetric(Base):
+    """One (period, metric) observation with no metro dimension at all -
+    for genuinely national series like Freddie Mac's mortgage rates.
+    Deliberately a separate table from MarketMetric rather than a fake
+    "United States" row in Metro: a national rate isn't a per-metro fact,
+    and forcing it into the metro crosswalk would show up oddly in the
+    metro browsing grid. period is the real reported date (weekly for
+    PMMS), not bucketed to first-of-month like MarketMetric - there's no
+    reason to throw away real granularity the source actually reports at."""
+
+    __tablename__ = "national_metrics"
+    __table_args__ = (UniqueConstraint("period", "source", "metric", name="uq_national_metric"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    period: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    source: Mapped[MetricSource] = mapped_column(Enum(MetricSource), nullable=False)
+    metric: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    value: Mapped[float] = mapped_column(Float, nullable=False)
 
 
 class QueryUsage(Base):

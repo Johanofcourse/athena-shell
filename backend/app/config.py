@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-flash"
 
+    # For the planned BLS metro-unemployment ingest (not built yet).
+    bls_api_key: str = ""
+
     database_url: str = "sqlite:///./athena.db"
 
     cors_origins: str = "http://localhost:5173"
