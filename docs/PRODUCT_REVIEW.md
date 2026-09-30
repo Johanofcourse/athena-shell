@@ -6,7 +6,7 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-30 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source, Phase 4 - engineering rigor - finally landed after seven deferrals, a real timezone bug found by the first frontend test ever run, and a fourth data source - Freddie Mac's national mortgage rates - added with its own non-metro schema)
+**Last updated:** 2026-09-30 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source, Phase 4 - engineering rigor - finally landed after seven deferrals, a real timezone bug found by the first frontend test ever run, a fourth data source - Freddie Mac's national mortgage rates - added with its own non-metro schema, and a fifth - BLS unemployment via its registered API - unexpectedly closed a real gap this project had previously given up on)
 
 ## What this is being judged against
 
@@ -16,7 +16,7 @@ review holds the project to both, not just "does it run."
 
 ## Where it actually stands
 
-- **Data** - real, not synthetic, now from four independent sources.
+- **Data** - real, not synthetic, now from five independent sources.
   Redfin (50 metros, monthly sale-side data, 2012-2026) and Apartment
   List (rent/vacancy/time-on-market, 2017/2019-2026), both independently
   spot-checked against known real-world market history (Austin's 2012
@@ -36,7 +36,14 @@ review holds the project to both, not just "does it run."
   `NationalMetric` in `DOCUMENTATION.md`), since a national rate isn't a
   per-metro fact and forcing one would have been the same kind of
   quiet correctness compromise this project has refused to make
-  elsewhere.
+  elsewhere. BLS unemployment data joined as a fifth source the same
+  night, via a real, registered API (`api.bls.gov`) rather than the
+  bulk file that was bot-gated earlier in this project - and it turned
+  up a genuine, pleasant surprise: unlike Apartment List and Census's
+  income table, BLS actually publishes metropolitan divisions
+  separately, so the same 10 gap metros that have never had real
+  rent-side or income-side data got **real, non-approximated**
+  unemployment numbers instead of a sixth thing to flag as missing.
 - **NL query layer** - verified live against DeepSeek, not just
   architected. Getting a working integration required two real,
   undocumented fixes (stale model name, a "thinking mode" incompatibility

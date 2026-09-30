@@ -24,6 +24,7 @@ describe("formatMetricValue", () => {
   it("formats an already-percent metric with a plain % suffix", () => {
     expect(formatMetricValue("price_drop_pct_avg", 6.76)).toBe("6.8%");
     expect(formatMetricValue("rent_to_income_pct", 24.5)).toBe("24.5%");
+    expect(formatMetricValue("unemployment_rate", 4.2)).toBe("4.2%");
   });
 
   it("formats national mortgage rates as a plain percent, same as rent_to_income_pct", () => {

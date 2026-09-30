@@ -7,7 +7,7 @@ future hand-edit could introduce: a typo'd duplicate, a metro dropped
 from one field but not another, or the two known-gap sets drifting apart.
 """
 
-from app.market_crosswalk import METRO_CROSSWALK
+from app.market_crosswalk import BLS_AREA_CODES, METRO_CROSSWALK
 
 # The 10 metro-division metros (Anaheim, Fort Lauderdale, Fort Worth,
 # Montgomery County PA, Nassau County NY, New Brunswick NJ, Newark NJ,
@@ -97,3 +97,24 @@ def test_every_metro_id_is_a_lowercase_slug():
 def test_every_canonical_name_has_a_state_suffix_matching_state_field():
     for metro_id, canonical_name, state, *_ in METRO_CROSSWALK:
         assert canonical_name.endswith(f", {state}"), (metro_id, canonical_name, state)
+
+
+def test_bls_area_codes_cover_every_metro_with_no_gaps():
+    """Unlike aptlist_name/census_income_name, BLS's LAUS genuinely
+    covers metropolitan divisions (area_type "C") as well as combined
+    metros - so, unlike the other two sources, all 50 metros should have
+    a real BLS area code, not 40."""
+    assert set(BLS_AREA_CODES) == {row[0] for row in METRO_CROSSWALK}
+
+
+def test_bls_area_codes_are_unique():
+    assert len(BLS_AREA_CODES.values()) == len(set(BLS_AREA_CODES.values()))
+
+
+def test_bls_area_codes_are_fifteen_characters_matching_series_id_format():
+    # series_id = "LAU" + area_code + 2-digit measure code - a
+    # malformed area code here would silently corrupt every constructed
+    # series ID (see fetch_bls_unemployment.py).
+    for metro_id, area_code in BLS_AREA_CODES.items():
+        assert len(area_code) == 15, (metro_id, area_code)
+        assert area_code[:2] in ("MT", "DV"), (metro_id, area_code)

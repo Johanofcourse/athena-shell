@@ -19,6 +19,7 @@ export type MetricName =
   | "time_on_market_days"
   | "median_household_income"
   | "rent_to_income_pct"
+  | "unemployment_rate"
   | "median_gross_rent"
   | "mortgage_rate_30yr_fixed"
   | "mortgage_rate_15yr_fixed"

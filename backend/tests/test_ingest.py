@@ -8,6 +8,7 @@ functions themselves are exercised unmodified.
 """
 
 import csv
+import json
 from datetime import date
 
 from app import ingest_market_data as ingest
@@ -293,3 +294,56 @@ def test_ingest_pmms_parses_three_series_and_skips_blanks(db_session, monkeypatc
 
     # Points/margin/spread columns are deliberately not ingested at all.
     assert not any("p" in r.metric or "spread" in r.metric or "margin" in r.metric for r in rows)
+
+
+# --- ingest_bls_unemployment (live-API source, offline-parsed from a saved JSON) ---
+
+
+def test_ingest_bls_unemployment_parses_response_and_maps_area_codes_to_metros(db_session, monkeypatch, tmp_path):
+    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
+    db_session.commit()
+
+    # Mirrors the real BLS API response shape (series_id = "LAU" + area
+    # code + 2-digit measure code), including a blank value (BLS uses
+    # this for suppressed/unavailable data points) and a series whose
+    # area code isn't in our crosswalk at all (must be silently skipped,
+    # not error - the real response covers exactly our 50 metros, but
+    # nothing structurally guarantees that stays true forever).
+    payload = {
+        "Results": {
+            "series": [
+                {
+                    "seriesID": "LAUXX000000000000003",
+                    "data": [
+                        {"year": "2024", "period": "M01", "value": "4.5"},
+                        {"year": "2024", "period": "M02", "value": "4.2"},
+                        {"year": "2024", "period": "M03", "value": ""},
+                    ],
+                },
+                {
+                    "seriesID": "LAUYY999999999999903",
+                    "data": [{"year": "2024", "period": "M01", "value": "9.9"}],
+                },
+            ]
+        }
+    }
+    path = tmp_path / "bls.json"
+    path.write_text(json.dumps(payload))
+
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "BLS_UNEMPLOYMENT_FILE", "bls.json")
+    monkeypatch.setattr(ingest, "BLS_AREA_CODES", {"testville-ts": "XX0000000000000"})
+
+    count = ingest.ingest_bls_unemployment(db_session)
+    db_session.commit()
+    assert count == 2  # the blank March value and the unmapped series are both skipped
+
+    rows = db_session.query(MarketMetric).filter_by(metro_id="testville-ts").all()
+    assert {(r.period, r.value) for r in rows} == {(date(2024, 1, 1), 4.5), (date(2024, 2, 1), 4.2)}
+    assert all(r.metric == "unemployment_rate" and r.source == MetricSource.BLS for r in rows)
+
+
+def test_ingest_bls_unemployment_missing_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "BLS_UNEMPLOYMENT_FILE", "does_not_exist.json")
+    assert ingest.ingest_bls_unemployment(db_session) == 0

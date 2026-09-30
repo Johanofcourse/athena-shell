@@ -286,4 +286,18 @@ CASES = [
         "expect_metric": ["mortgage_rate_30yr_fixed"],
         "expect_metros_empty": True,
     },
+    {
+        "id": "unemployment_single_metro",
+        "query": "What's the unemployment rate in Austin?",
+        "expect_metric": ["unemployment_rate"],
+        "expect_metros_contains": ["austin"],
+    },
+    {
+        "id": "unemployment_ranking",
+        "query": "Which metros have the lowest unemployment right now?",
+        "expect_metric": ["unemployment_rate"],
+        "expect_metros_empty": True,
+        "expect_sort_by": "value",
+        "expect_sort_order": "asc",
+    },
 ]

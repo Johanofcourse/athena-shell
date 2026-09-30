@@ -45,6 +45,7 @@ class MetricSource(str, enum.Enum):
     APARTMENT_LIST = "apartment_list"
     CENSUS = "census"
     FREDDIE_MAC = "freddie_mac"
+    BLS = "bls"
 
 
 class MarketMetric(Base):
