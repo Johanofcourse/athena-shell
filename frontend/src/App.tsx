@@ -84,6 +84,11 @@ export default function App() {
       {selectedMetro && (
         <MetroDetailPanel metro={selectedMetro} onClose={() => setSelectedMetro(null)} />
       )}
+
+      <footer className="footnote">
+        A few metros don't show rent or income badges — Apartment List and Census don't publish those
+        metrics below the full-metro level there, so we never fake a number to fill the gap.
+      </footer>
     </div>
   );
 }
