@@ -549,3 +549,13 @@ header h1 {
   font-family: var(--font-mono);
   font-size: 12px;
 }
+
+.footnote {
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+}
