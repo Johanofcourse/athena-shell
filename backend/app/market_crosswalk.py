@@ -191,3 +191,71 @@ FHFA_HPI_SERIES_IDS: dict[str, str] = {
     "warren-mi": "ATNHPIUS47644Q",  # Warren-Troy-Farmington Hills, MI
     "west-palm-beach-fl": "ATNHPIUS48424Q",  # West Palm Beach-Boca Raton-Boynton Beach, FL
 }
+
+# Metro center coordinates, for map-based browsing (not matched to a
+# specific source's own geography convention the way the dicts above
+# are - just real coordinates for plotting a point). Sourced from the
+# Census Bureau's own Gazetteer files: CBSA centroids (INTPTLAT/
+# INTPTLONG) for the 40 combined metros, and the actual named city's
+# point (from the Place gazetteer) for the 10 metro-division metros,
+# since a division isn't its own CBSA entry. Zero gaps, unlike every
+# other crosswalk in this file - a CBSA centroid is a real geometric
+# area centroid (not a population-weighted "downtown" point), so a
+# large/sprawling metro's dot can land somewhat inland of its named
+# city (e.g. Seattle) - that's the data being honest about the area's
+# real shape, not an error. Two of the 10 division metros are counties,
+# not incorporated cities, so they use a real named place within the
+# county instead (Norristown for Montgomery County PA, Hempstead for
+# Nassau County NY) rather than a fabricated "county centroid".
+METRO_COORDINATES: dict[str, tuple[float, float]] = {
+    "anaheim-ca": (33.855502, -117.758657),
+    "atlanta-ga": (33.732402, -84.392848),
+    "austin-tx": (30.249744, -97.649842),
+    "baltimore-md": (39.304361, -76.549501),
+    "boston-ma": (42.517606, -71.021993),
+    "charlotte-nc": (35.166342, -80.797285),
+    "chicago-il": (41.75878, -87.841887),
+    "cincinnati-oh": (39.078595, -84.463535),
+    "cleveland-oh": (41.667548, -81.43052),
+    "columbus-oh": (39.968562, -82.835911),
+    "dallas-tx": (32.849171, -96.970489),
+    "denver-co": (39.434789, -104.901073),
+    "detroit-mi": (42.721848, -83.200846),
+    "fort-lauderdale-fl": (26.141227, -80.146731),
+    "fort-worth-tx": (32.781954, -97.348573),
+    "houston-tx": (29.801005, -95.34262),
+    "indianapolis-in": (39.790533, -86.12426),
+    "jacksonville-fl": (30.234184, -81.756033),
+    "kansas-city-mo": (38.931857, -94.443841),
+    "las-vegas-nv": (36.21413, -115.014398),
+    "los-angeles-ca": (34.108703, -118.182753),
+    "miami-fl": (26.101828, -80.478755),
+    "milwaukee-wi": (42.912643, -87.862312),
+    "minneapolis-mn": (45.096664, -93.275361),
+    "montgomery-county-pa": (40.122076, -75.33987),
+    "nashville-tn": (36.091577, -86.72298),
+    "nassau-county-ny": (40.704374, -73.619445),
+    "new-brunswick-nj": (40.486677, -74.444414),
+    "new-york-ny": (40.735425, -73.80773),
+    "newark-nj": (40.72422, -74.172574),
+    "oakland-ca": (37.769846, -122.22569),
+    "orlando-fl": (28.434398, -81.35606),
+    "philadelphia-pa": (39.894958, -75.311982),
+    "phoenix-az": (33.185765, -112.067862),
+    "pittsburgh-pa": (40.471332, -79.863986),
+    "portland-or": (45.600622, -122.484378),
+    "providence-ri": (41.70684, -71.286687),
+    "riverside-ca": (34.538476, -116.134541),
+    "sacramento-ca": (38.790272, -121.005643),
+    "san-antonio-tx": (29.43306, -98.606973),
+    "san-diego-ca": (33.023604, -116.776117),
+    "san-francisco-ca": (37.773718, -122.274432),
+    "san-jose-ca": (36.908472, -121.371372),
+    "seattle-wa": (47.490552, -121.833977),
+    "st-louis-mo": (38.740211, -90.345825),
+    "tampa-fl": (28.120541, -82.525188),
+    "virginia-beach-va": (36.837289, -76.391849),
+    "warren-mi": (42.492904, -83.025001),
+    "washington-dc": (38.829787, -77.495684),
+    "west-palm-beach-fl": (26.745114, -80.127038),
+}

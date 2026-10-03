@@ -92,6 +92,15 @@ the exact mistake this project has refused to make elsewhere, so those
 12 are genuine `no_data_metros` gaps - no new honesty mechanism needed,
 the existing one already covers it.
 
+**`METRO_COORDINATES`** (`market_crosswalk.py`) isn't tied to any
+source's own data-availability convention the way the dicts above are -
+it's real lat/long for map-plotting, sourced from the Census Bureau's own
+Gazetteer files (CBSA centroids for the 40 combined metros, the actual
+named city's point from the Place gazetteer for the 10 metro-division
+metros). The one crosswalk in this project with zero gaps. Exposed via
+`GET /metros`'s `latitude`/`longitude` fields, consumed by
+`UsMetroMap.tsx`.
+
 This replaced an earlier `Listing`/`ListingEvent` model built against a
 synthetic per-listing dataset (see `git log` before this doc's current
 version, or `docs/PRODUCT_REVIEW.md` for why the pivot happened). It was
@@ -294,11 +303,26 @@ from the outside.
 
 ## Frontend (`frontend/src/`)
 
-**Visual design**: the industrial/hazard-signage direction from
-`PREFERENCES.md` (Phase 2) - dark, high-contrast, stencil display type
-(Big Shoulders Stencil Display), monospace data readouts (IBM Plex Mono),
-sharp corners, a hazard-stripe accent bar. One deliberate identity, not a
+**Visual design**: the industrial direction from `PREFERENCES.md` (Phase
+2) - dark, high-contrast, stencil display type (Big Shoulders Stencil
+Display), monospace data readouts (IBM Plex Mono), sharp corners, a
+diagonal accent bar. Re-colored blue/red (from the original hazard-
+yellow/black) after real viewer feedback that the original read as
+construction-site caution tape - same bones, different tokens (`--accent`,
+`--danger` in `index.css`). One deliberate identity either way, not a
 theme that softens for `prefers-color-scheme: light`.
+
+**Metro browsing map** (`UsMetroMap.tsx`): an accurate US map
+(`react-simple-maps` + `d3-geo`, rendering `us-atlas`'s real Census
+TIGER/Line-derived state topology via `geoAlbersUsa`) with all 50 metros
+plotted as clickable markers, plus a synced list alongside - not an
+illustrated/isometric map, since that style is normally hand-drawn art,
+not something derivable from coordinate data. Coordinates come from
+`METRO_COORDINATES` (`market_crosswalk.py`), the one crosswalk in this
+project with zero gaps (see below). Uses `us-atlas`'s raw (non-Albers-
+pre-projected) topology specifically, so both the state outlines and the
+markers get projected through the same `geoAlbersUsa` call - the
+pre-projected variant would silently misalign the two.
 
 **Value formatting** (`format.ts`): metrics aren't all the same *kind* of
 number - `median_sale_price`/`median_rent`/`median_price_per_sqft`/

@@ -291,6 +291,96 @@ header h1 {
   letter-spacing: 0.01em;
 }
 
+.metro-map-layout {
+  margin-top: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.metro-map-canvas {
+  flex: 1.6 1 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px;
+  min-width: 0;
+}
+
+.metro-map-state {
+  fill: var(--surface-raised);
+  stroke: var(--border);
+  stroke-width: 0.75;
+  outline: none;
+}
+
+.metro-map-pin {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: fill 0.1s ease, r 0.1s ease;
+}
+
+.metro-map-pin[data-hovered="true"] {
+  fill: var(--danger);
+}
+
+.metro-list {
+  flex: 1 1 0;
+  min-width: 220px;
+  max-height: 620px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.metro-list-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.metro-list-item[data-hovered="true"] {
+  background: var(--surface-raised);
+  border-left-color: var(--accent);
+}
+
+.metro-list-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.metro-list-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .metro-map-layout {
+    flex-direction: column;
+  }
+
+  .metro-list {
+    max-height: 320px;
+  }
+}
+
 .query-results {
   margin-top: 8px;
 }

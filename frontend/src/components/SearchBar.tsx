@@ -2,9 +2,9 @@ import { FormEvent, useState } from "react";
 
 const EXAMPLE_QUERIES = [
   "How has rent changed in Austin over the last two years?",
-  "Which metros have the biggest price drops right now?",
-  "Compare days on market for Austin and Denver",
-  "What's the vacancy rate trend in Seattle?",
+  "Which metros have the lowest unemployment right now?",
+  "How have 30-year mortgage rates changed since 2022?",
+  "How has the house price index changed in Denver?",
 ];
 
 interface Props {

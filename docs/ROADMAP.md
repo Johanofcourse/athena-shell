@@ -137,6 +137,49 @@ probed hardest in an interview.
       `DOCUMENTATION.md` -> Frontend) and a deterministic per-result
       analysis summary, both added in response to live review feedback.
 
+### Palette refresh + geographic metro map (done, 2026-09-30)
+Real feedback from a real viewer Johan showed the app to: the hazard-
+yellow/black look read as literal caution tape ("looks like a
+construction site"), fighting a real-estate app's positioning.
+- [x] Re-colored the theme tokens (`--accent` to a vivid blue, `--danger`
+      to a vivid red) rather than abandoning the industrial identity -
+      same dark, high-contrast, sharp-corner bones from Phase 2, just
+      re-colored. Every component keyed off the CSS variables updated
+      for free; `TrendChart.tsx`'s multi-series line palette was
+      hardcoded separately and needed a matching fix, now leads with the
+      theme tokens directly so it can't drift out of sync again.
+- [x] Replaced the metro browsing grid with an accurate, data-driven US
+      map (`UsMetroMap.tsx`, `react-simple-maps` + `d3-geo` +
+      `us-atlas`'s real Census TIGER/Line-derived topology) alongside a
+      synced city list, not an illustrated/isometric map - that style
+      is normally hand-drawn art, not something coordinate data gets you
+      to, and would have been a real-vs-fabricated tradeoff this project
+      doesn't make elsewhere.
+- [x] **A fifth naming convention, and the first with zero gaps**:
+      `METRO_COORDINATES` (`market_crosswalk.py`), sourced from the
+      Census Bureau's own Gazetteer files - CBSA centroids for the 40
+      combined metros, and the actual named city's point (from the
+      Place gazetteer) for the 10 metro-division metros, since a
+      division isn't its own CBSA entry. Two of those ten are counties
+      rather than incorporated cities (Montgomery County PA, Nassau
+      County NY), so they use a real named place within the county
+      (Norristown, Hempstead) instead of a fabricated "county centroid."
+- [x] `GET /metros` now returns `latitude`/`longitude` for every metro.
+      A CBSA centroid is a real geometric area centroid, not a
+      population-weighted "downtown" point, so a large/sprawling
+      metro's dot can land somewhat inland of its named city (e.g.
+      Seattle) - that's the data honestly reflecting the area's real
+      shape, not an error worth hiding.
+- [x] Verified: 2 new backend tests (coordinate coverage + sanity
+      bounds), a real browser check of map rendering (all 50 pins,
+      correct Alaska/Hawaii inset positioning, real density clusters
+      matching known geography), hover/click interaction on both the
+      map pins and the list, and confirming both paths correctly open
+      the same metro detail panel. Map rendering itself isn't unit
+      tested, same reasoning as the Recharts trend/ranking charts -
+      SVG/topology rendering is real-browser-verification territory,
+      not jsdom's.
+
 ## Phase 3 — Real data: aggregate market trends (done)
 
 **Decision (2026-09-22):** per-listing history (this exact address's price

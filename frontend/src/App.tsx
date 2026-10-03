@@ -2,15 +2,16 @@ import { useEffect, useState } from "react";
 import { fetchMetros, runQuery } from "./api";
 import { ConversationHistory } from "./components/ConversationHistory";
 import { MetroDetailPanel } from "./components/MetroDetailPanel";
-import { MetroGrid } from "./components/MetroGrid";
 import { QueryResults } from "./components/QueryResults";
 import { SearchBar } from "./components/SearchBar";
+import { UsMetroMap } from "./components/UsMetroMap";
 import type { ConversationTurn, MarketQueryResponse, Metro } from "./types";
 
 const MAX_HISTORY_TURNS = 5;
 
 export default function App() {
   const [metros, setMetros] = useState<Metro[]>([]);
+  const [metrosLoading, setMetrosLoading] = useState(true);
   const [queryResponse, setQueryResponse] = useState<MarketQueryResponse | null>(null);
   const [lastQuery, setLastQuery] = useState("");
   const [history, setHistory] = useState<ConversationTurn[]>([]);
@@ -22,7 +23,8 @@ export default function App() {
   useEffect(() => {
     fetchMetros()
       .then(setMetros)
-      .catch((err: Error) => setError(err.message));
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setMetrosLoading(false));
   }, []);
 
   async function handleSearch(query: string) {
@@ -71,7 +73,11 @@ export default function App() {
       ) : (
         <>
           <p className="explanation">Browse all 50 tracked metros, or search above.</p>
-          <MetroGrid metros={metros} onSelect={setSelectedMetro} />
+          {metrosLoading ? (
+            <p className="empty-state">Loading metros…</p>
+          ) : (
+            <UsMetroMap metros={metros} onSelect={setSelectedMetro} />
+          )}
         </>
       )}
 
