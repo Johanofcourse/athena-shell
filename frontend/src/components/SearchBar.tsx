@@ -1,11 +1,27 @@
 import { FormEvent, useState } from "react";
 
-const EXAMPLE_QUERIES = [
+const EXAMPLE_QUERY_POOL = [
   "How has rent changed in Austin over the last two years?",
   "Which metros have the lowest unemployment right now?",
   "How have 30-year mortgage rates changed since 2022?",
   "How has the house price index changed in Denver?",
+  "Where is the median sale price highest right now?",
+  "How has median household income changed in Atlanta?",
+  "How have homes sold changed in Phoenix over the last year?",
+  "How long do homes stay on the market in Seattle?",
+  "Which metros have the highest rent-to-income ratio?",
+  "How have 15-year mortgage rates changed since 2023?",
 ];
+const EXAMPLE_COUNT = 4;
+
+function pickExamples(): string[] {
+  const shuffled = [...EXAMPLE_QUERY_POOL];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, EXAMPLE_COUNT);
+}
 
 interface Props {
   onSearch: (query: string) => void;
@@ -14,6 +30,7 @@ interface Props {
 
 export function SearchBar({ onSearch, loading }: Props) {
   const [value, setValue] = useState("");
+  const [examples] = useState(pickExamples);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -35,7 +52,7 @@ export function SearchBar({ onSearch, loading }: Props) {
         </button>
       </form>
       <div className="examples">
-        {EXAMPLE_QUERIES.map((example) => (
+        {examples.map((example) => (
           <button
             key={example}
             type="button"

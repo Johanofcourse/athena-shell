@@ -43,20 +43,6 @@ body {
   padding: 0 20px 80px;
 }
 
-.app::before {
-  content: "";
-  display: block;
-  height: 10px;
-  margin: 0 -20px 32px;
-  background: repeating-linear-gradient(
-    45deg,
-    var(--accent) 0px,
-    var(--accent) 16px,
-    var(--danger) 16px,
-    var(--danger) 32px
-  );
-}
-
 header {
   padding-top: 8px;
 }
@@ -301,7 +287,9 @@ header h1 {
 .metro-map-canvas {
   align-self: flex-start;
   flex: 1.6 1 0;
-  background: var(--surface);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 45%, rgba(47, 125, 255, 0.18), transparent 70%),
+    var(--surface);
   border: 1px solid var(--border);
   padding: 12px;
   min-width: 0;
