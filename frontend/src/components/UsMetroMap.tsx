@@ -21,7 +21,7 @@ export function UsMetroMap({ metros, onSelect }: Props) {
   return (
     <div className="metro-map-layout">
       <div className="metro-map-canvas">
-        <ComposableMap projection={geoAlbersUsa()} projectionConfig={{ scale: 900 }}>
+        <ComposableMap projection={geoAlbersUsa().scale(974).translate([428, 296])}>
           <Geographies geography={usStatesTopology}>
             {({ geographies }) =>
               geographies.map((geo) => (
