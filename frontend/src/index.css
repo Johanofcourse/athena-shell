@@ -296,6 +296,7 @@ header h1 {
   align-self: flex-start;
   flex: 1.6 1 0;
   background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E"),
     radial-gradient(ellipse 70% 55% at 50% 45%, rgba(47, 125, 255, 0.18), transparent 70%),
     var(--surface);
   border: 1px solid var(--border);
@@ -304,17 +305,35 @@ header h1 {
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   padding: 12px;
   min-width: 0;
+  position: relative;
+}
+
+.metro-map-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--edge), var(--edge)) top left / 14px 1px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) top left / 1px 14px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) top right / 14px 1px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) top right / 1px 14px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) bottom left / 14px 1px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) bottom left / 1px 14px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) bottom right / 14px 1px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) bottom right / 1px 14px no-repeat;
 }
 
 .metro-map-canvas svg {
   transform: perspective(700px) rotateX(40deg);
   transform-origin: 50% 65%;
   filter:
+    drop-shadow(0 -1px 0 rgba(140, 180, 255, 0.35))
     drop-shadow(0 1px 0 #0b2350)
     drop-shadow(0 2px 0 #0b2350)
     drop-shadow(0 3px 0 #0b2350)
     drop-shadow(0 4px 0 #0b2350)
-    drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55));
+    drop-shadow(10px 14px 16px rgba(0, 0, 0, 0.6));
 }
 
 .metro-map-state {
@@ -329,7 +348,33 @@ header h1 {
   stroke: var(--bg);
   stroke-width: 1.5;
   cursor: pointer;
+  filter: drop-shadow(0 0 3px rgba(47, 125, 255, 0.9));
   transition: fill 0.1s ease, r 0.1s ease;
+}
+
+.metro-map-graticule {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 0.5;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+@keyframes metro-pin-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+}
+
+.metro-map-pin[data-hovered="true"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: metro-pin-pulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metro-map-pin[data-hovered="true"] {
+    animation: none;
+  }
 }
 
 .metro-map-pin[data-hovered="true"] {
