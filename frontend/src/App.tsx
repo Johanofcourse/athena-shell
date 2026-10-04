@@ -56,6 +56,7 @@ export default function App() {
           <h1>Athena</h1>
         </button>
         <p className="tagline">Real estate market trends, searchable in plain English.</p>
+        <h2 className="intro-label">What is this?</h2>
         <p className="intro">
           Athena tracks US housing markets across 50 metros using real public data: Redfin and Apartment
           List for sale and rent listings, Census for household income and gross rent, Freddie Mac for
