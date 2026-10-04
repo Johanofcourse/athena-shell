@@ -308,8 +308,14 @@ header h1 {
 }
 
 .metro-map-canvas svg {
-  transform: perspective(900px) rotateX(32deg);
+  transform: perspective(700px) rotateX(40deg);
   transform-origin: 50% 65%;
+  filter:
+    drop-shadow(0 1px 0 #0b2350)
+    drop-shadow(0 2px 0 #0b2350)
+    drop-shadow(0 3px 0 #0b2350)
+    drop-shadow(0 4px 0 #0b2350)
+    drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55));
 }
 
 .metro-map-state {
