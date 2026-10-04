@@ -2,7 +2,7 @@
   --bg: #0b0b0c;
   --surface: #18181b;
   --surface-raised: #202024;
-  --border: #3c3c40;
+  --border: #6b6b72;
   --text: #ececea;
   --text-muted: #9d9d96;
   --accent: #2f7dff;
@@ -548,6 +548,33 @@ header h1 {
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 12px;
+}
+
+.intro {
+  max-width: 680px;
+  margin: 0 0 8px;
+  padding-left: 14px;
+  border-left: 3px solid var(--accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.app-section {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 3px solid var(--text);
+}
+
+.section-label {
+  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 .footnote {
