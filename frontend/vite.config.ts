@@ -5,5 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true,
+    proxy: {
+      "/metros": "http://localhost:8000",
+      "/query": "http://localhost:8000",
+    },
   },
 });
