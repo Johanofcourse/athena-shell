@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchMetros, runQuery } from "./api";
+import { AthenaMark } from "./components/AthenaMark";
 import { ConversationHistory } from "./components/ConversationHistory";
 import { MetroDetailPanel } from "./components/MetroDetailPanel";
 import { QueryResults } from "./components/QueryResults";
@@ -53,7 +54,10 @@ export default function App() {
     <div className="app">
       <header>
         <button className="home-link" onClick={handleReset} aria-label="Back to browse">
-          <h1>Athena</h1>
+          <span className="brand">
+            <AthenaMark />
+            <h1>Athena</h1>
+          </span>
         </button>
         <p className="tagline">Real estate market trends, searchable in plain English.</p>
         <h2 className="intro-label">What is this?</h2>
