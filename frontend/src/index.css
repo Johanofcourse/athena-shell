@@ -638,21 +638,52 @@ header h1 {
   font-size: 12px;
 }
 
-.intro-label {
-  margin: 0 0 8px;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 20px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text);
-}
-
 .intro {
   max-width: 680px;
   margin: 0 0 8px;
+}
+
+.intro-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+  user-select: none;
+}
+
+.intro-label::-webkit-details-marker {
+  display: none;
+}
+
+.intro-label::after {
+  content: "+";
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.intro[open] .intro-label::after {
+  content: "−";
+}
+
+.intro-label:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.intro-body {
+  margin: 8px 0 0;
+  font-family: var(--font-body);
+  font-size: 14px;
   line-height: 1.7;
   color: var(--text);
 }
