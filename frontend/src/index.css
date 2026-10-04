@@ -1,15 +1,15 @@
 :root {
-  --bg: #111820;
-  --surface: #18212a;
-  --surface-raised: #213039;
-  --border: #2d3c49;
-  --edge: #4d5f6f;
-  --text: #e3e8ed;
-  --text-muted: #8794a1;
-  --accent: #4a86d6;
-  --accent-ink: #f5f8fb;
-  --danger: #c9634a;
-  --success: #4aa374;
+  --bg: #15171a;
+  --surface: #1c1f23;
+  --surface-raised: #252a30;
+  --border: #353b43;
+  --edge: #5a616b;
+  --text: #ebe6dc;
+  --text-muted: #9a958a;
+  --accent: #d6a656;
+  --accent-ink: #15120b;
+  --danger: #c4583f;
+  --success: #7fa86a;
 
   --font-display: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-body: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -126,7 +126,7 @@ header h1 {
   border-radius: 0;
   border: 2px solid var(--text-muted);
   border-right: none;
-  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.6);
+  box-shadow: none;
   background: var(--surface);
   color: var(--text);
   font-family: var(--font-mono);
@@ -146,7 +146,7 @@ header h1 {
   padding: 14px 28px;
   border-radius: 0;
   border: 2px solid var(--accent);
-  box-shadow: 0 4px 0 #0b2350, 0 8px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
   background: var(--accent);
   color: var(--accent-ink);
   font-family: var(--font-body);
@@ -180,8 +180,9 @@ header h1 {
   font-size: 13px;
   padding: 7px 14px;
   border-radius: 0;
-  border: 1px solid var(--edge);
-  box-shadow: 0 2px 0 var(--edge);
+  border: none;
+  border-bottom: 1px dashed var(--edge);
+  box-shadow: none;
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-mono);
@@ -308,11 +309,8 @@ header h1 {
 }
 
 .metro-map-canvas {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  height: 52vh;
-  min-height: 340px;
-  max-height: 560px;
+  width: 100%;
+  height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -374,7 +372,7 @@ header h1 {
   stroke: var(--bg);
   stroke-width: 1.5;
   cursor: pointer;
-  filter: drop-shadow(0 0 3px rgba(47, 125, 255, 0.9));
+  filter: drop-shadow(0 0 3px rgba(214, 166, 86, 0.9));
   transition: fill 0.1s ease, r 0.1s ease;
 }
 
@@ -410,8 +408,8 @@ header h1 {
 .metro-list {
   flex: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 0 24px;
+  grid-template-columns: 1fr;
+  gap: 0;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -420,6 +418,27 @@ header h1 {
   box-shadow:
     0 18px 30px -12px rgba(0, 0, 0, 0.7),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.metro-cell {
+  min-width: 64px;
+  padding: 3px 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+.metro-cell[data-available="false"] {
+  color: var(--danger);
+  border-bottom: 2px dashed var(--danger);
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 5px,
+    rgba(196, 88, 63, 0.18) 5px 6px
+  );
 }
 
 .metro-list-item {
@@ -697,7 +716,8 @@ header h1 {
 }
 
 .footnote {
-  margin-top: 48px;
+  position: relative;
+  margin-top: 72px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
   color: var(--text-muted);
