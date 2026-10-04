@@ -56,9 +56,19 @@ export default function App() {
           <h1>Athena</h1>
         </button>
         <p className="tagline">Real estate market trends, searchable in plain English.</p>
+        <p className="intro">
+          Athena tracks US housing markets across 50 metros using real public data: Redfin and Apartment
+          List for sale and rent listings, Census for household income and gross rent, Freddie Mac for
+          mortgage rates, BLS for unemployment, and FHFA's house price index through FRED. Ask a question
+          in plain English and a language model turns it into a structured query against that data. It
+          never invents a number, and it tells you when a metro or metric has no data.
+        </p>
       </header>
 
-      <SearchBar onSearch={handleSearch} loading={loading} />
+      <section className="app-section">
+        <h2 className="section-label">01 · Ask</h2>
+        <SearchBar onSearch={handleSearch} loading={loading} />
+      </section>
 
       {error && <p className="error-banner">{error}</p>}
 
@@ -71,14 +81,15 @@ export default function App() {
           <QueryResults key={queryId} response={queryResponse} query={lastQuery} />
         </>
       ) : (
-        <>
+        <section className="app-section">
+          <h2 className="section-label">02 · Browse</h2>
           <p className="explanation">Browse all 50 tracked metros, or search above.</p>
           {metrosLoading ? (
             <p className="empty-state">Loading metros…</p>
           ) : (
             <UsMetroMap metros={metros} onSelect={setSelectedMetro} />
           )}
-        </>
+        </section>
       )}
 
       {selectedMetro && (
