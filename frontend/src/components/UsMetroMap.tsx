@@ -1,6 +1,6 @@
 import { geoAlbersUsa } from "d3-geo";
 import { useState } from "react";
-import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Graticule, Marker } from "react-simple-maps";
 // us-atlas ships real Census TIGER/Line-derived topology - the same
 // government-source instinct as every data source in this project,
 // applied to the map itself. Raw (non-Albers-pre-projected) file, so
@@ -29,6 +29,7 @@ export function UsMetroMap({ metros, onSelect }: Props) {
               ))
             }
           </Geographies>
+          <Graticule step={[10, 10]} className="metro-map-graticule" />
           {metros.map((metro) => (
             <Marker
               key={metro.id}
