@@ -66,8 +66,7 @@ export default function App() {
         </p>
       </header>
 
-      <section className="app-section">
-        <h2 className="section-label">01 · Ask</h2>
+      <section className="ask">
         <SearchBar onSearch={handleSearch} loading={loading} />
       </section>
 
@@ -82,8 +81,7 @@ export default function App() {
           <QueryResults key={queryId} response={queryResponse} query={lastQuery} />
         </>
       ) : (
-        <section className="app-section">
-          <h2 className="section-label">02 · Browse</h2>
+        <section className="browse">
           <p className="explanation">Browse all 50 tracked metros, or search above.</p>
           {metrosLoading ? (
             <p className="empty-state">Loading metros…</p>
