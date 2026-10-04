@@ -62,9 +62,9 @@ export function UsMetroMap({ metros, onSelect }: Props) {
             >
               <span className="metro-list-name">{metro.canonical_name}</span>
               <span className="metro-list-badges">
-                {metro.has_sale_data && <span className="status-badge status-active">Sale</span>}
-                {metro.has_rent_data && <span className="status-badge status-sold">Rent</span>}
-                {metro.has_income_data && <span className="status-badge status-income">Income</span>}
+                <span className="metro-cell" data-available={metro.has_sale_data} title={metro.has_sale_data ? "Sale data" : "No sale data"}>Sale</span>
+                <span className="metro-cell" data-available={metro.has_rent_data} title={metro.has_rent_data ? "Rent data" : "No rent data"}>Rent</span>
+                <span className="metro-cell" data-available={metro.has_income_data} title={metro.has_income_data ? "Income data" : "No income data"}>Income</span>
               </span>
             </button>
           </li>
