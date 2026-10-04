@@ -299,11 +299,17 @@ header h1 {
 }
 
 .metro-map-canvas {
+  align-self: flex-start;
   flex: 1.6 1 0;
   background: var(--surface);
   border: 1px solid var(--border);
   padding: 12px;
   min-width: 0;
+}
+
+.metro-map-canvas svg {
+  transform: perspective(900px) rotateX(32deg);
+  transform-origin: 50% 65%;
 }
 
 .metro-map-state {
