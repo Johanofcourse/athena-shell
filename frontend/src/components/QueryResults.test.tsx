@@ -112,19 +112,28 @@ describe("QueryResults", () => {
     expect(screen.getByText("Rental Market (continued)")).toBeInTheDocument();
   });
 
-  it("collapses the PDF's internal line-wrap newlines into flowing prose", () => {
+  it("renders a '## ' marked block as a subheading, separate from the surrounding paragraphs", () => {
     render(
       <QueryResults
         response={response({
           filters: null,
           commentary: baseCommentary({
-            chunks: [{ section: "Rental Market", page_number: 30, text: "Line one.\nLine two.\n  Line three." }],
+            chunks: [
+              {
+                section: "Rental Market",
+                page_number: 30,
+                text: "Rents declined this quarter.\n\n## Apartment Market Conditions\n\nVacancy increased to 14 percent.",
+              },
+            ],
           }),
         })}
         query="Why is rent falling in Austin?"
       />,
     );
-    expect(screen.getByText("Line one. Line two. Line three.")).toBeInTheDocument();
+    const subheading = screen.getByText("Apartment Market Conditions");
+    expect(subheading.tagName).toBe("H4");
+    expect(screen.getByText("Rents declined this quarter.")).toBeInTheDocument();
+    expect(screen.getByText("Vacancy increased to 14 percent.")).toBeInTheDocument();
   });
 
   it("falls back to just the explanation when both filters and commentary are null, instead of crashing", () => {

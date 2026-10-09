@@ -394,3 +394,48 @@ def test_ingest_fhfa_hpi_missing_file_returns_zero_without_erroring(db_session, 
     monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
     monkeypatch.setattr(ingest, "FHFA_HPI_FILE", "does_not_exist.json")
     assert ingest.ingest_fhfa_hpi(db_session) == 0
+
+
+# --- _looks_like_a_heading (HUD CHMA chunking, Phase 8) ---
+# Real examples pulled directly from actual downloaded reports, not
+# invented cases - this heuristic has to work on the real, messy PDF text
+# it was built against, not a clean hypothetical.
+
+
+def test_looks_like_a_heading_accepts_real_section_labels():
+    for text in [
+        "Rental Market",
+        "Economic Conditions",
+        "Home Sales Market",
+        "Terminology Definitions and Notes",
+        "Forecast",
+        "Rental Construction Activity Trends",
+        "Rental Construction Activity by Type and Geography",
+        "Apartment Market Conditions",
+    ]:
+        assert ingest._looks_like_a_heading(text), text
+
+
+def test_looks_like_a_heading_accepts_a_label_with_a_trailing_page_number():
+    assert ingest._looks_like_a_heading("Rental Market 30")
+    assert ingest._looks_like_a_heading("Home Sales Market 24")
+
+
+def test_looks_like_a_heading_rejects_real_wrapped_prose_lines():
+    # Real line-wrapped sentence fragments from an actual report - short
+    # and often lacking ending punctuation (cut off mid-sentence by the
+    # PDF's line width), which is exactly why "short + no ending
+    # punctuation" alone isn't a safe enough signal on its own.
+    for text in [
+        "slow the spread of the pandemic. This decline",
+        "the average second quarter rent for apartments increased",
+        "As it has elsewhere in the country,",
+        "Jobs grew steadily this year.",
+    ]:
+        assert not ingest._looks_like_a_heading(text), text
+
+
+def test_looks_like_a_heading_rejects_long_lines():
+    long_sentence = "This Is A Long Title-Cased Line That Goes On For Quite A While And Exceeds The Length Cutoff"
+    assert len(long_sentence) > 70
+    assert not ingest._looks_like_a_heading(long_sentence)

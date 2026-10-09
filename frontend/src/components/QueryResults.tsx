@@ -10,6 +10,26 @@ interface Props {
   query: string;
 }
 
+// The backend marks a real in-page subheading (e.g. "Rental Construction
+// Activity Trends" appearing mid-page, not just the page's own running
+// header) with a leading "## ", separated from surrounding paragraphs by
+// a blank line - see _looks_like_a_heading in ingest_market_data.py.
+// Splitting on that here is what gives a commentary chunk real visual
+// structure instead of one run-on paragraph.
+function renderCommentaryBlocks(text: string) {
+  return text.split("\n\n").map((block, i) =>
+    block.startsWith("## ") ? (
+      <h4 className="commentary-subheading" key={i}>
+        {block.slice(3)}
+      </h4>
+    ) : (
+      <p className="commentary-text" key={i}>
+        {block}
+      </p>
+    ),
+  );
+}
+
 export function QueryResults({ response, query }: Props) {
   const { filters, explanation, results, commentary } = response;
 
@@ -31,12 +51,7 @@ export function QueryResults({ response, query }: Props) {
             return (
               <div className="commentary-chunk" key={i}>
                 <h3 className="commentary-section">{label}</h3>
-                {/* Collapse the PDF's own line-wrap breaks into flowing
-                    prose - preserving them (the raw extracted text has a
-                    newline after every visual line, not every paragraph)
-                    made this read as a wall of disconnected short lines
-                    rather than real paragraphs. */}
-                <p className="commentary-text">{chunk.text.replace(/\s*\n+\s*/g, " ").trim()}</p>
+                {renderCommentaryBlocks(chunk.text)}
               </div>
             );
           })}
