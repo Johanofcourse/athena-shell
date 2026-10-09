@@ -378,6 +378,33 @@ _CHMA_BOILERPLATE_MARKERS = (
 )
 _CHMA_DATE_RE = re.compile(r"[Aa]s [Oo]f\s+([A-Z][a-z]+ \d{1,2},?\s*\d{4})")
 
+# Lowercase words a real Title Case heading still leaves lowercase (e.g.
+# "Rental Construction Activity by Type and Geography") - excluded from
+# the capitalization ratio below so they don't drag a genuine heading
+# under the threshold.
+_TITLE_CASE_MINOR_WORDS = {"a", "an", "the", "of", "and", "or", "in", "on", "by", "to", "for", "with", "as"}
+
+
+def _looks_like_a_heading(line: str) -> bool:
+    """Distinguishes a genuine short heading (a page's own running-header,
+    or an in-page subheading like "Rental Construction Activity Trends")
+    from an ordinary prose line that merely happens to be short because
+    the PDF wrapped it there. Short + no ending punctuation alone isn't
+    enough - a line-wrapped sentence fragment often looks exactly like
+    that too (e.g. "slow the spread of the pandemic. This decline").
+    Title Case is the real signal: a heading capitalizes nearly every
+    significant word; an English sentence, even a short wrapped piece of
+    one, mostly doesn't."""
+    text = re.sub(r"\s+\d+$", "", line).strip()
+    if not text or len(text) > 70 or text.rstrip().endswith((".", ",", ";", ":")):
+        return False
+    words = text.split()
+    significant = [w for w in words if w.lower() not in _TITLE_CASE_MINOR_WORDS]
+    if not significant:
+        return False
+    capitalized = sum(1 for w in significant if w[0].isupper())
+    return capitalized / len(significant) >= 0.8
+
 
 def ingest_hud_chma(db) -> int:
     """Extracts and chunks the hand-downloaded HUD CHMA PDFs (see
@@ -411,21 +438,58 @@ def ingest_hud_chma(db) -> int:
                 lines.append(stripped)
             if not lines:
                 continue
-            section = re.sub(r"\s+\d+$", "", lines[0]).strip()
-            # lines[0] is normally just the page's own running-header
-            # label ("Rental Market 30") - real content, but already shown
-            # separately as `section`, so including it again in the body
-            # read as an odd repeated line right under the heading. Only
-            # drop it when it actually looks like a label, not a real
-            # sentence: short, and not ending in sentence punctuation.
-            # Matters for LA's older template specifically, where a
-            # continuation page's first kept line can be genuine body
-            # prose (no separate repeated header line survives its
-            # boilerplate filtering there) - dropping that would lose
-            # real content, not just a redundant label.
-            looks_like_a_label = len(lines[0]) <= 60 and not lines[0].rstrip().endswith((".", ",", ";", ":"))
-            body_lines = lines[1:] if looks_like_a_label and len(lines) > 1 else lines
-            chunk_text = "\n".join(body_lines)
+
+            if _looks_like_a_heading(lines[0]):
+                section = re.sub(r"\s+\d+$", "", lines[0]).strip()
+                body_lines = lines[1:]
+            else:
+                # Older-template continuation page (LA specifically): no
+                # repeated running-header line survives boilerplate
+                # filtering there, so the first kept line is real content,
+                # not a label - keep it in the body rather than wrongly
+                # using a sentence fragment as the section name.
+                section = "Market Analysis"
+                body_lines = lines
+
+            # Structure the remaining lines into paragraphs and real
+            # in-page subheadings ("Rental Construction Activity Trends"
+            # appearing mid-page, not just the page's own running header)
+            # instead of flattening everything into one run-on paragraph
+            # with no visual structure at all. "## " marks a heading block
+            # for the frontend to render distinctly.
+            blocks: list[str] = []
+            paragraph_words: list[str] = []
+            for line in body_lines:
+                if _looks_like_a_heading(line):
+                    if paragraph_words:
+                        blocks.append(" ".join(paragraph_words))
+                        paragraph_words = []
+                    clean = re.sub(r"\s+\d+$", "", line).strip()
+                    # A long heading often wraps across two or more PDF
+                    # lines ("Rental Construction" / "Activity Trends") -
+                    # merge consecutive heading-like lines into the one
+                    # real heading they actually are, instead of a run of
+                    # choppy single-line fragments.
+                    if blocks and blocks[-1].startswith("## "):
+                        blocks[-1] += " " + clean
+                    else:
+                        blocks.append("## " + clean)
+                else:
+                    paragraph_words.append(line)
+            if paragraph_words:
+                blocks.append(" ".join(paragraph_words))
+
+            # A page-level chunk often starts mid-sentence - the real
+            # sentence began on the previous page, which isn't part of
+            # this excerpt. A lowercase first letter is a strong signal of
+            # that; flagging it with an ellipsis is more honest than
+            # presenting a sentence fragment as if it were the start of
+            # one (same instinct as as_of_date: don't let a real excerpt
+            # imply more than it actually shows).
+            if blocks and not blocks[0].startswith("## ") and blocks[0][:1].islower():
+                blocks[0] = "… " + blocks[0]
+
+            chunk_text = "\n\n".join(blocks)
             if len(chunk_text) < 200:  # covers, dividers, near-empty pages
                 continue
             db.add(

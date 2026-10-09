@@ -226,7 +226,8 @@ header h1 {
 }
 
 .commentary-chunk {
-  padding: 14px 16px;
+  max-width: 68ch;
+  padding: 16px 20px;
   background: var(--surface);
   border: 1px solid var(--edge);
   border-left: 3px solid var(--accent);
@@ -234,7 +235,7 @@ header h1 {
 }
 
 .commentary-section {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 17px;
@@ -242,13 +243,30 @@ header h1 {
   color: var(--accent);
 }
 
+.commentary-subheading {
+  margin: 18px 0 8px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
 .commentary-text {
-  margin: 0;
-  max-width: 68ch;
+  margin: 0 0 12px;
   color: var(--text);
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.65;
+}
+
+.commentary-text:last-child {
+  margin-bottom: 0;
+}
+
+.commentary-subheading:first-child {
+  margin-top: 0;
 }
 
 .commentary-citation {
