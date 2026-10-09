@@ -153,6 +153,24 @@ metro with zero HUD coverage (not in the hand-curated `HUD_CHMA_FILES`
 set) is `no_data_metros` - never silently empty, never a different
 metro's report substituted in.
 
+The retrieved chunks are raw PDF text, extracted one page at a time -
+some start mid-sentence or carry a "## " heading marker, artifacts of
+chunking rather than content. Rather than show that directly as the
+answer, `synthesize_commentary_answer` makes a second DeepSeek call that
+turns those chunks into a real, thesis-first answer to the person's
+actual question (one direct sentence, then supporting detail, in the
+model's own words) - grounded strictly in the chunks it's handed, told
+explicitly not to go beyond them. This becomes `MarketQueryResponse.
+explanation` for a commentary response; the raw chunks still render
+below it in `commentary.chunks`, so the paraphrase can always be checked
+against the real source. If that second call itself fails, `routers/
+query.py` falls back to `explain_commentary`'s deterministic "Showing
+HUD market commentary for..." sentence rather than failing the whole
+request - the same call-then-fallback pattern `interpret_query`'s own
+caller already uses. Like `interpret_query`'s tool-choice behavior, this
+is a live model call with no unit test around its actual output quality -
+covered by manual verification and the eval suite, not pytest.
+
 Two query modes, both going through the same tool:
 - **Trend mode** (`sort_by: "period"`, the default) - full time series for
   one or more named metros. Deliberately does **not** fall back to "all

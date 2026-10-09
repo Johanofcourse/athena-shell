@@ -511,7 +511,7 @@ real SaaS patterns, not a minimal login gate:
       even more here" once this lands.
 
 ## Phase 8 — Retrieval-augmented market commentary
-Backend done and real-data-verified; frontend not started. Motivated by
+Backend, frontend, and deploy all real-data-verified. Motivated by
 wanting genuine RAG experience for the forward-deployed AI engineer
 angle, not by wanting RAG for its own sake.
 
@@ -571,16 +571,31 @@ angle, not by wanting RAG for its own sake.
       `interpret_query`'s live tool-choice behavior stays out of pytest,
       same reasoning as `query_market_metrics` - that needs the eval
       suite, not a unit test.
-- [ ] **Frontend**: no rendering built yet. `QueryResults` only knows how
-      to render `results`/`filters` - a commentary response currently has
-      nothing on the frontend to display it.
+- [x] **Frontend**: `QueryResults` renders a commentary response's
+      sections and citation instead of a chart. Went through two real
+      readability passes after Johan flagged the raw-text rendering as
+      hard to read (distinct sections, no duplicated labels, real line
+      width, then in-page subheadings and flagged mid-sentence starts).
+- [x] **Synthesized, thesis-first answers, not raw PDF excerpts as the
+      answer.** Even with page-level chunking and the "…" mid-sentence
+      flag, a raw excerpt still doesn't read like an answer to the
+      question asked - it reads like a quote grabbed out of context,
+      because it is one. `synthesize_commentary_answer` makes a second,
+      strictly-grounded DeepSeek call that turns the retrieved chunks
+      into a direct answer in the model's own words (thesis first, then
+      supporting detail) before they're shown as `explanation`; the raw
+      chunks still render below for anyone checking the paraphrase
+      against the source. Falls back to the old deterministic sentence
+      if that second call itself fails, rather than failing the request.
+- [x] Deployed to the live VM - the PDFs `scp`'d there manually (see
+      `DOCUMENTATION.md` Deployment), not pulled by `git pull`.
 - [ ] **Eval suite cases** for the new tool-choice behavior (does the
       model pick the right tool across a range of "why" vs "what"
-      phrasings, not just the two hand-tested examples above).
+      phrasings, not just the two hand-tested examples above) and for
+      the synthesized-answer's grounding (does it ever state something
+      not actually in the retrieved chunks).
 - [ ] Grow coverage beyond the current 23 metros (same manual,
       bot-gated-browser process).
-- [ ] Deploy this to the live VM - the PDFs need a manual `scp` there too
-      (see `DOCUMENTATION.md` Deployment), not pulled by `git pull`.
 - **Deliberately considered and rejected: a live web-search tool
   instead of a pre-built corpus.** Technically possible (either a
   provider's hosted search tool, or a custom tool the same way
