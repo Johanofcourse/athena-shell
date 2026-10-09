@@ -127,6 +127,7 @@ class CommentaryQuery(BaseModel):
 
 class CommentaryChunkOut(BaseModel):
     section: str
+    page_number: int
     text: str
 
 

@@ -42,7 +42,7 @@ function baseCommentary(overrides: Partial<MarketCommentaryResult>): MarketComme
     metro: "Austin, TX",
     as_of_date: "July 1, 2024",
     source_file: "AustinRoundRockTX-CHMA-24.pdf",
-    chunks: [{ section: "Rental Market", text: "Rents declined as new supply outpaced demand." }],
+    chunks: [{ section: "Rental Market", page_number: 30, text: "Rents declined as new supply outpaced demand." }],
     ...overrides,
   };
 }
@@ -91,6 +91,40 @@ describe("QueryResults", () => {
     expect(screen.queryByText("Was this interpreted correctly?")).not.toBeInTheDocument();
     expect(screen.queryByText("How this was interpreted")).not.toBeInTheDocument();
     expect(screen.queryByText("No data to show for this query.")).not.toBeInTheDocument();
+  });
+
+  it("labels a repeated section as (continued) instead of showing two identical headings", () => {
+    render(
+      <QueryResults
+        response={response({
+          filters: null,
+          commentary: baseCommentary({
+            chunks: [
+              { section: "Rental Market", page_number: 30, text: "First excerpt about rent." },
+              { section: "Rental Market", page_number: 33, text: "Second excerpt about rent." },
+            ],
+          }),
+        })}
+        query="Why is rent falling in Austin?"
+      />,
+    );
+    expect(screen.getByText("Rental Market")).toBeInTheDocument();
+    expect(screen.getByText("Rental Market (continued)")).toBeInTheDocument();
+  });
+
+  it("collapses the PDF's internal line-wrap newlines into flowing prose", () => {
+    render(
+      <QueryResults
+        response={response({
+          filters: null,
+          commentary: baseCommentary({
+            chunks: [{ section: "Rental Market", page_number: 30, text: "Line one.\nLine two.\n  Line three." }],
+          }),
+        })}
+        query="Why is rent falling in Austin?"
+      />,
+    );
+    expect(screen.getByText("Line one. Line two. Line three.")).toBeInTheDocument();
   });
 
   it("falls back to just the explanation when both filters and commentary are null, instead of crashing", () => {

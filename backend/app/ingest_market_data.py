@@ -411,10 +411,23 @@ def ingest_hud_chma(db) -> int:
                 lines.append(stripped)
             if not lines:
                 continue
-            chunk_text = "\n".join(lines)
+            section = re.sub(r"\s+\d+$", "", lines[0]).strip()
+            # lines[0] is normally just the page's own running-header
+            # label ("Rental Market 30") - real content, but already shown
+            # separately as `section`, so including it again in the body
+            # read as an odd repeated line right under the heading. Only
+            # drop it when it actually looks like a label, not a real
+            # sentence: short, and not ending in sentence punctuation.
+            # Matters for LA's older template specifically, where a
+            # continuation page's first kept line can be genuine body
+            # prose (no separate repeated header line survives its
+            # boilerplate filtering there) - dropping that would lose
+            # real content, not just a redundant label.
+            looks_like_a_label = len(lines[0]) <= 60 and not lines[0].rstrip().endswith((".", ",", ";", ":"))
+            body_lines = lines[1:] if looks_like_a_label and len(lines) > 1 else lines
+            chunk_text = "\n".join(body_lines)
             if len(chunk_text) < 200:  # covers, dividers, near-empty pages
                 continue
-            section = re.sub(r"\s+\d+$", "", lines[0]).strip()
             db.add(
                 MarketCommentaryChunk(
                     metro_id=metro_id,

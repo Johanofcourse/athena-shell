@@ -234,20 +234,21 @@ header h1 {
 }
 
 .commentary-section {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 17px;
+  letter-spacing: 0.02em;
   color: var(--accent);
 }
 
 .commentary-text {
   margin: 0;
+  max-width: 68ch;
   color: var(--text);
   font-family: var(--font-body);
   font-size: 15px;
-  line-height: 1.6;
-  white-space: pre-line;
+  line-height: 1.65;
 }
 
 .commentary-citation {
