@@ -489,9 +489,20 @@ free-tier budget split). Oracle Linux 9.
   and growing). A deployed environment needs this folder copied by hand
   before `search_market_commentary` has anything to find; it's not pulled
   by `git pull` the way everything else here is.
-- **Not yet automated**: deploys are still manual (SSH in, `git pull`,
-  restart the service) - see `ROADMAP.md` Phase 5 for the planned
-  `workflow_dispatch` CD step.
+- **Deploys**: `.github/workflows/deploy.yml`, manual `workflow_dispatch`
+  trigger only - a human clicks "Run workflow" in the Actions tab, same
+  pattern as Apollo Shell's deploy.yml, deliberately decoupled from
+  merging a PR (merging never touches the VM by itself). SSHes in, pulls
+  `main`, reinstalls backend deps, **re-runs the test suite on the server
+  itself** (not just trusting the earlier CI run), rebuilds the frontend
+  (Node 22, installed on the VM for this), redeploys
+  `/var/www/athenarealestate`, restarts `athena-backend`, then verifies
+  by curling the backend's local health check *and* the real public
+  `athenarealestate.app`/`api.athenarealestate.app` URLs - if anything
+  fails, the run stops and shows red in the Actions tab instead of
+  silently leaving a half-deployed state. The HUD CHMA PDFs still need a
+  one-time manual `scp` per environment (see above) - the deploy workflow
+  doesn't copy them, since they're not in git for it to pull.
 
 ## Current limitations
 

@@ -1,0 +1,50 @@
+name: Deploy
+
+# Manual trigger only, deliberately - not "on every merge to main."
+# This is Continuous Delivery, not full Continuous Deployment: the exact
+# SSH-in/pull/install/test/build/restart/verify sequence that was run by
+# hand once (confirmed working end-to-end against the real live site
+# before this file was written), now automated, but still requiring a
+# human to press the button - same pattern as Apollo Shell's deploy.yml,
+# and the same reason PR merges themselves stay manual.
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to the VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 132.145.150.226
+          username: opc
+          key: ${{ secrets.ATHENA_VM_SSH_KEY }}
+          script_stop: true
+          script: |
+            cd ~/athena-shell
+            git pull origin main
+
+            cd backend
+            source .venv/bin/activate
+            pip install -q -r requirements-dev.txt
+            python -m pytest -q
+
+            cd ../frontend
+            npm ci
+            VITE_API_URL=https://api.athenarealestate.app npm run build
+
+            sudo rm -rf /var/www/athenarealestate/*
+            sudo cp -r dist/* /var/www/athenarealestate/
+            sudo chown -R nginx:nginx /var/www/athenarealestate
+            sudo restorecon -Rv /var/www/athenarealestate
+
+            sudo systemctl restart athena-backend
+            sleep 3
+            sudo systemctl is-active athena-backend
+
+            curl -sf -o /dev/null http://127.0.0.1:8001/health
+            curl -sf -o /dev/null https://athenarealestate.app/
+            curl -sf -o /dev/null https://api.athenarealestate.app/health
+
+            echo "Deploy verified: backend active, frontend rebuilt, both the live site and API responding."
