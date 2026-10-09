@@ -427,6 +427,13 @@ def ingest_hud_chma(db) -> int:
         date_match = _CHMA_DATE_RE.search(cover_text)
         as_of_date = date_match.group(1).strip() if date_match else "unknown"
 
+        # The real last content line of the previous page - carried across
+        # iterations so a chunk that starts mid-sentence can be completed
+        # with the actual words that precede it, not just flagged with an
+        # ellipsis. Reset to None by a blank/divider page, since that's a
+        # real break, not just a page boundary mid-paragraph.
+        prev_page_last_line: str | None = None
+
         for page_number, page in enumerate(reader.pages):
             lines = []
             for line in page.extract_text().split("\n"):
@@ -437,6 +444,7 @@ def ingest_hud_chma(db) -> int:
                     continue
                 lines.append(stripped)
             if not lines:
+                prev_page_last_line = None
                 continue
 
             if _looks_like_a_heading(lines[0]):
@@ -482,14 +490,19 @@ def ingest_hud_chma(db) -> int:
             # A page-level chunk often starts mid-sentence - the real
             # sentence began on the previous page, which isn't part of
             # this excerpt. A lowercase first letter is a strong signal of
-            # that; flagging it with an ellipsis is more honest than
-            # presenting a sentence fragment as if it were the start of
-            # one (same instinct as as_of_date: don't let a real excerpt
-            # imply more than it actually shows).
+            # that. Rather than just flag the fragment with an ellipsis,
+            # reconstruct the actual sentence using the previous page's own
+            # last line - a real excerpt from the same document, not a
+            # guess - so a reader sees "...the result of countermeasures to
+            # slow the spread of the pandemic." instead of a fragment with
+            # no visible beginning. Falls back to the ellipsis flag only
+            # when there's no previous line to pull from (the first page of
+            # the document, or right after a blank/divider page).
             if blocks and not blocks[0].startswith("## ") and blocks[0][:1].islower():
-                blocks[0] = "… " + blocks[0]
+                blocks[0] = f"{prev_page_last_line} {blocks[0]}" if prev_page_last_line else f"… {blocks[0]}"
 
             chunk_text = "\n\n".join(blocks)
+            prev_page_last_line = lines[-1]
             if len(chunk_text) < 200:  # covers, dividers, near-empty pages
                 continue
             db.add(

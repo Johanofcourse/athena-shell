@@ -42,7 +42,13 @@ export function QueryResults({ response, query }: Props) {
     const sectionCounts: Record<string, number> = {};
     return (
       <div className="query-results">
-        <p className="explanation">{explanation}</p>
+        {/* The actual answer - a thesis-first paraphrase of the chunks
+            below (see market_commentary.synthesize_commentary_answer) -
+            gets its own prominent treatment, not the same small, muted
+            caption style .explanation uses for a chart's one-line filter
+            summary. This is the part someone reads first; the chunks
+            below are the citations for anyone checking it. */}
+        <p className="commentary-summary">{explanation}</p>
         <div className="commentary">
           {commentary.chunks.map((chunk, i) => {
             sectionCounts[chunk.section] = (sectionCounts[chunk.section] ?? 0) + 1;
