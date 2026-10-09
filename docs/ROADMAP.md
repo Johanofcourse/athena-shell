@@ -471,9 +471,21 @@ an eighth deferral.
       script (`oci compute instance launch`, cycling all three
       availability domains every ~5 minutes) running on the Apollo VM
       eventually succeeded.
-- [ ] Real CD: a `workflow_dispatch` GitHub Actions deploy, mirroring
-      Apollo's (SSH in, pull, reinstall deps, re-run tests server-side,
-      restart services) - deploys are still manual SSH for now.
+- [x] **Real CD**, `.github/workflows/deploy.yml`: a `workflow_dispatch`
+      GitHub Actions deploy, mirroring Apollo's exactly (manual trigger
+      only, SSH in, pull, re-run tests server-side, restart, verify) -
+      extended with the one real adaptation Apollo doesn't need: Athena's
+      frontend is a separate static build, so the workflow also runs
+      `npm run build` on the server and redeploys `/var/www/athenarealestate`
+      before restarting the backend. The exact sequence was run by hand
+      once first and confirmed working end-to-end against the live site
+      (including a real "why" HUD commentary query against
+      `api.athenarealestate.app`) before being written into the workflow
+      file - not written and trusted blind. Node 22 added to the VM for
+      this (one-time setup, same category as git/Python/nginx/certbot
+      earlier); `npm` needed a manual `/usr/bin/npm` wrapper script after
+      installing via `dnf module` - its own package didn't symlink one in,
+      a real, minor Oracle Linux packaging quirk, not a config mistake.
 
 ## Phase 6 — Portfolio packaging
 - [ ] README/demo polish (short walkthrough, screenshots or a clip)
