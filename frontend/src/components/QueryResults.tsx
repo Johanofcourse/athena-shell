@@ -11,7 +11,38 @@ interface Props {
 }
 
 export function QueryResults({ response, query }: Props) {
-  const { filters, explanation, results } = response;
+  const { filters, explanation, results, commentary } = response;
+
+  if (commentary) {
+    return (
+      <div className="query-results">
+        <p className="explanation">{explanation}</p>
+        <div className="commentary">
+          {commentary.chunks.map((chunk, i) => (
+            <div className="commentary-chunk" key={i}>
+              <h3 className="commentary-section">{chunk.section}</h3>
+              <p className="commentary-text">{chunk.text}</p>
+            </div>
+          ))}
+          <p className="commentary-citation">
+            Source: HUD Comprehensive Housing Market Analysis, {commentary.metro} — as of{" "}
+            {commentary.as_of_date} ({commentary.source_file})
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // filters is only ever null alongside a populated commentary, so this
+  // shouldn't happen in practice - kept so a future response shape change
+  // degrades to an empty state instead of a crash.
+  if (!filters) {
+    return (
+      <div className="query-results">
+        <p className="explanation">{explanation}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="query-results">

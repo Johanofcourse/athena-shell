@@ -56,13 +56,29 @@ export interface MarketQueryFilters {
   unsupported_aspects: string[];
 }
 
+export interface MarketCommentaryChunk {
+  section: string;
+  text: string;
+}
+
+export interface MarketCommentaryResult {
+  metro: string;
+  as_of_date: string;
+  source_file: string;
+  chunks: MarketCommentaryChunk[];
+}
+
 export interface MarketQueryResponse {
-  filters: MarketQueryFilters;
+  // null exactly when this is a commentary response (commentary is set
+  // instead) - a "why" question never resolves to a metric/period/sort
+  // specification, so there's nothing honest to put here for that case.
+  filters: MarketQueryFilters | null;
   explanation: string;
   unmatched_metros: string[];
   no_data_metros: string[];
   approximated_metros: string[];
   results: MarketMetricPoint[];
+  commentary: MarketCommentaryResult | null;
 }
 
 export interface ConversationTurn {
