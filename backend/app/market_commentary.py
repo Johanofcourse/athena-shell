@@ -3,6 +3,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.models import MarketCommentaryChunk, Metro
 from app.schemas import CommentaryChunkOut, CommentaryQuery, MarketCommentaryResult
 
@@ -10,6 +11,56 @@ from app.schemas import CommentaryChunkOut, CommentaryQuery, MarketCommentaryRes
 # answer without dumping the whole document. Ranking (not just taking the
 # first N) is what makes this worth doing at all.
 TOP_N_CHUNKS = 3
+
+# A direct answer first, then support - not a block of raw PDF text with
+# its own extraction quirks (mid-sentence starts, "## " heading markers)
+# still showing. Grounding is enforced by only ever handing the model the
+# chunks this metro's own report actually returned, never open-ended
+# knowledge - the same reason this still isn't a precomputed embedding
+# index (see _rank_chunks): one extra model call per commentary query, in
+# exchange for an answer that actually reads like one.
+_COMMENTARY_SYNTHESIS_PROMPT = """Answer the person's real estate market question the way a \
+knowledgeable person would say it out loud: start with a direct one-sentence answer to the question \
+(the thesis), then back it up with 1-3 short sentences of supporting detail. Never lead with a quoted \
+fragment, a label, or a sentence that starts mid-thought - the thesis sentence is yours, in your own \
+words, not lifted from the source.
+
+Use ONLY the excerpts given below. They're real text from a HUD market report, extracted one PDF page \
+at a time, so some start mid-sentence (marked with a leading "…") or carry a "## " heading marker in \
+the middle - those are artifacts of how the page was extracted, not part of the content; ignore them \
+and never copy a fragment verbatim. If the excerpts don't actually answer the question, say plainly \
+that the report doesn't cover it - never guess, and never state a reason, a number, or a trend that \
+isn't actually in the text given to you."""
+
+
+def synthesize_commentary_answer(question: str, commentary: MarketCommentaryResult) -> str:
+    """The real answer shown to the user - a thesis-first paraphrase of
+    commentary.chunks, grounded strictly in them. explain_commentary's
+    deterministic "Showing HUD market commentary for..." sentence is the
+    fallback when this call fails (see routers/query.py), not the primary
+    path; this is the primary path. Raises on a DeepSeek API error - the
+    caller decides whether to fall back, the same pattern interpret_query
+    already uses."""
+    from app.nl_query import _client  # local import: avoids a circular import with nl_query
+
+    excerpts = "\n\n".join(f"[{c.section}]\n{c.text}" for c in commentary.chunks)
+    messages = [
+        {"role": "system", "content": _COMMENTARY_SYNTHESIS_PROMPT},
+        {
+            "role": "user",
+            "content": (
+                f"Question: {question}\n\n"
+                f"Excerpts from HUD's Comprehensive Housing Market Analysis for {commentary.metro} "
+                f"(as of {commentary.as_of_date}):\n\n{excerpts}"
+            ),
+        },
+    ]
+    response = _client().chat.completions.create(
+        model=settings.deepseek_model,
+        messages=messages,
+        extra_body={"thinking": {"type": "disabled"}},
+    )
+    return response.choices[0].message.content.strip()
 
 
 def _rank_chunks(chunks: list[MarketCommentaryChunk], topic: str) -> list[MarketCommentaryChunk]:

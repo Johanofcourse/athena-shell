@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.market_commentary import explain_commentary, run_commentary_query
+from app.market_commentary import explain_commentary, run_commentary_query, synthesize_commentary_answer
 from app.models import FeedbackRating, Metro, QueryFeedback
 from app.nl_query import explain_filters, interpret_query, run_market_query
 from app.rate_limit import limiter
@@ -42,7 +42,16 @@ def run_query(request: Request, payload: QueryRequest, db: Session = Depends(get
     if isinstance(resolved, CommentaryQuery):
         all_metros = list(db.execute(select(Metro)).scalars().all())
         commentary, unmatched_metros, no_data_metros = run_commentary_query(db, resolved, all_metros)
-        explanation = explain_commentary(resolved, commentary, no_data_metros)
+        if commentary is not None:
+            # synthesize_commentary_answer is the real, thesis-first answer -
+            # explain_commentary's deterministic sentence is only a fallback
+            # for when that call itself fails, not the normal path.
+            try:
+                explanation = synthesize_commentary_answer(payload.query, commentary)
+            except APIError:
+                explanation = explain_commentary(resolved, commentary, no_data_metros)
+        else:
+            explanation = explain_commentary(resolved, commentary, no_data_metros)
         return MarketQueryResponse(
             filters=None,
             explanation=explanation,
