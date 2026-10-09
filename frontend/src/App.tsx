@@ -36,7 +36,13 @@ export default function App() {
       setQueryResponse(response);
       setLastQuery(query);
       setQueryId((id) => id + 1);
-      setHistory((prev) => [...prev, { query, filters: response.filters }].slice(-MAX_HISTORY_TURNS));
+      // Only a query_market_metrics response has filters to replay as
+      // conversation state - a commentary response's filters is null, and
+      // isn't carried into history (see ConversationTurn/backend docs).
+      const { filters } = response;
+      if (filters) {
+        setHistory((prev) => [...prev, { query, filters }].slice(-MAX_HISTORY_TURNS));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
     } finally {
