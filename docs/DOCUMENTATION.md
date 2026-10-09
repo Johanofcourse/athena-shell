@@ -422,6 +422,7 @@ and check `/docs` (FastAPI's auto-generated Swagger UI).
 | `DEEPSEEK_MODEL` | Default `deepseek-flash` |
 | `DATABASE_URL` | Default `sqlite:///./athena.db` |
 | `CORS_ORIGINS` | Comma-separated allowed origins |
+| `EXEMPT_IPS` | Comma-separated IPs exempt from the free daily query cap (`app/usage.py`), beyond loopback. Set directly on the server, never committed - a real IP is identifying info. |
 
 **Frontend** (`frontend/.env`, see `.env.example`):
 
