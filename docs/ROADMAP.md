@@ -572,10 +572,25 @@ angle, not by wanting RAG for its own sake.
       same reasoning as `query_market_metrics` - that needs the eval
       suite, not a unit test.
 - [x] **Frontend**: `QueryResults` renders a commentary response's
-      sections and citation instead of a chart. Went through two real
+      sections and citation instead of a chart. Went through three real
       readability passes after Johan flagged the raw-text rendering as
       hard to read (distinct sections, no duplicated labels, real line
-      width, then in-page subheadings and flagged mid-sentence starts).
+      width; then in-page subheadings and flagged mid-sentence starts;
+      then the synthesized summary given its own loud, highlighted
+      treatment instead of blending in as another caption).
+- [x] **Reconstructed sentences across a page break, not just flagged.**
+      A page-level chunk starting mid-sentence used to get an "…" flag
+      only - honest, but still not readable as an answer ("… slow the
+      spread of the pandemic", still bugged Johan after the flag
+      shipped). Now carries the real last line of the previous page
+      forward and prepends it, so the chunk shows the actual words that
+      precede it (confirmed directly against the raw PDF: page 28 really
+      does end "...the result of countermeasures to" page 29's "slow the
+      spread of the pandemic"). Known, accepted limit: only looks back
+      one page, so a sentence that was already a continuation *before*
+      the previous page's last line won't be traced all the way to its
+      original subject - still strictly more readable than the ellipsis
+      it replaced, and sourced from real document text either way.
 - [x] **Synthesized, thesis-first answers, not raw PDF excerpts as the
       answer.** Even with page-level chunking and the "…" mid-sentence
       flag, a raw excerpt still doesn't read like an answer to the

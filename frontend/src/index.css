@@ -218,6 +218,26 @@ header h1 {
   line-height: 1.6;
 }
 
+/* The synthesized answer to the actual question asked - the lede, not a
+   caption. Deliberately much louder than .explanation: full-contrast
+   text, a real type bump, and an accent-tinted panel instead of a thin
+   rule, so it reads as the thing to read first - the citation chunks in
+   .commentary below are the supporting detail, for anyone checking it
+   against the source, not the first thing a reader's eye should land
+   on. */
+.commentary-summary {
+  margin-top: 20px;
+  max-width: 68ch;
+  padding: 18px 22px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border-left: 4px solid var(--accent);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
 .commentary {
   margin-top: 14px;
   display: flex;
