@@ -1,14 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from openai import APIError
 from slowapi.util import get_remote_address
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import FeedbackRating, QueryFeedback
+from app.market_commentary import explain_commentary, run_commentary_query
+from app.models import FeedbackRating, Metro, QueryFeedback
 from app.nl_query import explain_filters, interpret_query, run_market_query
 from app.rate_limit import limiter
-from app.schemas import FeedbackRequest, MarketQueryResponse, QueryRequest
+from app.schemas import CommentaryQuery, FeedbackRequest, MarketQueryResponse, QueryRequest
 from app.usage import FREE_DAILY_QUERY_LIMIT, check_and_increment_usage
 
 router = APIRouter(prefix="/query", tags=["query"])
@@ -33,15 +35,29 @@ def run_query(request: Request, payload: QueryRequest, db: Session = Depends(get
         )
 
     try:
-        filters = interpret_query(payload.query, payload.history)
+        resolved = interpret_query(payload.query, payload.history)
     except APIError as exc:
         raise HTTPException(status_code=502, detail=f"DeepSeek API error: {exc}") from exc
 
-    results, unmatched_metros, no_data_metros, approximated_metros = run_market_query(db, filters)
-    explanation = explain_filters(filters, unmatched_metros, no_data_metros, approximated_metros, db)
+    if isinstance(resolved, CommentaryQuery):
+        all_metros = list(db.execute(select(Metro)).scalars().all())
+        commentary, unmatched_metros, no_data_metros = run_commentary_query(db, resolved, all_metros)
+        explanation = explain_commentary(resolved, commentary, no_data_metros)
+        return MarketQueryResponse(
+            filters=None,
+            explanation=explanation,
+            unmatched_metros=unmatched_metros,
+            no_data_metros=no_data_metros,
+            approximated_metros=[],
+            results=[],
+            commentary=commentary,
+        )
+
+    results, unmatched_metros, no_data_metros, approximated_metros = run_market_query(db, resolved)
+    explanation = explain_filters(resolved, unmatched_metros, no_data_metros, approximated_metros, db)
 
     return MarketQueryResponse(
-        filters=filters,
+        filters=resolved,
         explanation=explanation,
         unmatched_metros=unmatched_metros,
         no_data_metros=no_data_metros,

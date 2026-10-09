@@ -7,3 +7,5 @@ python-dotenv>=1.0
 openai>=1.50
 faker>=30.0
 slowapi>=0.1.9
+pypdf>=5.0
+scikit-learn>=1.5
