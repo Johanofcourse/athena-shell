@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import settings
 from app.database import Base, engine
@@ -35,3 +36,10 @@ app.include_router(query.router)
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+# Behind nginx, request.client.host is otherwise always 127.0.0.1, which
+# would make the rate limiter treat every visitor as the same client. Wrapped
+# separately (not reassigning `app`) so tests and other imports still get the
+# plain FastAPI instance; gunicorn/uvicorn should point at this instead.
+asgi_app = ProxyHeadersMiddleware(app, trusted_hosts="127.0.0.1")
