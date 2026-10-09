@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.models import QueryUsage
 
 FREE_DAILY_QUERY_LIMIT = 10
@@ -12,10 +13,16 @@ def _is_exempt(ip: str) -> bool:
     """Loopback (127.0.0.1, ::1) is unmetered - needed for local dev/testing,
     where the same machine legitimately runs hundreds of queries a day.
     This is safe for local development: once actually deployed (Phase 5),
-    real client IPs won't be loopback addresses. If a reverse proxy is ever
-    added in front of this, the IP extraction (get_remote_address) and this
-    exemption both need revisiting together - a misconfigured proxy could
-    make every request look like it's from loopback."""
+    real client IPs won't be loopback addresses, and in production nginx
+    + ProxyHeadersMiddleware correctly resolve the real client IP rather
+    than nginx's own loopback address - confirmed directly against the
+    live QueryUsage table, not assumed. `exempt_ips` (settings) is the
+    same idea for real, named IPs - e.g. Johan's own - that also shouldn't
+    count against the free cap; checked here rather than in a separate
+    code path so both exemptions share one `allowed, remaining_today`
+    contract."""
+    if ip in settings.exempt_ip_set:
+        return True
     try:
         return ipaddress.ip_address(ip).is_loopback
     except ValueError:
