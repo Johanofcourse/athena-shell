@@ -14,16 +14,32 @@ export function QueryResults({ response, query }: Props) {
   const { filters, explanation, results, commentary } = response;
 
   if (commentary) {
+    // The backend already prefers one chunk per distinct section, but if
+    // a metro's report only has a couple of sections at all, two chunks
+    // from the same one can still happen - label the repeat instead of
+    // showing two identical-looking headings with no way to tell them
+    // apart.
+    const sectionCounts: Record<string, number> = {};
     return (
       <div className="query-results">
         <p className="explanation">{explanation}</p>
         <div className="commentary">
-          {commentary.chunks.map((chunk, i) => (
-            <div className="commentary-chunk" key={i}>
-              <h3 className="commentary-section">{chunk.section}</h3>
-              <p className="commentary-text">{chunk.text}</p>
-            </div>
-          ))}
+          {commentary.chunks.map((chunk, i) => {
+            sectionCounts[chunk.section] = (sectionCounts[chunk.section] ?? 0) + 1;
+            const label =
+              sectionCounts[chunk.section] > 1 ? `${chunk.section} (continued)` : chunk.section;
+            return (
+              <div className="commentary-chunk" key={i}>
+                <h3 className="commentary-section">{label}</h3>
+                {/* Collapse the PDF's own line-wrap breaks into flowing
+                    prose - preserving them (the raw extracted text has a
+                    newline after every visual line, not every paragraph)
+                    made this read as a wall of disconnected short lines
+                    rather than real paragraphs. */}
+                <p className="commentary-text">{chunk.text.replace(/\s*\n+\s*/g, " ").trim()}</p>
+              </div>
+            );
+          })}
           <p className="commentary-citation">
             Source: HUD Comprehensive Housing Market Analysis, {commentary.metro} — as of{" "}
             {commentary.as_of_date} ({commentary.source_file})

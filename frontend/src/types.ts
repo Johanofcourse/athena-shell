@@ -58,6 +58,7 @@ export interface MarketQueryFilters {
 
 export interface MarketCommentaryChunk {
   section: string;
+  page_number: number;
   text: string;
 }
 

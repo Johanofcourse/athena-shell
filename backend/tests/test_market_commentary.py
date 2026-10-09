@@ -91,6 +91,34 @@ def test_ranking_actually_discriminates_by_topic(seeded_db):
     assert "jobs" in returned_texts.lower() or "employ" in returned_texts.lower()
 
 
+def test_ranking_prefers_distinct_sections_over_more_of_the_same(seeded_db):
+    # Real bug this fixes: a long section with several pages all mentioning
+    # "rent" can out-score every other section on a rent-related topic,
+    # returning three near-identical excerpts a reader can't tell apart.
+    # Four Rental Market pages, all genuinely about rent, versus one page
+    # each in two other sections that only mention rent in passing - a
+    # pure-score ranking would return three Rental Market chunks here.
+    for i in range(4):
+        _add_chunk(
+            seeded_db, "testville-ts", "Rental Market",
+            f"Average rent increased this quarter as vacancy tightened across the submarket, page {i}.",
+            page=i,
+        )
+    _add_chunk(seeded_db, "testville-ts", "Economic Conditions", "Employment grew while rent remained a minor factor.", page=10)
+    _add_chunk(seeded_db, "testville-ts", "Population", "Population grew; rent was not a major driver.", page=11)
+    seeded_db.commit()
+
+    all_metros = seeded_db.query(Metro).all()
+    query = CommentaryQuery(metro="Testville", topic="rent")
+    commentary, _, _ = run_commentary_query(seeded_db, query, all_metros)
+
+    assert commentary is not None
+    returned_sections = [c.section for c in commentary.chunks]
+    assert len(returned_sections) == len(set(returned_sections)), (
+        f"expected 3 distinct sections, got {returned_sections}"
+    )
+
+
 def test_run_commentary_query_respects_top_n_limit(seeded_db):
     for i in range(TOP_N_CHUNKS + 4):
         _add_chunk(seeded_db, "testville-ts", f"Section {i}", f"Some real estate market text number {i}.", page=i)
@@ -111,7 +139,7 @@ def test_explain_commentary_found():
         metro="Testville, TS",
         as_of_date="January 1, 2024",
         source_file="Testville-CHMA-24.pdf",
-        chunks=[CommentaryChunkOut(section="Economic Conditions", text="...")],
+        chunks=[CommentaryChunkOut(section="Economic Conditions", page_number=0, text="...")],
     )
     text = explain_commentary(CommentaryQuery(metro="Testville", topic="jobs"), result, [])
     assert "Testville, TS" in text

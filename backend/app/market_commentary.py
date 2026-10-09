@@ -28,7 +28,34 @@ def _rank_chunks(chunks: list[MarketCommentaryChunk], topic: str) -> list[Market
     matrix = vectorizer.fit_transform([*texts, topic])
     scores = cosine_similarity(matrix[:-1], matrix[-1]).flatten()
     ranked = sorted(range(len(chunks)), key=lambda i: scores[i], reverse=True)
-    return [chunks[i] for i in ranked[:TOP_N_CHUNKS]]
+    return [chunks[i] for i in _diversify_by_section(ranked, chunks)]
+
+
+def _diversify_by_section(ranked: list[int], chunks: list[MarketCommentaryChunk]) -> list[int]:
+    """Prefers one chunk per distinct section before taking a second from
+    any section already picked - a real UX problem this was built to fix,
+    not a hypothetical one: a long section (e.g. "Rental Market" spanning
+    several pages) can dominate the top of a pure-score ranking, returning
+    three near-identical excerpts a reader has no way to tell apart in the
+    response. One from each of three different, clearly labeled sections
+    is more useful than three from the same one, even when a couple of
+    them score slightly lower. Falls back to the next best-scoring chunk
+    regardless of section once distinct sections run out, rather than
+    returning fewer than TOP_N_CHUNKS when more real content exists."""
+    selected: list[int] = []
+    seen_sections: set[str] = set()
+    for i in ranked:
+        if chunks[i].section not in seen_sections:
+            selected.append(i)
+            seen_sections.add(chunks[i].section)
+        if len(selected) == TOP_N_CHUNKS:
+            return selected
+    for i in ranked:
+        if i not in selected:
+            selected.append(i)
+        if len(selected) == TOP_N_CHUNKS:
+            break
+    return selected
 
 
 def run_commentary_query(
@@ -58,7 +85,10 @@ def run_commentary_query(
         metro=metro.canonical_name,
         as_of_date=chunks[0].as_of_date,
         source_file=chunks[0].source_file,
-        chunks=[CommentaryChunkOut(section=c.section, text=c.chunk_text) for c in top_chunks],
+        chunks=[
+            CommentaryChunkOut(section=c.section, page_number=c.page_number, text=c.chunk_text)
+            for c in top_chunks
+        ],
     )
     return result, [], []
 
