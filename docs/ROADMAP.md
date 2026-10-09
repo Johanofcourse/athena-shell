@@ -449,9 +449,31 @@ an eighth deferral.
       default.
 
 ## Phase 5 — Deployment
-- [ ] Pick a host, wire real CD (auto-deploy on merge to main)
-- [ ] Env/secrets management for the deployed environment (see
-      `PREFERENCES.md` - verify secrets are actually present post-deploy)
+- [x] **Live**, 2026-10-09: a second Oracle Cloud Always Free VM
+      (`athena-realestate-vm`, separate from Apollo Shell's box, same
+      VCN), Oracle Linux 9. Backend runs as a systemd service (gunicorn +
+      `uvicorn.workers.UvicornWorker`, auto-restart), reverse-proxied by
+      nginx; frontend is a static Vite build served by nginx directly -
+      no Python process for it, matching the original plan. Real domain
+      (`athenarealestate.app` / `api.athenarealestate.app` via Porkbun),
+      TLS via Certbot/Let's Encrypt on all three names with auto-renewal,
+      HTTP->HTTPS redirect. `.env` and the already-ingested `athena.db`
+      copied via `scp`, never through git, mirroring Apollo's established
+      pattern. Two real SELinux bugs hit and fixed along the way,
+      specific to Oracle Linux's enforcing policy, not config mistakes:
+      systemd couldn't execute the venv's own binaries (labeled as
+      home-directory content; fixed with a persistent `semanage
+      fcontext` rule so it survives future `pip install`s) and nginx
+      couldn't proxy to the backend (`httpd_can_network_connect` is off
+      by default; enabled it). VM creation itself was gated for days on
+      Oracle's Always Free A1 capacity shortage in the Ashburn region,
+      not resolved by any configuration change - an unattended retry
+      script (`oci compute instance launch`, cycling all three
+      availability domains every ~5 minutes) running on the Apollo VM
+      eventually succeeded.
+- [ ] Real CD: a `workflow_dispatch` GitHub Actions deploy, mirroring
+      Apollo's (SSH in, pull, reinstall deps, re-run tests server-side,
+      restart services) - deploys are still manual SSH for now.
 
 ## Phase 6 — Portfolio packaging
 - [ ] README/demo polish (short walkthrough, screenshots or a clip)

@@ -413,12 +413,42 @@ Two distinct layers, deliberately not merged into one suite:
 keys required. The eval suite is deliberately excluded from CI for the
 cost reason above.
 
+## Deployment
+
+Live at `https://athenarealestate.app` (frontend) and
+`https://api.athenarealestate.app` (backend), on a second Oracle Cloud
+Always Free VM, separate from Apollo Shell's (same VCN, within the same
+free-tier budget split). Oracle Linux 9.
+
+- **Backend**: gunicorn with `uvicorn.workers.UvicornWorker`, run as a
+  systemd service (`athena-backend.service`) - `Restart=always`, enabled
+  on boot, logs to the systemd journal. nginx reverse-proxies
+  `api.athenarealestate.app` to it on `127.0.0.1:8001`.
+- **Frontend**: a static `vite build` output, served directly by nginx
+  from `/var/www/athenarealestate` - no Python process involved, same as
+  the plan from the start.
+- **TLS**: Certbot/Let's Encrypt certificates for the root domain, `www`,
+  and the `api` subdomain, auto-renewing; nginx redirects HTTP to HTTPS.
+- **Proxy headers**: the backend trusts `X-Forwarded-For` from
+  `127.0.0.1` only
+  (`uvicorn.middleware.proxy_headers.ProxyHeadersMiddleware`, wired in
+  `app/main.py` as a separate `asgi_app` export - gunicorn serves
+  `app.main:asgi_app`, not `app.main:app`, in production). Without this,
+  the rate limiter would see every visitor as the same client, since
+  `request.client.host` is otherwise always nginx's own address.
+- **Secrets**: `.env` and the already-ingested `athena.db` were copied to
+  the server via `scp`, never through git.
+- **Not yet automated**: deploys are still manual (SSH in, `git pull`,
+  restart the service) - see `ROADMAP.md` Phase 5 for the planned
+  `workflow_dispatch` CD step.
+
 ## Current limitations
 
-- No auth - every endpoint is open. Fine for a local portfolio demo, not
-  for anything deployed publicly as-is.
-- No deployment pipeline configured yet (CI exists; CD doesn't - see
-  `ROADMAP.md` Phase 5).
+- No auth - every endpoint is open to the public internet now that this
+  is deployed. Acceptable for a demo someone is deliberately pointed to,
+  not for anything that needs real access control.
+- No CD pipeline yet - deploys are manual SSH, not automated on merge
+  (CI exists; CD doesn't - see `ROADMAP.md` Phase 5).
 - Census `S0801` (commute time) not pulled - the `api.census.gov` API key
   signup issue is unresolved, and this wasn't pursued further via manual
   table-browser downloads this round. See `ROADMAP.md` Phase 3.

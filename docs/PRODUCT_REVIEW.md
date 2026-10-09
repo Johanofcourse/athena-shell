@@ -6,7 +6,25 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-09-30 (visual redesign done, three AI-capability extensions shipped, a real multi-turn bug found/fixed/regression-tested, the eval caught a second real issue on re-run, Census income + a median-rent fallback + a computed rent-to-income metric shipped as a third independent data source, Phase 4 - engineering rigor - finally landed after seven deferrals, a real timezone bug found by the first frontend test ever run, a fourth data source - Freddie Mac's national mortgage rates - added with its own non-metro schema, a fifth - BLS unemployment via its registered API - unexpectedly closed a real gap this project had previously given up on, a sixth - FHFA house prices via FRED - shipped with a real, meaningfully worse coverage gap than any prior source, surfaced and decided on with Johan before building rather than after, and - after real viewer feedback that the original look read as construction-site caution tape - a blue/red palette refresh plus a real geographic metro map replacing the plain browsing grid)
+**Last updated:** 2026-10-09 (Phase 5 - deployment - closed: live at
+`athenarealestate.app` on a second Oracle Cloud VM, real TLS, two genuine
+SELinux bugs hit and fixed rather than configured around; see
+`ROADMAP.md` Phase 5 for the full technical account. Previous update,
+2026-09-30: visual redesign done, three AI-capability extensions
+shipped, a real multi-turn bug found/fixed/regression-tested, the eval
+caught a second real issue on re-run, Census income + a median-rent
+fallback + a computed rent-to-income metric shipped as a third
+independent data source, Phase 4 - engineering rigor - finally landed
+after seven deferrals, a real timezone bug found by the first frontend
+test ever run, a fourth data source - Freddie Mac's national mortgage
+rates - added with its own non-metro schema, a fifth - BLS unemployment
+via its registered API - unexpectedly closed a real gap this project had
+previously given up on, a sixth - FHFA house prices via FRED - shipped
+with a real, meaningfully worse coverage gap than any prior source,
+surfaced and decided on with Johan before building rather than after,
+and - after real viewer feedback that the original look read as
+construction-site caution tape - a blue/red palette refresh plus a real
+geographic metro map replacing the plain browsing grid)
 
 ## What this is being judged against
 
@@ -114,12 +132,16 @@ review holds the project to both, not just "does it run."
   the wrong month in every peak/trough callout for any US-timezone
   viewer, live since Phase 2) - direct evidence this wasn't
   rigor-for-its-own-sake.
-- **No auth, no deployment.** Real user accounts, multi-tenancy, and
-  payments are a stated, co-equal pillar of this project's purpose
-  (Apollo Shell had none of this; see `ROADMAP.md`'s top section and
-  Phase 7), not a nice-to-have. Zero progress on it is a real gap against
-  the project's own stated goals, not just a limitation to disclose. This
-  is now the largest remaining gap - see below.
+- **Deployment is now real; auth still isn't.** Phase 5 closed this
+  update - the app is live at `athenarealestate.app` on a second Oracle
+  Cloud VM, with real TLS, not a localhost-only demo anymore. But real
+  user accounts, multi-tenancy, and payments (Phase 7) are a stated,
+  co-equal pillar of this project's purpose (Apollo Shell had none of
+  this; see `ROADMAP.md`'s top section), not a nice-to-have, and zero
+  progress has been made on it. Deploying first without accounts means
+  every endpoint is now open to the public internet rather than just
+  local - a real, not hypothetical, gap. This is now the largest
+  remaining gap - see below.
 
 ## What actually derisked this project, in order
 
@@ -163,8 +185,8 @@ decisions and start being the actual answer to "why no accounts."
 
 Phase 7 should be the next thing seriously scoped, before another feature
 round extends the same pattern that just took seven updates to break on
-the testing side. Not necessarily built immediately - the roadmap's own
-Phase 5 (deployment) arguably needs to exist first, since real payments
-without a deployed target is a strange order of operations - but at least
-scoped and sequenced deliberately, rather than deferred by default the
-way tests were.
+the testing side. The sequencing argument that used to justify waiting -
+"deployment should exist before payments, since real payments without a
+deployed target is a strange order of operations" - no longer applies:
+Phase 5 is done, the app is live. That removes the last legitimate reason
+to keep deferring Phase 7 by default.
