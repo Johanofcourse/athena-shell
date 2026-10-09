@@ -498,41 +498,77 @@ real SaaS patterns, not a minimal login gate:
       exist - `PREFERENCES.md` calls out that secrets discipline "matters
       even more here" once this lands.
 
-## Phase 8 (under consideration) — Retrieval-augmented market commentary
-Not yet committed - a real open question (below) has to resolve first.
-The idea, motivated by wanting genuine RAG experience for the
-forward-deployed AI engineer angle, not by wanting RAG for its own sake:
+## Phase 8 — Retrieval-augmented market commentary
+Backend done and real-data-verified; frontend not started. Motivated by
+wanting genuine RAG experience for the forward-deployed AI engineer
+angle, not by wanting RAG for its own sake.
 
-- A **second tool** alongside `query_market_metrics`, something like
-  `search_market_commentary`, for the "why" questions the structured
-  data can't answer ("why is Austin rent falling" vs. "what is Austin
-  rent"). The model would learn to pick between two genuinely different
-  tools for two genuinely different question types - itself a real
-  signal of judgment, not just tool-calling depth.
-- **Strictly separated from the structured answer, never blended** -
-  same honesty principle as the `median_gross_rent` fallback
-  (`approximated_metros`): a retrieved/summarized external passage is a
-  different *kind* of claim than an exact number from `MarketMetric`,
-  and the response has to make that distinction visible, with a real
-  citation (which document, which section) rather than a vague "sources
-  say."
-- **Candidate corpus: HUD's Comprehensive Housing Market Analysis (CHMA)
-  reports** - real, free, government-published, and they actually explain
-  *why* a market is moving (population/employment/construction trends),
-  not just *what* the numbers are. A different HUD product than the
-  Fair Market Rents data already noted as low-priority above.
-- **Real open blocker, not yet resolved:** CHMA reports are published
-  "as needed" (40-60/year, funding-dependent per HUD's own FAQ), not on
-  a fixed schedule or with guaranteed coverage of all 50 tracked metros -
-  the exact same "does this source actually cover our geography" problem
-  hit three times already with Redfin/Apartment List/Census. Confirming
-  real coverage requires checking HUD's state-by-state CHMA listing
-  pages (e.g. `huduser.gov/portal/chma/tx.html`) - which return empty,
-  gated responses to automated fetches (curl, WebFetch), the same
-  Akamai-style bot-gating already hit with Redfin and BLS. Per this
-  project's standing principle, that's not something to spoof past -
-  it needs a real browser check, by hand, before this phase can be
-  scoped further.
+- [x] **Coverage checked by hand, the real blocker from the original plan
+      below.** HUD's CHMA listing pages are bot-gated the same as
+      Redfin/BLS (confirmed directly - automated fetches get an empty,
+      gated response), so this meant a real browser check across 5
+      states (CA, TX, FL, OH, RI), not an automated scrape. Result: 23 of
+      50 tracked metros have a verified, downloaded report. Two honest
+      exceptions, both deliberately included anyway rather than silently
+      dropped, and both disclosed via `as_of_date` at query time rather
+      than presented as current: `los-angeles-ca` (HUD's newest
+      *full-metro* report is from 2013 - newer sub-area reports exist but
+      only cover part of LA) and `providence-ri` (HUD publishes a
+      statewide Rhode Island report, not a Providence-specific one). The
+      remaining ~27 metros haven't been checked yet - growing this set is
+      unstarted, manual work, not blocked on anything technical.
+- [x] **A second tool, `search_market_commentary`, alongside
+      `query_market_metrics`.** `tool_choice` changed from forced-single-
+      function to `"required"` - the model must call a tool, but
+      genuinely picks which one. Verified directly against the real
+      DeepSeek API, not just unit-tested: "why is rent falling in Austin"
+      correctly triggered the commentary tool with real, relevant cited
+      text; "what is the median sale price in Denver" correctly stayed on
+      `query_market_metrics`, 176 real results, no regression.
+- [x] **Strictly separated from the structured answer, never blended** -
+      same honesty principle as the `median_gross_rent` fallback
+      (`approximated_metros`). `MarketQueryResponse.filters` is `null`
+      for a commentary response; `commentary` is `null` for a metrics
+      response - never both populated, never guessed at from one shape.
+- [x] **PDF extraction and chunking**, one `MarketCommentaryChunk` row
+      per PDF page (these reports are already organized into named
+      sections that map one-to-one onto pages). Real complication hit and
+      handled, not glossed over: LA's 2013 report uses an older PDF
+      template where kerning breaks some words apart in extraction (e.g.
+      "ANAL YSIS") - the boilerplate-stripping logic was written to
+      tolerate this rather than assuming one clean format for all 23
+      files.
+- [x] **Lightweight similarity search, not an embedding model** - a
+      deliberate simplification from the original plan (below), decided
+      with Johan before building: metro selection already narrows
+      retrieval to one ~30-page document before ranking ever runs, so
+      this is "which section of this one report," not open-domain
+      search. TF-IDF (scikit-learn), computed fresh per query over one
+      metro's handful of chunks, no precomputed vector index, no torch
+      dependency on a small deployment VM. Swappable later if the
+      quality bar ever demands it - the tool's interface (metro + topic
+      in, ranked cited chunks out) doesn't change either way.
+- [x] **Real source data kept out of git** - the 23 PDFs are 83MB and
+      growing, versus ~20MB for everything else in `data/samples/`
+      combined. Handled like `.env`/`athena.db`: `scp`'d directly,
+      documented in `DOCUMENTATION.md`, not committed.
+- [x] **Backend test coverage** for the deterministic retrieval logic
+      (metro resolution, the no-coverage case, and a real test that
+      ranking actually discriminates by topic rather than just returning
+      the first few chunks) - `backend/tests/test_market_commentary.py`.
+      `interpret_query`'s live tool-choice behavior stays out of pytest,
+      same reasoning as `query_market_metrics` - that needs the eval
+      suite, not a unit test.
+- [ ] **Frontend**: no rendering built yet. `QueryResults` only knows how
+      to render `results`/`filters` - a commentary response currently has
+      nothing on the frontend to display it.
+- [ ] **Eval suite cases** for the new tool-choice behavior (does the
+      model pick the right tool across a range of "why" vs "what"
+      phrasings, not just the two hand-tested examples above).
+- [ ] Grow coverage beyond the current 23 metros (same manual,
+      bot-gated-browser process).
+- [ ] Deploy this to the live VM - the PDFs need a manual `scp` there too
+      (see `DOCUMENTATION.md` Deployment), not pulled by `git pull`.
 - **Deliberately considered and rejected: a live web-search tool
   instead of a pre-built corpus.** Technically possible (either a
   provider's hosted search tool, or a custom tool the same way
@@ -542,14 +578,6 @@ forward-deployed AI engineer angle, not by wanting RAG for its own sake:
   vetted the way every other data source in this project has been, would
   hit the same live bot-gating unpredictably in production, and add real
   per-query cost/latency a pre-indexed corpus doesn't.
-- Once coverage is confirmed: PDF text extraction (new to this project -
-  every prior source has been clean CSVs), an embedding step (local
-  embedding model preferred over a hosted API, to avoid a second paid
-  dependency alongside DeepSeek), and a deliberately lightweight
-  similarity search (in-process/SQLite-backed, not a dedicated vector DB
-  service) - matching the minimalist pattern used everywhere else in
-  this project rather than reaching for heavier infrastructure than the
-  actual corpus size (a few dozen reports) would ever need.
 
 See `PRODUCT_REVIEW.md` for an honest read on where this currently stands
 against these phases, and `DOCUMENTATION.md` for the technical reference.

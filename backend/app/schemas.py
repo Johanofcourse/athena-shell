@@ -112,13 +112,49 @@ class QueryRequest(BaseModel):
     )
 
 
+class CommentaryQuery(BaseModel):
+    """search_market_commentary's resolved arguments - the commentary-tool
+    counterpart to MarketQueryFilters. Deliberately a separate, much
+    smaller shape rather than reusing MarketQueryFilters: a "why" question
+    about one metro has nothing in common with a metric/period/sort
+    specification, and forcing it into that shape would mean most of
+    MarketQueryFilters' fields are meaningless noise on every commentary
+    call."""
+
+    metro: str = Field(description="The single metro name the question is about, e.g. 'Austin'.")
+    topic: str = Field(description="Short keyword phrase capturing what the question is actually about.")
+
+
+class CommentaryChunkOut(BaseModel):
+    section: str
+    text: str
+
+
+class MarketCommentaryResult(BaseModel):
+    """A retrieved HUD CHMA excerpt answering a "why" question about one
+    metro - strictly separate from MarketQueryResponse.results (the exact
+    numeric answer), never blended into it, same honesty principle as the
+    approximated_metros fallback. as_of_date is the report's own stated
+    date, always shown, so a real but possibly old explanation (see
+    los-angeles-ca in HUD_CHMA_FILES) is never presented as current."""
+
+    metro: str
+    as_of_date: str
+    source_file: str
+    chunks: list[CommentaryChunkOut]
+
+
 class MarketQueryResponse(BaseModel):
-    filters: MarketQueryFilters
+    # None exactly when this is a commentary response (commentary is set
+    # instead) - a "why" question never resolves to a metric/period/sort
+    # specification, so there's nothing honest to put here for that case.
+    filters: MarketQueryFilters | None
     explanation: str
     unmatched_metros: list[str]
     no_data_metros: list[str]
     approximated_metros: list[str]
     results: list[MarketMetricPoint]
+    commentary: MarketCommentaryResult | None = None
 
 
 class FeedbackRequest(BaseModel):

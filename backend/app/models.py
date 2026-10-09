@@ -109,6 +109,38 @@ class QueryUsage(Base):
     count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
+class MarketCommentaryChunk(Base):
+    """One section of one HUD Comprehensive Housing Market Analysis (CHMA)
+    report, for the search_market_commentary tool (Phase 8) - the "why"
+    counterpart to query_market_metrics' "what". Deliberately one row per
+    PDF page rather than a fixed-size text window: these reports are
+    already organized into clear named sections (Economic Conditions,
+    Population and Households, Home Sales Market, ...) that map one-to-one
+    onto pages, so page-level chunking preserves real document structure
+    instead of cutting mid-thought. as_of_date is the report's own stated
+    date (extracted from its text, not inferred from the filename), since
+    that's the real honesty-relevant fact here - a 2013 report cited
+    without its date would misrepresent itself as current. No embedding
+    column: ranking happens in-process via TF-IDF over one metro's chunks
+    at query time (a few dozen short chunks per metro), not a precomputed
+    vector index - more infrastructure than this corpus size would ever
+    need. See ROADMAP.md Phase 8 for the full reasoning, including why a
+    local embedding model was considered and set aside in favor of this."""
+
+    __tablename__ = "market_commentary_chunks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    metro_id: Mapped[str] = mapped_column(ForeignKey("metros.id"), nullable=False, index=True)
+
+    source_file: Mapped[str] = mapped_column(String, nullable=False)
+    as_of_date: Mapped[str] = mapped_column(String, nullable=False)  # e.g. "January 1, 2022" - the report's own text, not reformatted
+    section: Mapped[str] = mapped_column(String, nullable=False)  # e.g. "Economic Conditions"
+    page_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    chunk_text: Mapped[str] = mapped_column(String, nullable=False)
+
+    metro: Mapped["Metro"] = relationship()
+
+
 class FeedbackRating(str, enum.Enum):
     UP = "up"
     DOWN = "down"

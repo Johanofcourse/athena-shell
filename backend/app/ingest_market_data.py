@@ -6,13 +6,16 @@ Run with: python -m app.ingest_market_data
 
 import csv
 import json
+import re
 from datetime import date
 from pathlib import Path
 
+import pypdf
+
 from app.database import Base, SessionLocal, engine
 from app.ingest_national_data import ingest_pmms
-from app.market_crosswalk import BLS_AREA_CODES, FHFA_HPI_SERIES_IDS, METRO_CROSSWALK
-from app.models import MarketMetric, MetricSource, Metro
+from app.market_crosswalk import BLS_AREA_CODES, FHFA_HPI_SERIES_IDS, HUD_CHMA_FILES, METRO_CROSSWALK
+from app.models import MarketCommentaryChunk, MarketMetric, MetricSource, Metro
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "samples"
 
@@ -358,10 +361,89 @@ def ingest_fhfa_hpi(db) -> int:
     return count
 
 
+HUD_CHMA_DIR = DATA_DIR / "hud_chma"
+
+# These repeated header/footer lines appear on every page of a CHMA PDF
+# (confirmed across multiple metros and both the current template and the
+# older one LA's 2013 report uses, where PDF kerning breaks some words
+# apart - e.g. "ANAL YSIS" - so matching on the shorter, unbroken
+# "comprehensive housing market" substring catches both). Filtering them
+# out keeps the real section label (the page's actual first remaining
+# line) and the real content from getting diluted with boilerplate that
+# would otherwise dominate a small per-metro chunk set during ranking.
+_CHMA_BOILERPLATE_MARKERS = (
+    "comprehensive housing market",
+    "u.s. department of housing and urban development",
+    "office of policy development and research",
+)
+_CHMA_DATE_RE = re.compile(r"[Aa]s [Oo]f\s+([A-Z][a-z]+ \d{1,2},?\s*\d{4})")
+
+
+def ingest_hud_chma(db) -> int:
+    """Extracts and chunks the hand-downloaded HUD CHMA PDFs (see
+    HUD_CHMA_FILES for which metros, and why only those) into
+    MarketCommentaryChunk rows, one per PDF page - these reports are
+    already organized into named sections that map one-to-one onto pages,
+    so page-level chunking preserves real structure rather than cutting
+    mid-thought. Skips a metro cleanly, like ingest_bls_unemployment, if
+    its PDF hasn't been downloaded yet - this corpus is deliberately
+    partial and grows over time, not a hard ingest failure."""
+    count = 0
+    for metro_id, filename in HUD_CHMA_FILES.items():
+        path = HUD_CHMA_DIR / filename
+        if not path.exists():
+            print(f"{filename} not found for {metro_id} - skipping.")
+            continue
+
+        reader = pypdf.PdfReader(str(path))
+        cover_text = reader.pages[0].extract_text()
+        date_match = _CHMA_DATE_RE.search(cover_text)
+        as_of_date = date_match.group(1).strip() if date_match else "unknown"
+
+        for page_number, page in enumerate(reader.pages):
+            lines = []
+            for line in page.extract_text().split("\n"):
+                stripped = line.strip()
+                if not stripped or stripped.isdigit():
+                    continue
+                if any(marker in stripped.lower() for marker in _CHMA_BOILERPLATE_MARKERS):
+                    continue
+                lines.append(stripped)
+            if not lines:
+                continue
+            chunk_text = "\n".join(lines)
+            if len(chunk_text) < 200:  # covers, dividers, near-empty pages
+                continue
+            section = re.sub(r"\s+\d+$", "", lines[0]).strip()
+            db.add(
+                MarketCommentaryChunk(
+                    metro_id=metro_id,
+                    source_file=filename,
+                    as_of_date=as_of_date,
+                    section=section,
+                    page_number=page_number,
+                    chunk_text=chunk_text,
+                )
+            )
+            count += 1
+    return count
+
+
 def ingest() -> None:
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
+        # Runs ahead of the "already ingested" guard below so it still
+        # fires on a database that already has market metrics loaded -
+        # this corpus was added well after the rest and would otherwise
+        # never get a chance to run on an existing database.
+        if db.query(MarketCommentaryChunk).first() is None:
+            chma_count = ingest_hud_chma(db)
+            db.commit()
+            print(f"Ingested {chma_count} HUD CHMA commentary chunks.")
+        else:
+            print("HUD CHMA commentary already ingested, skipping.")
+
         if db.query(MarketMetric).first() is not None:
             print("Market metrics already ingested, skipping.")
             return

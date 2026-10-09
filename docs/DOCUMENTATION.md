@@ -107,13 +107,51 @@ version, or `docs/PRODUCT_REVIEW.md` for why the pivot happened). It was
 removed outright once the new schema was proven working, not kept around
 deprecated.
 
-## NL query layer (`backend/app/nl_query.py`)
+**`MarketCommentaryChunk`** - Phase 8's table, one row per page of a HUD
+Comprehensive Housing Market Analysis (CHMA) PDF, for the
+`search_market_commentary` tool (see below). `HUD_CHMA_FILES`
+(`market_crosswalk.py`) maps `metro_id` to a filename - a real, honest
+subset of the 50 metros (23 as of this writing), hand-curated the same
+way as every other bot-gated source here: HUD's state listing pages
+don't respond to automated fetches, so coverage was checked and reports
+downloaded by hand, not scraped. `as_of_date` is the report's own stated
+date, extracted from its text, not inferred from a filename or treated as
+"current" just because it's the newest one HUD has published - two
+metros in the set are flagged exceptions for exactly this reason:
+`los-angeles-ca` only has a 2013 full-metro report (newer ones exist but
+only cover part of the metro), and `providence-ri` is a statewide report,
+not a metro-specific one. The PDFs themselves are **not in git** - see
+`.gitignore` and this doc's Deployment section.
+
+## NL query layer (`backend/app/nl_query.py`, `backend/app/market_commentary.py`)
 
 Design choice: **tool-calling into a fixed filter shape, not text-to-SQL.**
-DeepSeek is called with a single `query_market_metrics` tool and forced to
-call it (`tool_choice`). The returned arguments are parsed and validated
-against `MarketQueryFilters` (Pydantic, `MetricName` is an enum - not a
-free string) before touching the database.
+DeepSeek is given two tools and `tool_choice="required"` - it must call
+one of them, but genuinely picks which: `query_market_metrics` for "what"
+questions (an exact number, a trend, a ranking), or `search_market_commentary`
+(Phase 8) for "why" questions about one named metro, answered from a real,
+cited HUD report excerpt instead of the structured database. `interpret_query`
+returns a `MarketQueryFilters` or a `CommentaryQuery` depending on which
+the model called, and `routers/query.py` branches on `isinstance()` -
+the two response shapes are never blended (see `MarketQueryResponse`:
+`filters`/`results` for the metrics path, `commentary` for the other,
+whichever one wasn't used stays empty/`None`). The returned arguments are
+parsed and validated against `MarketQueryFilters` or `CommentaryQuery`
+(Pydantic) before touching the database.
+
+**`search_market_commentary`** (`market_commentary.py`): given a metro
+and a short topic phrase, looks up that metro's `MarketCommentaryChunk`
+rows and ranks them by TF-IDF similarity to the topic - computed
+in-process, fresh, over just that one metro's handful of chunks, not a
+precomputed vector index. This is deliberately not semantic/embedding
+search: metro selection already narrows retrieval to one ~30-page
+document before ranking ever runs, so the real problem is "which section
+of this one report," not open-domain search - more infrastructure than
+that problem needs. Two honesty-flag outcomes, same pattern as the
+metrics path: an unresolved metro name is `unmatched_metros`; a resolved
+metro with zero HUD coverage (not in the hand-curated `HUD_CHMA_FILES`
+set) is `no_data_metros` - never silently empty, never a different
+metro's report substituted in.
 
 Two query modes, both going through the same tool:
 - **Trend mode** (`sort_by: "period"`, the default) - full time series for
@@ -349,7 +387,7 @@ second LLM call, so it can never claim something the data doesn't back up.
 | GET | `/health` | Liveness check |
 | GET | `/metros` | All tracked metros, with sale/rent/income data availability flags |
 | GET | `/metros/{id}/series?metric=&bed_size=` | Raw time series for one metro/metric, for direct charting. `median_rent` goes through the same Census gross-rent fallback as `/query` below. |
-| POST | `/query` | `{"query": "<natural language>", "history": [{"query", "filters"}, ...]}` -> `{filters, explanation, unmatched_metros, no_data_metros, approximated_metros, results}`. `history` is optional, max 5 turns. |
+| POST | `/query` | `{"query": "<natural language>", "history": [{"query", "filters"}, ...]}` -> `{filters, explanation, unmatched_metros, no_data_metros, approximated_metros, results, commentary}`. `history` is optional, max 5 turns. Exactly one of `results`/`commentary` is populated depending on which tool the model called - `filters` is `null` for a commentary response (see NL query layer above). History replay only carries `query_market_metrics` turns forward - a commentary turn isn't resent as conversation state (Phase 8, a known scope limit, not a bug). |
 | POST | `/query/feedback` | `{"query", "filters", "rating": "up"\|"down"}` -> 204. Logged to `QueryFeedback` for eval growth. |
 
 Full request/response schemas: `backend/app/schemas.py`, or run the backend
@@ -381,6 +419,13 @@ python -m app.ingest_market_data   # loads data/samples/*.csv into athena.db
 ```
 
 There's no synthetic-data seed script anymore - real data replaced it.
+
+HUD CHMA commentary (Phase 8) is optional and ingests separately from
+everything else: if `data/samples/hud_chma/` is empty or missing, the
+ingest run prints a per-metro skip message and continues normally -
+`search_market_commentary` just has nothing to find until the PDFs are
+in place. They're not in git (see Deployment below), so a fresh clone
+genuinely won't have this corpus until someone copies it in by hand.
 
 ## Testing
 
@@ -438,6 +483,12 @@ free-tier budget split). Oracle Linux 9.
   `request.client.host` is otherwise always nginx's own address.
 - **Secrets**: `.env` and the already-ingested `athena.db` were copied to
   the server via `scp`, never through git.
+- **HUD CHMA PDFs** (Phase 8, `data/samples/hud_chma/`): same `scp`
+  treatment as the secrets above, for the same reason - real downloaded
+  source data, not code, deliberately kept out of git for its size (83MB
+  and growing). A deployed environment needs this folder copied by hand
+  before `search_market_commentary` has anything to find; it's not pulled
+  by `git pull` the way everything else here is.
 - **Not yet automated**: deploys are still manual (SSH in, `git pull`,
   restart the service) - see `ROADMAP.md` Phase 5 for the planned
   `workflow_dispatch` CD step.

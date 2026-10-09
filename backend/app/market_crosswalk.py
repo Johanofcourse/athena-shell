@@ -259,3 +259,42 @@ METRO_COORDINATES: dict[str, tuple[float, float]] = {
     "washington-dc": (38.829787, -77.495684),
     "west-palm-beach-fl": (26.745114, -80.127038),
 }
+
+# metro_id -> filename under data/samples/hud_chma/, for the
+# search_market_commentary tool (Phase 8). A real, honest subset, not all
+# 50: a metro only appears here once its HUD CHMA report has actually been
+# downloaded and verified to exist (HUD's state listing pages are
+# bot-gated, so this is hand-curated, same as every other manually-checked
+# source in this project). Most are the most recent full-metro report;
+# two deliberate exceptions, both disclosed via as_of_date at query time
+# rather than silently included: "los-angeles-ca" is HUD's 2013 report
+# (the newest full-LA-metro analysis that exists - newer sub-area reports
+# like "Westside" or "San Fernando Valley" only cover part of the metro,
+# so weren't used), and "providence-ri" is a statewide report, not a
+# metro-specific one (HUD doesn't publish a separate Providence-Warwick
+# CHMA - Rhode Island's CHMA covers the whole state).
+HUD_CHMA_FILES: dict[str, str] = {
+    "anaheim-ca": "AnaheimSantaAnaIrvineCA-CHMA-2022.pdf",
+    "austin-tx": "AustinRoundRockTX-CHMA-24.pdf",
+    "cincinnati-oh": "CincinnatiOH-KY-IN-CHMA-22.pdf",
+    "cleveland-oh": "ClevelandElyriaOH-CHMA-23.pdf",
+    "columbus-oh": "ColumbusOH-CHMA-23.pdf",
+    "dallas-tx": "DallasPlanoIrvingTX-CHMA-24.pdf",
+    "fort-lauderdale-fl": "FortLauderdalePompanoBeachDeerfieldBeachFL-CHMA-22.pdf",
+    "fort-worth-tx": "FortWorthArlingtonGrapevineTX-CHMA-25.pdf",
+    "houston-tx": "HoustonTheWoodlandsSugarLandTX-CHMA-23.pdf",
+    "jacksonville-fl": "JacksonvilleFL-CHMA-24.pdf",
+    "los-angeles-ca": "LosAngelesCA_comp_2013.pdf",
+    "miami-fl": "MiamiMiamiBeachKendallFL-CHMA-26.pdf",
+    "oakland-ca": "OaklandHaywardBerkeleyCA-CHMA-2025.pdf",
+    "orlando-fl": "OrlandoKissimmeeSanfordFL-CHMA-24.pdf",
+    "providence-ri": "RhodeIsland-CHMA-22.pdf",
+    "riverside-ca": "RiversideSanBernardinoOntarioCA-CHMA-2025.pdf",
+    "sacramento-ca": "SacramentoRosevilleArdenArcadeCA-CHMA-2022.pdf",
+    "san-antonio-tx": "SanAntonioNewBraunfelsTX-CHMA-23.pdf",
+    "san-diego-ca": "SanDiegoChulaVistaCarlsbadCA-CHMA-2024.pdf",
+    "san-francisco-ca": "SanFranciscoRedwoodCitySouthSanFranciscoCA-CHMA-2024.pdf",
+    "san-jose-ca": "SanJoseSunnyvaleSantaClaraCA-CHMA-2024.pdf",
+    "tampa-fl": "TampaStPetersburgClearwaterFL-CHMA-24.pdf",
+    "west-palm-beach-fl": "WestPalmBeachBocaRatonDelrayBeachFL-CHMA-25.pdf",
+}

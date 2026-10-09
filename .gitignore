@@ -16,3 +16,12 @@ vite.config.d.ts
 # convenience - never tracked, never committed, regardless of what ends
 # up in here.
 Classified/
+
+# Hand-downloaded HUD CHMA PDFs for the search_market_commentary tool
+# (Phase 8) - real source data, not code, same category as .env and
+# athena.db above. Kept out of git deliberately: already 83MB for 23
+# metros and growing as more are gathered, versus ~20MB for everything
+# else in data/samples/ combined. Copy manually (scp) to any environment
+# that needs to run `python -m app.ingest_market_data` for real - see
+# DOCUMENTATION.md's Deployment section.
+data/samples/hud_chma/
