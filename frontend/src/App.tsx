@@ -60,12 +60,7 @@ export default function App() {
     <div className="app">
       <header>
         <div className="brand">
-          <figure className="brand-portrait">
-            <img src={minervaPainting} alt="" aria-hidden="true" />
-            <figcaption>
-              Minerva in Military Clothes, Johann Heinrich Tischbein, 1779 — public domain, Wikimedia Commons
-            </figcaption>
-          </figure>
+          <img className="brand-watermark" src={minervaPainting} alt="" aria-hidden="true" />
           <div className="brand-text">
             <button className="home-link" onClick={handleReset} aria-label="Back to browse">
               <h1>Athena</h1>
@@ -115,8 +110,14 @@ export default function App() {
       )}
 
       <footer className="footnote">
-        A few metros don't show rent or income badges — Apartment List and Census don't publish those
-        metrics below the full-metro level there, so we never fake a number to fill the gap.
+        <p>
+          A few metros don't show rent or income badges — Apartment List and Census don't publish those
+          metrics below the full-metro level there, so we never fake a number to fill the gap.
+        </p>
+        <p>
+          Portrait: "Minerva in Military Clothes," Johann Heinrich Tischbein, 1779 — public domain,
+          Wikimedia Commons.
+        </p>
       </footer>
     </div>
   );

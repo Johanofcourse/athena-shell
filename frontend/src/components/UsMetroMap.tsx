@@ -50,26 +50,29 @@ export function UsMetroMap({ metros, onSelect }: Props) {
         </ComposableMap>
       </div>
 
-      <ul className="metro-list">
-        {metros.map((metro) => (
-          <li key={metro.id}>
-            <button
-              className="metro-list-item"
-              data-hovered={hoveredId === metro.id}
-              onClick={() => onSelect(metro)}
-              onMouseEnter={() => setHoveredId(metro.id)}
-              onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
-            >
-              <span className="metro-list-name">{metro.canonical_name}</span>
-              <span className="metro-list-badges">
-                <span className="metro-cell" data-available={metro.has_sale_data} title={metro.has_sale_data ? "Sale data" : "No sale data"}>Sale</span>
-                <span className="metro-cell" data-available={metro.has_rent_data} title={metro.has_rent_data ? "Rent data" : "No rent data"}>Rent</span>
-                <span className="metro-cell" data-available={metro.has_income_data} title={metro.has_income_data ? "Income data" : "No income data"}>Income</span>
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <details className="metro-list-toggle">
+        <summary className="intro-label">Top 50 metros — basic info</summary>
+        <ul className="metro-list">
+          {metros.map((metro) => (
+            <li key={metro.id}>
+              <button
+                className="metro-list-item"
+                data-hovered={hoveredId === metro.id}
+                onClick={() => onSelect(metro)}
+                onMouseEnter={() => setHoveredId(metro.id)}
+                onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
+              >
+                <span className="metro-list-name">{metro.canonical_name}</span>
+                <span className="metro-list-badges">
+                  <span className="metro-cell" data-available={metro.has_sale_data} title={metro.has_sale_data ? "Sale data" : "No sale data"}>Sale</span>
+                  <span className="metro-cell" data-available={metro.has_rent_data} title={metro.has_rent_data ? "Rent data" : "No rent data"}>Rent</span>
+                  <span className="metro-cell" data-available={metro.has_income_data} title={metro.has_income_data ? "Income data" : "No income data"}>Income</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </details>
     </div>
   );
 }

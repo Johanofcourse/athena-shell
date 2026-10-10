@@ -45,52 +45,44 @@ body {
 }
 
 header {
+  position: relative;
   padding-top: 32px;
+  /* Crops the watermark's negative offset at the header's own edges,
+     instead of letting it bleed into the page margin or cause
+     horizontal scroll on narrow viewports. Harmless to .intro-body
+     opening below it - header's height still grows to fit real
+     content; this only clips the absolutely-positioned watermark. */
+  overflow: hidden;
 }
 
-/* Flex row, not absolute positioning - the portrait (image + caption)
-   and the wordmark column each take the height they actually need, so
-   one can never overlap the other regardless of caption line count or
-   image aspect ratio. A fixed-height guess here was the first draft and
-   it broke exactly how fixed-height guesses always break: the caption
-   wrapped to more lines than planned for and collided with the next
-   section down (caught in Playwright, not just read from the diff). */
 .brand {
-  display: flex;
-  align-items: flex-start;
-  gap: 28px;
+  position: relative;
 }
 
-/* The painting itself - a real oval portrait, not a cropped rectangle.
-   Its own scan background is already near-white, so it sits on the
-   eggshell page with only a soft mask at the bottom edge needed to
-   avoid a visible seam, rather than a hard image boundary. */
-.brand-portrait {
-  flex: none;
-  margin: 0;
-  width: 168px;
-}
-
-.brand-portrait img {
-  display: block;
-  width: 100%;
-  height: auto;
-  mask-image: linear-gradient(to bottom, black 78%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 78%, transparent 100%);
-}
-
-.brand-portrait figcaption {
-  margin-top: 6px;
-  color: var(--text-muted);
-  font-family: var(--font-body);
-  font-style: italic;
-  font-size: 10.5px;
-  line-height: 1.4;
-  max-width: 168px;
+/* A true background wash, not a bounded figure taking up its own
+   layout column (the first pass - Johan: "blend in the background...
+   so it doesn't take up UI space"). Oversized, faded, and masked to a
+   soft radial fade on every edge so there's no visible image boundary
+   at all - it should read as part of the page texture, not a photo
+   sitting on top of it. Credit moved to the footer, since there's no
+   longer a bounded thumbnail to caption directly. */
+.brand-watermark {
+  position: absolute;
+  top: -70px;
+  left: -60px;
+  width: 460px;
+  max-width: 70vw;
+  opacity: 0.15;
+  mask-image: radial-gradient(ellipse 60% 60% at 34% 36%, black 30%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 34% 36%, black 30%, transparent 72%);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
 }
 
 .brand-text {
-  padding-top: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 header h1 {
@@ -491,6 +483,14 @@ header h1 {
   fill: var(--accent);
 }
 
+/* Collapsed by default - 50 rows was a lot of page to scroll past just
+   to reach the map's own content below it. Reuses .intro-label's
+   disclosure styling for the toggle (same +/− pattern as "What is
+   this?" above), not a one-off treatment. */
+.metro-list-toggle {
+  margin-top: 20px;
+}
+
 .metro-list {
   flex: none;
   display: grid;
@@ -560,17 +560,10 @@ header h1 {
 }
 
 @media (max-width: 560px) {
-  .brand {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .brand-portrait {
-    width: 140px;
-  }
-
-  .brand-text {
-    padding-top: 0;
+  .brand-watermark {
+    width: 300px;
+    top: -50px;
+    left: -40px;
   }
 }
 
@@ -774,7 +767,10 @@ header h1 {
   color: var(--accent);
 }
 
-.intro[open] .intro-label::after {
+/* Generic to any <details> using .intro-label as its summary - not
+   just .intro. The metro-list-toggle disclosure reuses this same
+   class and needs the same open-state flip. */
+details[open] > .intro-label::after {
   content: "−";
 }
 
@@ -809,4 +805,12 @@ header h1 {
   font-style: italic;
   font-size: 12.5px;
   line-height: 1.6;
+}
+
+.footnote p {
+  margin: 0 0 8px;
+}
+
+.footnote p:last-child {
+  margin-bottom: 0;
 }
