@@ -11,6 +11,14 @@
   --danger: #7a3327;
   --success: #5f7a5e;
 
+  /* The map's own palette - deliberately a shade deeper/warmer than the
+     page's eggshell, so it reads as a real object (a map, with its own
+     parchment) sitting on the page rather than just another panel in
+     the same flat tone. See the antique-Greece-map reference Johan
+     sent (thoughtco.com/maps-of-ancient-greece). */
+  --map-parchment: #e3d2a3;
+  --map-ink: #4a3015;
+
   --font-display: "Cinzel", "Times New Roman", serif;
   --font-body: "Spectral", Georgia, serif;
   --font-mono: "Spectral", Georgia, serif;
@@ -426,22 +434,62 @@ header h1 {
   align-items: stretch;
 }
 
+/* Antique cartography, not a flat UI panel: an aged-parchment ground,
+   a double-ruled border (the two box-shadow rings below, a real
+   convention on 18th/19th-century engraved maps, not an invented
+   flourish), a title cartouche, and a compass rose - see the reference
+   Johan sent. The map now looks like a real object placed on the page,
+   not another bordered box matching the rest of the UI. */
 .metro-map-canvas {
   width: 100%;
-  height: 320px;
+  height: 360px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   align-self: stretch;
   flex: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 12px;
+  background-color: var(--map-parchment);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 5px var(--map-parchment), 0 0 0 6px var(--accent);
+  margin: 6px;
+  padding: 16px 12px 12px;
   min-width: 0;
   position: relative;
+  color: var(--map-ink);
 }
 
-.metro-map-canvas svg {
+.metro-map-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 8px;
+  color: var(--map-ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.metro-map-title-rule {
+  width: 42px;
+  height: 1px;
+  background: var(--map-ink);
+  opacity: 0.55;
+}
+
+.compass-rose {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  color: var(--map-ink);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.metro-map-canvas svg:not(.compass-rose) {
   width: auto;
   height: 100%;
   max-width: 100%;
@@ -449,13 +497,14 @@ header h1 {
 
 .metro-map-state {
   fill: none;
-  stroke: var(--edge);
+  stroke: var(--map-ink);
   stroke-width: 0.75;
+  opacity: 0.75;
   outline: none;
 }
 
 .metro-map-pin {
-  fill: var(--bg);
+  fill: var(--map-parchment);
   stroke: var(--accent);
   stroke-width: 1.5;
   cursor: pointer;
@@ -464,9 +513,9 @@ header h1 {
 
 .metro-map-graticule {
   fill: none;
-  stroke: var(--border);
-  stroke-width: 0.5;
-  opacity: 0.6;
+  stroke: var(--map-ink);
+  stroke-width: 0.4;
+  opacity: 0.3;
   pointer-events: none;
 }
 
