@@ -1,5 +1,4 @@
 import { FormEvent, useState } from "react";
-import { OrnateCorners } from "./OrnateCorners";
 
 const EXAMPLE_QUERY_POOL = [
   "How has rent changed in Austin over the last two years?",
@@ -40,7 +39,6 @@ export function SearchBar({ onSearch, loading }: Props) {
 
   return (
     <div className="search-bar">
-      <OrnateCorners />
       <form onSubmit={handleSubmit}>
         <input
           type="text"
