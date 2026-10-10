@@ -65,19 +65,20 @@ export default function App() {
               <h1>Athena</h1>
             </button>
             <p className="tagline">Intelligent Real Estate Trends, searchable in plain English.</p>
+            <details className="intro">
+              <summary className="intro-label">What is this?</summary>
+              <p className="intro-body">
+                Athena tracks US housing markets across 50 metros using real public data: Redfin and
+                Apartment List for sale and rent listings, Census for household income and gross rent,
+                Freddie Mac for mortgage rates, BLS for unemployment, and FHFA's house price index through
+                FRED. Ask a question in plain English and a language model turns it into a structured query
+                against that data. It never invents a number, and it tells you when a metro or metric has
+                no data.
+              </p>
+            </details>
           </div>
           <img className="brand-watermark" src={minervaPainting} alt="" aria-hidden="true" />
         </div>
-        <details className="intro">
-          <summary className="intro-label">What is this?</summary>
-          <p className="intro-body">
-            Athena tracks US housing markets across 50 metros using real public data: Redfin and Apartment
-            List for sale and rent listings, Census for household income and gross rent, Freddie Mac for
-            mortgage rates, BLS for unemployment, and FHFA's house price index through FRED. Ask a question
-            in plain English and a language model turns it into a structured query against that data. It
-            never invents a number, and it tells you when a metro or metric has no data.
-          </p>
-        </details>
       </header>
 
       <section className="ask">
