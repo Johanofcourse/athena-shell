@@ -384,6 +384,25 @@ _CHMA_DATE_RE = re.compile(r"[Aa]s [Oo]f\s+([A-Z][a-z]+ \d{1,2},?\s*\d{4})")
 # under the threshold.
 _TITLE_CASE_MINOR_WORDS = {"a", "an", "the", "of", "and", "or", "in", "on", "by", "to", "for", "with", "as"}
 
+_SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?])\s+")
+
+
+def _trailing_sentence(paragraph: str) -> str:
+    """The real start of the sentence a page break cuts through - not the
+    previous page's last PDF line (which wraps wherever the column width
+    happened to cut it, not at a sentence boundary). A real bug this
+    fixes: Austin p.31's last *line* was "the following 2 years was
+    largely due to an increase in rental construction in response to
+    elevated rent" - itself already mid-sentence, because the actual
+    sentence start ("The subsequent increase from 7.9 to 10.2 percent
+    during...") was a full line earlier on the same page. Splitting the
+    previous page's whole last paragraph on sentence-ending punctuation
+    and taking the final piece finds that real start instead. Returns
+    the whole paragraph, unsplit, if it has no sentence boundary at all
+    (rare - a one-sentence paragraph that itself started mid-sentence)."""
+    pieces = _SENTENCE_BOUNDARY_RE.split(paragraph.strip())
+    return pieces[-1]
+
 
 def _looks_like_a_heading(line: str) -> bool:
     """Distinguishes a genuine short heading (a page's own running-header,
@@ -427,12 +446,14 @@ def ingest_hud_chma(db) -> int:
         date_match = _CHMA_DATE_RE.search(cover_text)
         as_of_date = date_match.group(1).strip() if date_match else "unknown"
 
-        # The real last content line of the previous page - carried across
-        # iterations so a chunk that starts mid-sentence can be completed
-        # with the actual words that precede it, not just flagged with an
-        # ellipsis. Reset to None by a blank/divider page, since that's a
-        # real break, not just a page boundary mid-paragraph.
-        prev_page_last_line: str | None = None
+        # The previous page's last real paragraph (not just its last PDF
+        # line - see _trailing_sentence) - carried across iterations so a
+        # chunk that starts mid-sentence can be completed with the actual
+        # sentence that precedes it, not just flagged with an ellipsis.
+        # Reset to None by a blank/divider page or a page that ends on a
+        # heading with no body text after it - both real breaks, not a
+        # page boundary mid-paragraph.
+        prev_page_last_block: str | None = None
 
         for page_number, page in enumerate(reader.pages):
             lines = []
@@ -444,7 +465,7 @@ def ingest_hud_chma(db) -> int:
                     continue
                 lines.append(stripped)
             if not lines:
-                prev_page_last_line = None
+                prev_page_last_block = None
                 continue
 
             if _looks_like_a_heading(lines[0]):
@@ -492,17 +513,29 @@ def ingest_hud_chma(db) -> int:
             # this excerpt. A lowercase first letter is a strong signal of
             # that. Rather than just flag the fragment with an ellipsis,
             # reconstruct the actual sentence using the previous page's own
-            # last line - a real excerpt from the same document, not a
-            # guess - so a reader sees "...the result of countermeasures to
-            # slow the spread of the pandemic." instead of a fragment with
-            # no visible beginning. Falls back to the ellipsis flag only
-            # when there's no previous line to pull from (the first page of
-            # the document, or right after a blank/divider page).
+            # trailing sentence (see _trailing_sentence - the previous
+            # page's last *paragraph*, not its last wrapped PDF line) - a
+            # real excerpt from the same document, not a guess - so a
+            # reader sees a complete, properly-starting sentence instead of
+            # a fragment with no visible beginning. Falls back to the
+            # ellipsis flag only when there's no previous paragraph to pull
+            # from (the first page of the document, right after a
+            # blank/divider page, or a page that ends on a heading).
             if blocks and not blocks[0].startswith("## ") and blocks[0][:1].islower():
-                blocks[0] = f"{prev_page_last_line} {blocks[0]}" if prev_page_last_line else f"… {blocks[0]}"
+                if prev_page_last_block:
+                    blocks[0] = f"{_trailing_sentence(prev_page_last_block)} {blocks[0]}"
+                else:
+                    blocks[0] = f"… {blocks[0]}"
 
             chunk_text = "\n\n".join(blocks)
-            prev_page_last_line = lines[-1]
+            # The last real paragraph, not necessarily the last block - a
+            # page often ends on a chart/figure caption ("## Source: CoStar
+            # Group"), which is itself heading-shaped and real, but isn't a
+            # sentence to stitch from. Scanning backward past it to the
+            # last actual paragraph still finds real, usable context there
+            # far more often than giving up and falling back to the
+            # ellipsis flag.
+            prev_page_last_block = next((b for b in reversed(blocks) if not b.startswith("## ")), None)
             if len(chunk_text) < 200:  # covers, dividers, near-empty pages
                 continue
             db.add(

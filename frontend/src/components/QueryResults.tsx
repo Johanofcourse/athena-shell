@@ -50,13 +50,17 @@ export function QueryResults({ response, query }: Props) {
             below are the citations for anyone checking it. */}
         <p className="commentary-summary">{explanation}</p>
         <div className="commentary">
+          <p className="commentary-sources-label">Source excerpts</p>
           {commentary.chunks.map((chunk, i) => {
             sectionCounts[chunk.section] = (sectionCounts[chunk.section] ?? 0) + 1;
             const label =
               sectionCounts[chunk.section] > 1 ? `${chunk.section} (continued)` : chunk.section;
             return (
               <div className="commentary-chunk" key={i}>
-                <h3 className="commentary-section">{label}</h3>
+                <h3 className="commentary-section">
+                  <span className="commentary-index">{i + 1}</span> {label}
+                  <span className="commentary-page"> · p. {chunk.page_number}</span>
+                </h3>
                 {renderCommentaryBlocks(chunk.text)}
               </div>
             );

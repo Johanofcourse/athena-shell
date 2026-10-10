@@ -439,3 +439,32 @@ def test_looks_like_a_heading_rejects_long_lines():
     long_sentence = "This Is A Long Title-Cased Line That Goes On For Quite A While And Exceeds The Length Cutoff"
     assert len(long_sentence) > 70
     assert not ingest._looks_like_a_heading(long_sentence)
+
+
+def test_trailing_sentence_finds_the_real_start_past_a_prior_complete_sentence():
+    # Real case this fixes: the previous page's last PDF *line* was
+    # "the following 2 years was largely due to an increase in rental
+    # construction in response to elevated rent" - itself already
+    # mid-sentence, because the sentence actually starts a full line
+    # earlier in the same paragraph. The trailing (last, currently
+    # incomplete) sentence of the whole paragraph is the real start.
+    paragraph = (
+        "The average apartment vacancy rate reached 7.9 percent by the second quarter of 2015 "
+        "before falling to 5.1 percent as of the second quarter of 2016, when the apartment "
+        "market tightened and rent growth accelerated amid higher demand. The subsequent "
+        "increase from 7.9 to 10.2 percent during the following 2 years was largely due to an "
+        "increase in rental construction in response to elevated rent"
+    )
+    assert ingest._trailing_sentence(paragraph) == (
+        "The subsequent increase from 7.9 to 10.2 percent during the following 2 years was "
+        "largely due to an increase in rental construction in response to elevated rent"
+    )
+
+
+def test_trailing_sentence_returns_the_whole_paragraph_when_theres_no_boundary():
+    # A one-sentence paragraph that was itself already mid-sentence (e.g.
+    # the previous page's own first paragraph, carried over from the page
+    # before that) - nothing to split on, so the whole thing is returned
+    # rather than crashing or returning an empty string.
+    paragraph = "and that trend continued through the following quarter as demand picked up"
+    assert ingest._trailing_sentence(paragraph) == paragraph
