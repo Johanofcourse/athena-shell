@@ -194,6 +194,7 @@ header h1 {
    in scope - the frame and the two controls - not scattered across
    the page. */
 .search-bar {
+  position: relative;
   padding: 18px 20px;
   border: 1px solid var(--accent);
   box-shadow: 0 0 0 4px var(--bg), 0 0 0 5px var(--accent);
@@ -562,6 +563,56 @@ header h1 {
   color: var(--map-ink);
   opacity: 0.8;
   pointer-events: none;
+}
+
+/* One scroll (CornerFlourish), mirrored into all four corners of
+   whichever ornate double-ruled frame it's placed in (the search bar,
+   the map) - a shared convention rather than a one-off per element.
+   Each slot is sized to match the SVG exactly and anchored with the
+   matching pair of corner properties (top+left, top+right, ...), so
+   the mirror transform below just flips around the slot's own center
+   with no extra position math. Bleeds slightly past the frame's own
+   border on purpose - a flourish sitting flush inside the line reads
+   as a corner icon, one escaping it slightly reads as an ornament. */
+.corner-flourish-slot {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  color: var(--accent);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.corner-flourish-slot[data-corner="top-left"] {
+  top: -10px;
+  left: -10px;
+}
+
+.corner-flourish-slot[data-corner="top-right"] {
+  top: -10px;
+  right: -10px;
+}
+
+.corner-flourish-slot[data-corner="bottom-left"] {
+  bottom: -10px;
+  left: -10px;
+}
+
+.corner-flourish-slot[data-corner="bottom-right"] {
+  bottom: -10px;
+  right: -10px;
+}
+
+.corner-flourish-slot[data-corner="top-left"] .corner-flourish {
+  transform: scaleY(-1);
+}
+
+.corner-flourish-slot[data-corner="top-right"] .corner-flourish {
+  transform: scale(-1, -1);
+}
+
+.corner-flourish-slot[data-corner="bottom-right"] .corner-flourish {
+  transform: scaleX(-1);
 }
 
 .metro-map-canvas svg:not(.compass-rose) {
