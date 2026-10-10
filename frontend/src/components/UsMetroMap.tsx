@@ -8,6 +8,7 @@ import { ComposableMap, Geographies, Geography, Graticule, Marker } from "react-
 // markers through the same geoAlbersUsa projection - using the
 // pre-projected variant here would silently misalign the two.
 import usStatesTopology from "us-atlas/states-10m.json?url";
+import { CompassRose } from "./CompassRose";
 import type { Metro } from "../types";
 
 interface Props {
@@ -21,6 +22,15 @@ export function UsMetroMap({ metros, onSelect }: Props) {
   return (
     <div className="metro-map-layout">
       <div className="metro-map-canvas">
+        {/* A title cartouche, same convention every map on
+            thoughtco.com/maps-of-ancient-greece uses - the reference
+            Johan sent for this redesign. */}
+        <p className="metro-map-title">
+          <span className="metro-map-title-rule" aria-hidden="true" />
+          The United States
+          <span className="metro-map-title-rule" aria-hidden="true" />
+        </p>
+        <CompassRose size={64} />
         <ComposableMap width={800} height={440} projection={geoAlbersUsa().scale(858).translate([425, 217])}>
           <Geographies geography={usStatesTopology}>
             {({ geographies }) =>
