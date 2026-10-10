@@ -11,12 +11,17 @@
   --danger: #7a3327;
   --success: #5f7a5e;
 
-  /* The map's own palette - deliberately a shade deeper/warmer than the
-     page's eggshell, so it reads as a real object (a map, with its own
-     parchment) sitting on the page rather than just another panel in
-     the same flat tone. See the antique-Greece-map reference Johan
-     sent (thoughtco.com/maps-of-ancient-greece). */
-  --map-parchment: #e3d2a3;
+  /* The map's own palette - a shade warmer than the page's eggshell, so
+     it still reads as a real object (a map, with its own parchment)
+     sitting on the page rather than just another panel in the same
+     flat tone. See the antique-Greece-map reference Johan sent
+     (thoughtco.com/maps-of-ancient-greece). Was #e3d2a3 - saturated
+     enough that the jump straight from the gold frame to the page's
+     --bg read as two unrelated tones stitched together ("the border
+     looks pasted in" - Johan, after the frame's own color-fringe was
+     already fixed, so this was the real remaining cause). Closer to
+     --bg now; still visibly its own "paper", not a seam. */
+  --map-parchment: #ece3c9;
   --map-ink: #4a3015;
 
   --font-display: "Cinzel", "Times New Roman", serif;
@@ -208,7 +213,7 @@ header h1 {
   border-width: 40px;
   border-style: solid;
   border-image-source: url("./assets/baroque-frame.png");
-  border-image-slice: 109;
+  border-image-slice: 291;
   border-image-width: 40px;
   border-image-repeat: round;
   /* Was var(--surface) - a visibly different tone from the page's own
@@ -590,7 +595,7 @@ header h1 {
   border-width: 40px;
   border-style: solid;
   border-image-source: url("./assets/baroque-frame.png");
-  border-image-slice: 109;
+  border-image-slice: 291;
   border-image-width: 40px;
   border-image-repeat: round;
   padding: 16px 12px 12px;
