@@ -80,21 +80,27 @@ header {
 
 /* Bold and top-left now, not a quiet corner wash - baroque wants
    presence, not restraint. Still the same oval-cameo convention
-   (border-radius: 50%, see the mobile icon and favicon) and the same
-   reasoning on the fade: she needs to visibly clear the search input
-   below before her natural height gets there, verified by screenshot,
-   not assumed from the numbers - re-checked here since both her size
-   and position changed from the right-aligned version. */
+   (border-radius: 50%, see the mobile icon and favicon). Sized and
+   faded to use the real empty space in that left column instead of
+   fading out early and leaving it blank (Johan: "theres some space
+   leftover under Pallas Athena... expand it by making more of her face
+   visible") - .ask is offset clear of her horizontally, so the limit
+   on how far she can extend down is .browse's text starting below,
+   not the search row (.browse gets the same z-index guard .ask already
+   has, as a second line of defense regardless of how the fade is
+   tuned). Verified by screenshot that she now fills that column
+   without the fade reaching far enough to compete with either row of
+   text, not assumed from the numbers. */
 .brand-watermark {
   position: absolute;
   top: -20px;
   left: -20px;
-  width: 230px;
+  width: 260px;
   height: auto;
   border-radius: 50%;
   opacity: 0.95;
-  mask-image: radial-gradient(ellipse 50% 36% at 50% 30%, black 48%, transparent 80%);
-  -webkit-mask-image: radial-gradient(ellipse 50% 36% at 50% 30%, black 48%, transparent 80%);
+  mask-image: radial-gradient(ellipse 50% 44% at 50% 36%, black 55%, transparent 92%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 44% at 50% 36%, black 55%, transparent 92%);
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -271,6 +277,16 @@ header h1 {
   font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.6;
+}
+
+/* Centered rather than left-ruled like .explanation's other use (real
+   query results) - the left-border accent reads as "here's what ran,"
+   which doesn't fit a static one-line prompt the way it fits an actual
+   result summary. */
+.browse-explanation {
+  padding-left: 0;
+  border-left: none;
+  text-align: center;
 }
 
 /* The synthesized answer to the actual question asked - the lede, not a
@@ -894,6 +910,8 @@ details[open] > .intro-label::after {
 }
 
 .browse {
+  position: relative;
+  z-index: 1;
   margin-top: 28px;
 }
 
