@@ -193,12 +193,38 @@ header h1 {
    lightly embossed piece of metal rather than a flat fill. Restrained
    in scope - the frame and the two controls - not scattered across
    the page. */
+/* A real gold rococo frame (Johan's own asset - a photographed/rendered
+   frame, chroma-keyed back to transparent after the file he sent had
+   its alpha flattened to a baked-in checkerboard) via border-image,
+   replacing the hand-drawn corner flourish here specifically - Johan,
+   after seeing it: "doesn't look great to be honest... I added a
+   border file thats very baroque." border-image-slice is cut at
+   roughly where the ornate corner blocks give way to the plain rail
+   in the source image, so corners stay fixed-size and the rails
+   repeat along the edges instead of stretching the scrollwork. */
 .search-bar {
   position: relative;
-  padding: 18px 20px;
-  border: 1px solid var(--accent);
-  box-shadow: 0 0 0 4px var(--bg), 0 0 0 5px var(--accent);
+  padding: 26px 28px;
+  border-width: 34px;
+  border-style: solid;
+  border-image-source: url("./assets/baroque-frame.png");
+  border-image-slice: 204;
+  border-image-width: 34px;
+  border-image-repeat: round;
   background: var(--surface);
+}
+
+/* The 34px frame plus its padding eats too much of a phone-width
+   viewport otherwise - the input was truncating its own placeholder
+   to "Make y..." (caught by screenshot). Scales both down together so
+   the frame stays proportional rather than just shrinking the content
+   area inside a fixed-size frame. */
+@media (max-width: 560px) {
+  .search-bar {
+    padding: 14px 14px;
+    border-width: 20px;
+    border-image-width: 20px;
+  }
 }
 
 .search-bar form {
