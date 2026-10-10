@@ -1,30 +1,31 @@
 :root {
-  --bg: #15171a;
-  --surface: #1c1f23;
-  --surface-raised: #252a30;
-  --border: #353b43;
-  --edge: #5a616b;
-  --text: #ebe6dc;
-  --text-muted: #9a958a;
-  --accent: #d6a656;
-  --accent-ink: #15120b;
-  --danger: #c4583f;
-  --success: #7fa86a;
+  --bg: #1c1712;
+  --surface: #241d16;
+  --surface-raised: #2d251b;
+  --border: #4a3e2e;
+  --edge: #6b5c45;
+  --text: #e8dcc8;
+  --text-muted: #a89878;
+  --accent: #b6512c;
+  --accent-ink: #1c1712;
+  --danger: #7a2f1d;
+  --success: #7d9471;
 
-  --font-display: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "Archivo", ui-monospace, monospace;
+  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-body: "Spectral", Georgia, serif;
+  --font-mono: "Spectral", Georgia, serif;
 }
 
-/* The same industrial bones as before (dark, high-contrast, sharp
-   corners, stencil display type) - just re-colored. The original
-   hazard-yellow/black read as literal caution tape ("construction site,"
-   real feedback from a real viewer), which fights a real-estate app's
-   positioning. Blue-against-red keeps the same bold, high-contrast
-   energy without the caution-tape association - and nods at the actual
-   data landscape this app sits in without copying any one brand
-   (Redfin's own red, paired with a trustworthy blue). Still doesn't
-   soften for prefers-color-scheme: light. */
+/* Neoclassical, not industrial: Attic red-figure pottery's own palette
+   (clay/terracotta against near-black glaze, a cream slip for the
+   figures) and its own technique - pure single-weight contour line,
+   nothing shaded or boxed. Cinzel (cut from Roman inscriptional capitals)
+   carries the wordmark and section titles only; everything else,
+   including real data, stays in a quiet, legible body serif - a
+   monument face on a data table is unreadable, not elegant. Boxes,
+   shadows and uppercase-monospace data labels (the prior industrial
+   look) are retired in favor of hairline rules and restraint. Still
+   doesn't soften for prefers-color-scheme: light - a vase doesn't either. */
 
 * {
   box-sizing: border-box;
@@ -33,7 +34,6 @@
 body {
   margin: 0;
   background-color: var(--bg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
   color: var(--text);
   font-family: var(--font-body);
 }
@@ -45,39 +45,37 @@ body {
 }
 
 header {
-  padding-top: 8px;
+  padding-top: 28px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
 .athena-mark {
   flex: none;
   color: var(--text);
-  filter: drop-shadow(0 0 6px rgba(74, 134, 214, 0.35));
 }
 
 header h1 {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 56px;
+  font-weight: 600;
+  font-size: 42px;
   line-height: 1;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.06em;
   color: var(--text);
-  text-shadow: 3px 3px 0 var(--accent);
 }
 
 .tagline {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
+  font-style: italic;
   color: var(--text-muted);
-  margin: 12px 0 32px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  margin: 14px 0 32px;
+  font-size: 15px;
+  letter-spacing: 0.01em;
 }
 
 .home-link {
@@ -97,15 +95,13 @@ header h1 {
 .back-link {
   display: inline-block;
   margin-top: 24px;
-  padding: 8px 14px;
+  padding: 6px 0;
   background: none;
-  border: 1px solid var(--border);
-  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: var(--font-body);
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -116,25 +112,26 @@ header h1 {
 
 .search-bar form {
   display: flex;
-  gap: 0;
+  gap: 16px;
+  align-items: flex-end;
 }
 
 .search-bar input {
   flex: 1;
   min-width: 0;
-  padding: 14px 16px;
+  padding: 10px 2px 12px;
+  border: none;
+  border-bottom: 1px solid var(--edge);
   border-radius: 0;
-  border: 2px solid var(--text-muted);
-  border-right: none;
-  box-shadow: none;
-  background: var(--surface);
+  background: transparent;
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 15px;
+  font-family: var(--font-body);
+  font-size: 16px;
 }
 
 .search-bar input::placeholder {
   color: var(--text-muted);
+  font-style: italic;
 }
 
 .search-bar input:focus {
@@ -143,21 +140,20 @@ header h1 {
 }
 
 .search-bar button[type="submit"] {
-  padding: 14px 28px;
+  padding: 11px 26px;
   border-radius: 0;
-  border: 2px solid var(--accent);
+  border: 1px solid var(--accent);
   box-shadow: none;
   background: var(--accent);
   color: var(--accent-ink);
   font-family: var(--font-body);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   cursor: pointer;
 }
 
 .search-bar button[type="submit"]:hover:not(:disabled) {
-  background: var(--bg);
+  background: transparent;
   color: var(--accent);
 }
 
@@ -169,49 +165,42 @@ header h1 {
 .examples {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 4px 18px;
+  margin-top: 16px;
 }
 
 .example-chip {
-  text-transform: none;
-  letter-spacing: 0;
   font-family: var(--font-body);
+  font-style: italic;
   font-size: 13px;
-  padding: 7px 14px;
+  padding: 4px 0;
   border-radius: 0;
   border: none;
-  border-bottom: 1px dashed var(--edge);
   box-shadow: none;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   cursor: pointer;
 }
 
 .example-chip:hover {
-  border-color: var(--accent);
   color: var(--accent);
 }
 
 .error-banner {
   margin-top: 20px;
-  padding: 12px 16px;
+  padding: 10px 0 10px 16px;
   border-radius: 0;
-  border-left: 4px solid var(--danger);
-  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  border-left: 2px solid var(--danger);
+  background: none;
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-family: var(--font-body);
+  font-size: 14px;
 }
 
 .explanation {
   margin-top: 24px;
   padding: 0 0 0 14px;
-  border-left: 3px solid var(--accent);
+  border-left: 2px solid var(--accent);
   color: var(--text-muted);
   font-family: var(--font-body);
   font-size: 14px;
@@ -219,23 +208,22 @@ header h1 {
 }
 
 /* The synthesized answer to the actual question asked - the lede, not a
-   caption. Deliberately much louder than .explanation: full-contrast
-   text, a real type bump, and an accent-tinted panel instead of a thin
-   rule, so it reads as the thing to read first - the citation chunks in
-   .commentary below are the supporting detail, for anyone checking it
-   against the source, not the first thing a reader's eye should land
-   on. */
+   caption. Deliberately louder than .explanation: full-contrast text, a
+   real type bump, and a tinted panel instead of a thin rule, so it reads
+   as the thing to read first - the citation chunks in .commentary below
+   are the supporting detail, for anyone checking it against the source,
+   not the first thing a reader's eye should land on. */
 .commentary-summary {
   margin-top: 20px;
   max-width: 68ch;
   padding: 18px 22px;
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
-  border-left: 4px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-left: 3px solid var(--accent);
   color: var(--text);
   font-family: var(--font-body);
   font-size: 19px;
-  font-weight: 500;
-  line-height: 1.5;
+  font-weight: 400;
+  line-height: 1.55;
 }
 
 .commentary {
@@ -247,10 +235,9 @@ header h1 {
 
 /* Footnote-scaled, deliberately: these are the source excerpts the
    summary above was built from, for anyone checking it, not a second
-   set of equally-weighted answers. Flat (no raised surface, no shadow),
-   a thin rule instead of the summary's thick accent border, and a
-   noticeably smaller type scale throughout - the visual hierarchy is
-   the whole point. */
+   set of equally-weighted answers. Flat, a thin rule instead of the
+   summary's accent border, and a noticeably smaller type scale
+   throughout - the visual hierarchy is the whole point. */
 .commentary-sources-label {
   margin: 10px 0 2px;
   color: var(--text-muted);
@@ -262,7 +249,7 @@ header h1 {
 .commentary-chunk {
   max-width: 68ch;
   padding: 10px 0 10px 14px;
-  border-left: 2px solid var(--border);
+  border-left: 1px solid var(--border);
 }
 
 .commentary-section {
@@ -287,10 +274,9 @@ header h1 {
 .commentary-subheading {
   margin: 14px 0 6px;
   font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  font-style: italic;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
@@ -320,38 +306,37 @@ header h1 {
 
 .analysis {
   margin-top: 14px;
-  padding: 12px 16px;
-  background: var(--surface);
-  border: 1px solid var(--edge);
-  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: 14px 0 0;
+  border-top: 1px solid var(--border);
   color: var(--text);
   font-family: var(--font-body);
   font-size: 15px;
-  font-weight: 500;
   line-height: 1.6;
 }
 
 .empty-state {
   margin-top: 20px;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 14px;
 }
 
 .metro-grid {
   margin-top: 20px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
 }
 
 .metro-card {
   text-align: left;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
+  background: var(--bg);
+  border: none;
   border-radius: 0;
-  padding: 16px;
+  padding: 18px 16px;
   cursor: pointer;
   font: inherit;
   color: inherit;
@@ -361,24 +346,23 @@ header h1 {
 }
 
 .metro-card:hover {
-  background: var(--surface-raised);
-  border-left-color: var(--danger);
+  background: var(--surface);
 }
 
 .metro-badges {
   display: flex;
-  gap: 6px;
+  gap: 10px;
 }
 
 .status-badge {
-  padding: 3px 8px;
+  padding: 0 0 2px;
   border-radius: 0;
-  border: 1px solid currentColor;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.02em;
 }
 
 .status-active {
@@ -395,8 +379,8 @@ header h1 {
 
 .address {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 21px;
+  font-weight: 500;
+  font-size: 19px;
   letter-spacing: 0.01em;
 }
 
@@ -416,71 +400,39 @@ header h1 {
   justify-content: center;
   align-self: stretch;
   flex: none;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse 70% 55% at 50% 45%, rgba(47, 125, 255, 0.18), transparent 70%),
-    var(--surface);
+  background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow:
-    0 18px 30px -12px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   padding: 12px;
   min-width: 0;
   position: relative;
-}
-
-.metro-map-canvas::before {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  pointer-events: none;
-  background:
-    linear-gradient(var(--edge), var(--edge)) top left / 14px 1px no-repeat,
-    linear-gradient(var(--edge), var(--edge)) top left / 1px 14px no-repeat,
-    linear-gradient(var(--edge), var(--edge)) top right / 14px 1px no-repeat,
-    linear-gradient(var(--edge), var(--edge)) top right / 1px 14px no-repeat,
-    linear-gradient(var(--edge), var(--edge)) bottom left / 14px 1px no-repeat,
-    linear-gradient(var(--edge), var(--edge)) bottom left / 1px 14px no-repeat,
-    linear-gradient(var(--edge), var(--edge)) bottom right / 14px 1px no-repeat,
-    linear-gradient(var(--edge), var(--edge)) bottom right / 1px 14px no-repeat;
 }
 
 .metro-map-canvas svg {
   width: auto;
   height: 100%;
   max-width: 100%;
-  transform: perspective(700px) rotateX(32deg);
-  transform-origin: 50% 65%;
-  filter:
-    drop-shadow(0 -1px 0 rgba(140, 180, 255, 0.35))
-    drop-shadow(0 1px 0 #1b2a3b)
-    drop-shadow(0 2px 0 #1b2a3b)
-    drop-shadow(0 3px 0 #1b2a3b)
-    drop-shadow(0 4px 0 #1b2a3b)
-    drop-shadow(10px 14px 16px rgba(0, 0, 0, 0.6));
 }
 
 .metro-map-state {
-  fill: var(--surface-raised);
-  stroke: var(--border);
+  fill: none;
+  stroke: var(--edge);
   stroke-width: 0.75;
   outline: none;
 }
 
 .metro-map-pin {
-  fill: var(--accent);
-  stroke: var(--bg);
+  fill: var(--bg);
+  stroke: var(--accent);
   stroke-width: 1.5;
   cursor: pointer;
-  filter: drop-shadow(0 0 3px rgba(214, 166, 86, 0.9));
   transition: fill 0.1s ease, r 0.1s ease;
 }
 
 .metro-map-graticule {
   fill: none;
-  stroke: var(--edge);
+  stroke: var(--border);
   stroke-width: 0.5;
-  opacity: 0.35;
+  opacity: 0.6;
   pointer-events: none;
 }
 
@@ -502,7 +454,7 @@ header h1 {
 }
 
 .metro-map-pin[data-hovered="true"] {
-  fill: var(--danger);
+  fill: var(--accent);
 }
 
 .metro-list {
@@ -514,31 +466,23 @@ header h1 {
   margin: 0;
   padding: 0;
   background: none;
-  border: none;
-  box-shadow:
-    0 18px 30px -12px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--border);
 }
 
 .metro-cell {
-  min-width: 64px;
-  padding: 3px 0;
+  min-width: 56px;
+  padding: 2px 0;
   text-align: center;
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
-  border-bottom: 2px solid var(--accent);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--edge);
 }
 
 .metro-cell[data-available="false"] {
-  color: var(--danger);
-  border-bottom: 2px dashed var(--danger);
-  background: repeating-linear-gradient(
-    -45deg,
-    transparent 0 5px,
-    rgba(196, 88, 63, 0.18) 5px 6px
-  );
+  color: var(--border);
+  border-bottom: 1px dashed var(--border);
 }
 
 .metro-list-item {
@@ -547,10 +491,9 @@ header h1 {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 11px 4px;
   border: none;
   border-bottom: 1px solid var(--border);
-  border-left: 3px solid transparent;
   background: none;
   color: inherit;
   font: inherit;
@@ -559,15 +502,15 @@ header h1 {
 }
 
 .metro-list-item[data-hovered="true"] {
-  background: var(--surface-raised);
-  border-left-color: var(--accent);
+  background: var(--surface);
 }
 
 .metro-list-name {
   white-space: nowrap;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 500;
   font-size: 15px;
+  letter-spacing: 0.01em;
 }
 
 .metro-list-badges {
@@ -589,16 +532,15 @@ header h1 {
 .chart-card {
   margin: 12px 0;
   background: var(--surface);
-  border: 1px solid var(--edge);
+  border: 1px solid var(--border);
   border-radius: 0;
-  box-shadow: 0 16px 28px -12px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  padding: 16px;
+  padding: 18px;
 }
 
 .detail-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(10, 8, 5, 0.75);
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -609,27 +551,26 @@ header h1 {
 
 .detail-panel {
   position: relative;
-  background: var(--surface);
+  background: var(--bg);
   border-radius: 0;
-  border: 2px solid var(--accent);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px #000, inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  padding: 28px;
+  border: 1px solid var(--accent);
+  padding: 30px;
   max-width: 640px;
   width: 100%;
 }
 
 .detail-panel h2 {
   font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 32px;
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: 0.02em;
   margin: 0 0 4px;
   color: var(--text);
 }
 
 .detail-panel h3 {
   font-family: var(--font-body);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-style: italic;
   font-size: 14px;
   color: var(--text-muted);
   margin: 24px 0 8px;
@@ -637,37 +578,35 @@ header h1 {
 
 .close-button {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 16px;
+  right: 16px;
   background: none;
-  border: 1px solid var(--border);
-  width: 32px;
-  height: 32px;
+  border: none;
+  width: 28px;
+  height: 28px;
   font-family: var(--font-display);
-  font-size: 20px;
-  color: var(--text);
+  font-size: 18px;
+  color: var(--text-muted);
   cursor: pointer;
   line-height: 1;
 }
 
 .close-button:hover {
-  border-color: var(--accent);
   color: var(--accent);
 }
 
 .interpretation-panel {
   margin-top: 14px;
-  border: 1px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-body);
+  font-size: 13px;
 }
 
 .interpretation-panel summary {
-  padding: 10px 14px;
+  padding: 10px 0;
   cursor: pointer;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-style: italic;
   user-select: none;
 }
 
@@ -677,7 +616,7 @@ header h1 {
 
 .interpretation-panel dl {
   margin: 0;
-  padding: 0 14px 14px;
+  padding: 0 0 14px;
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 6px 16px;
@@ -702,19 +641,19 @@ header h1 {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
   color: var(--text-muted);
 }
 
 .feedback-widget button {
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: 0;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -746,11 +685,12 @@ header h1 {
 }
 
 .conversation-history li {
-  padding: 8px 12px;
-  border-left: 2px solid var(--border);
+  padding: 6px 0 6px 12px;
+  border-left: 1px solid var(--border);
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-style: italic;
 }
 
 .intro {
@@ -761,16 +701,15 @@ header h1 {
 .intro-label {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 6px 0;
   cursor: pointer;
   list-style: none;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 18px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
   user-select: none;
 }
 
@@ -780,8 +719,8 @@ header h1 {
 
 .intro-label::after {
   content: "+";
-  font-family: var(--font-mono);
-  font-size: 20px;
+  font-family: var(--font-body);
+  font-size: 18px;
   line-height: 1;
   color: var(--accent);
 }
@@ -791,7 +730,7 @@ header h1 {
 }
 
 .intro-label:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--accent);
   outline-offset: 4px;
 }
 
@@ -817,7 +756,8 @@ header h1 {
   padding-top: 16px;
   border-top: 1px solid var(--border);
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 12.5px;
   line-height: 1.6;
 }

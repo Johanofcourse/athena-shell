@@ -12,9 +12,11 @@ import { formatMetricValue } from "../format";
 import type { MarketMetricPoint, MetricName } from "../types";
 
 // Leads with the theme tokens (stays in sync if the palette ever changes
-// again) then falls back to a few extra hues, picked to read clearly
-// against blue/red without reintroducing the retired hazard-yellow.
-const COLORS = ["var(--accent)", "var(--danger)", "var(--success)", "#a855f7", "#f59e0b", "#38bdf8"];
+// again), then a few extra hues for a 4th+ metro on the same chart - kept
+// within the Attic-pottery family (clay, bronze, ochre, slate) rather
+// than reaching for a generic chart-library rainbow that would clash
+// against a terracotta/cream palette.
+const COLORS = ["var(--accent)", "var(--danger)", "var(--success)", "#8a7355", "#c9954f", "#6f7d82"];
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" });
 
