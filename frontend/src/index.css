@@ -208,7 +208,7 @@ header h1 {
   border-width: 40px;
   border-style: solid;
   border-image-source: url("./assets/baroque-frame.png");
-  border-image-slice: 309;
+  border-image-slice: 109;
   border-image-width: 40px;
   border-image-repeat: round;
   /* Was var(--surface) - a visibly different tone from the page's own
@@ -590,7 +590,7 @@ header h1 {
   border-width: 40px;
   border-style: solid;
   border-image-source: url("./assets/baroque-frame.png");
-  border-image-slice: 309;
+  border-image-slice: 109;
   border-image-width: 40px;
   border-image-repeat: round;
   padding: 16px 12px 12px;
