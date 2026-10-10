@@ -572,25 +572,33 @@ angle, not by wanting RAG for its own sake.
       same reasoning as `query_market_metrics` - that needs the eval
       suite, not a unit test.
 - [x] **Frontend**: `QueryResults` renders a commentary response's
-      sections and citation instead of a chart. Went through three real
+      sections and citation instead of a chart. Went through four real
       readability passes after Johan flagged the raw-text rendering as
       hard to read (distinct sections, no duplicated labels, real line
       width; then in-page subheadings and flagged mid-sentence starts;
       then the synthesized summary given its own loud, highlighted
-      treatment instead of blending in as another caption).
-- [x] **Reconstructed sentences across a page break, not just flagged.**
-      A page-level chunk starting mid-sentence used to get an "…" flag
-      only - honest, but still not readable as an answer ("… slow the
-      spread of the pandemic", still bugged Johan after the flag
-      shipped). Now carries the real last line of the previous page
-      forward and prepends it, so the chunk shows the actual words that
-      precede it (confirmed directly against the raw PDF: page 28 really
-      does end "...the result of countermeasures to" page 29's "slow the
-      spread of the pandemic"). Known, accepted limit: only looks back
-      one page, so a sentence that was already a continuation *before*
-      the previous page's last line won't be traced all the way to its
-      original subject - still strictly more readable than the ellipsis
-      it replaced, and sourced from real document text either way.
+      treatment instead of blending in as another caption; then the
+      source excerpts demoted to a compact, numbered, footnote-scaled
+      list - smaller type, flat instead of a raised card, no shadow -
+      now that they're explicitly secondary to the summary above them).
+- [x] **Reconstructed sentences across a page break, by sentence
+      boundary, not just flagged.** The "…" flag (first attempt) was
+      honest but didn't read as an answer. A first reconstruction attempt
+      (second attempt) prepended the previous page's last PDF *line* -
+      better, but a line wraps wherever the column width cuts it, not at
+      a sentence boundary, so it could itself already be mid-sentence
+      (real case: Austin p.31's last line was "the following 2 years was
+      largely due to..." - itself a fragment, because the sentence's
+      real start, "The subsequent increase from 7.9 to 10.2 percent
+      during...", was a full line earlier on the same page). Fixed by
+      tracking the previous page's last whole *paragraph* instead and
+      splitting it on sentence-ending punctuation
+      (`_trailing_sentence`), taking the real trailing sentence rather
+      than an arbitrary line-wrap cut. Also handles a page ending on a
+      chart/figure caption ("## Source: CoStar Group") by scanning
+      backward past it to the last real paragraph, rather than treating
+      that as a dead end. Verified against all 23 metros' real PDFs:
+      671 total chunks, 0 ellipsis-prefixed.
 - [x] **Synthesized, thesis-first answers, not raw PDF excerpts as the
       answer.** Even with page-level chunking and the "…" mid-sentence
       flag, a raw excerpt still doesn't read like an answer to the

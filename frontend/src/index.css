@@ -239,46 +239,67 @@ header h1 {
 }
 
 .commentary {
-  margin-top: 14px;
+  margin-top: 8px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 4px;
+}
+
+/* Footnote-scaled, deliberately: these are the source excerpts the
+   summary above was built from, for anyone checking it, not a second
+   set of equally-weighted answers. Flat (no raised surface, no shadow),
+   a thin rule instead of the summary's thick accent border, and a
+   noticeably smaller type scale throughout - the visual hierarchy is
+   the whole point. */
+.commentary-sources-label {
+  margin: 10px 0 2px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-style: italic;
 }
 
 .commentary-chunk {
   max-width: 68ch;
-  padding: 16px 20px;
-  background: var(--surface);
-  border: 1px solid var(--edge);
-  border-left: 3px solid var(--accent);
-  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: 10px 0 10px 14px;
+  border-left: 2px solid var(--border);
 }
 
 .commentary-section {
-  margin: 0 0 12px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 17px;
-  letter-spacing: 0.02em;
+  margin: 0 0 6px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}
+
+.commentary-index {
   color: var(--accent);
+  font-weight: 700;
+}
+
+.commentary-page {
+  font-weight: 400;
+  font-style: italic;
 }
 
 .commentary-subheading {
-  margin: 18px 0 8px;
+  margin: 14px 0 6px;
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
 }
 
 .commentary-text {
-  margin: 0 0 12px;
-  color: var(--text);
+  margin: 0 0 10px;
+  color: var(--text-muted);
   font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 13.5px;
+  line-height: 1.55;
 }
 
 .commentary-text:last-child {
