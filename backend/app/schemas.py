@@ -156,6 +156,14 @@ class MarketQueryResponse(BaseModel):
     approximated_metros: list[str]
     results: list[MarketMetricPoint]
     commentary: MarketCommentaryResult | None = None
+    # The thesis-first prose answer for a metric query (see
+    # nl_query.synthesize_metric_answer) - None when there were no results
+    # to narrate, or when the synthesis call itself failed, in which case
+    # the frontend falls back to its own deterministic analysis.ts summary
+    # rather than showing nothing. explanation (above) stays the separate,
+    # always-present filter echo + honesty notes - this is additive, not a
+    # replacement for it.
+    narrative: str | None = None
 
 
 class FeedbackRequest(BaseModel):

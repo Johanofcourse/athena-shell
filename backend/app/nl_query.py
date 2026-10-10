@@ -193,6 +193,145 @@ def _client() -> OpenAI:
     return OpenAI(api_key=settings.deepseek_api_key, base_url=settings.deepseek_base_url)
 
 
+# Mirrors frontend/src/format.ts's metric groupings - kept as a separate,
+# Python-side copy rather than shared source, since this output never
+# reaches the user directly (see summarize_metric_facts): it's grounding
+# text fed to synthesize_metric_answer, not a rendered value, so it only
+# needs to read sensibly to the model, not pixel-match the chart's own
+# formatting.
+_CURRENCY_METRICS = {
+    MetricName.MEDIAN_SALE_PRICE,
+    MetricName.MEDIAN_RENT,
+    MetricName.MEDIAN_PRICE_PER_SQFT,
+    MetricName.MEDIAN_HOUSEHOLD_INCOME,
+    MetricName.MEDIAN_GROSS_RENT,
+}
+_FRACTION_PERCENT_METRICS = {MetricName.VACANCY_RATE}
+_PERCENT_METRICS = {
+    MetricName.PRICE_DROP_PCT_AVG,
+    MetricName.PCT_ACTIVE_WITH_PRICE_DROP,
+    MetricName.SHARE_DELISTED_PCT,
+    MetricName.SHARE_RELISTED_PCT,
+    MetricName.RENT_TO_INCOME_PCT,
+    MetricName.UNEMPLOYMENT_RATE,
+    MetricName.MORTGAGE_RATE_30YR_FIXED,
+    MetricName.MORTGAGE_RATE_15YR_FIXED,
+    MetricName.MORTGAGE_RATE_5_1_ARM,
+}
+
+
+def _format_metric_value(metric: MetricName, value: float) -> str:
+    if metric in _CURRENCY_METRICS:
+        return f"${value:,.0f}" if value == round(value) else f"${value:,.2f}"
+    if metric in _FRACTION_PERCENT_METRICS:
+        return f"{value * 100:.1f}%"
+    if metric in _PERCENT_METRICS:
+        return f"{value:.1f}%"
+    return f"{value:,.0f}" if value == round(value) else f"{value:,.1f}"
+
+
+_month_year = lambda d: d.strftime("%b %Y")  # noqa: E731 - small enough that a def is just noise here
+
+
+def summarize_metric_facts(
+    points: list[MarketMetricPoint], metric: MetricName, mode: str
+) -> str:
+    """The ONLY numbers synthesize_metric_answer is allowed to use - computed
+    deterministically straight from the query results, the same math (and,
+    for trend mode, the same first/last/peak/trough shape) as
+    frontend/src/analysis.ts's summarizeResults, not re-derived by the
+    model. Grounding text, not user-facing output: synthesize_metric_answer
+    paraphrases this into prose, the way synthesize_commentary_answer
+    paraphrases retrieved HUD excerpts rather than being handed the
+    question alone."""
+    if not points:
+        return ""
+
+    if mode == "value":
+        if len(points) == 1:
+            p = points[0]
+            return f"{p.metro}: {_format_metric_value(metric, p.value)}."
+        top, bottom = points[0], points[-1]
+        return (
+            f"{top.metro} leads at {_format_metric_value(metric, top.value)}; "
+            f"{bottom.metro} is lowest at {_format_metric_value(metric, bottom.value)}."
+        )
+
+    by_metro: dict[str, list[MarketMetricPoint]] = {}
+    for p in points:
+        by_metro.setdefault(p.metro, []).append(p)
+
+    sentences = []
+    for metro, series in by_metro.items():
+        sorted_series = sorted(series, key=lambda p: p.period)
+        if len(sorted_series) < 2:
+            sentences.append(f"{metro}: {_format_metric_value(metric, sorted_series[0].value)}.")
+            continue
+
+        first, last = sorted_series[0], sorted_series[-1]
+        peak = max(sorted_series, key=lambda p: p.value)
+        trough = min(sorted_series, key=lambda p: p.value)
+        pct_change = ((last.value - first.value) / first.value) * 100 if first.value != 0 else 0
+        direction = "up" if pct_change > 0.05 else "down" if pct_change < -0.05 else "flat"
+
+        sentence = (
+            f"{metro}: {_format_metric_value(metric, first.value)} -> "
+            f"{_format_metric_value(metric, last.value)} ({direction} {abs(pct_change):.1f}%)"
+        )
+
+        extremum = None
+        if peak.value != first.value and peak.value != last.value:
+            extremum = (peak, "peaked")
+        elif trough.value != first.value and trough.value != last.value:
+            extremum = (trough, "bottomed out")
+        if extremum:
+            extreme_point, label = extremum
+            sentence += (
+                f", {label} at {_format_metric_value(metric, extreme_point.value)} "
+                f"in {_month_year(extreme_point.period)}"
+            )
+
+        sentences.append(sentence + ".")
+
+    return " ".join(sentences)
+
+
+_METRIC_SYNTHESIS_PROMPT = """Answer the person's real estate market question the way a knowledgeable \
+person would say it out loud: start with a direct one-sentence answer to the question (the thesis), \
+then back it up with 1-2 short sentences of supporting detail pulled from the facts given. Never lead \
+with a quoted fragment or restate the facts verbatim as given - put it in your own words, like you're \
+glancing at the chart and explaining what it shows.
+
+Use ONLY the facts given below, which were computed directly from the real data - never state a \
+number, a date, a direction, or a trend that isn't in those facts. Do not speculate about WHY the \
+numbers moved (you have no evidence for that) - describe what happened, not why."""
+
+
+def synthesize_metric_answer(question: str, filters: MarketQueryFilters, facts: str) -> str:
+    """The real, prose answer shown above the chart - a thesis-first
+    paraphrase of summarize_metric_facts's output, grounded strictly in
+    it. explain_filters' deterministic "Showing X for Y." sentence is a
+    separate, always-present caption (filter echo + honesty notes), not
+    this function's fallback - the caller falls back to the frontend's
+    own analysis.ts summary instead when this call fails, the same
+    "caller decides whether to fall back" pattern synthesize_commentary_
+    answer uses. Raises on a DeepSeek API error."""
+    metric_label = METRIC_LABELS.get(filters.metric, filters.metric.value)
+    messages = [
+        {"role": "system", "content": _METRIC_SYNTHESIS_PROMPT},
+        {
+            "role": "user",
+            "content": f"Question: {question}\n\nMetric: {metric_label}\n\nFacts:\n{facts}",
+        },
+    ]
+    response = _client().chat.completions.create(
+        model=settings.deepseek_model,
+        messages=messages,
+        extra_body={"thinking": {"type": "disabled"}},
+    )
+    return response.choices[0].message.content.strip()
+
+
 def _history_to_messages(history: list[ConversationTurn]) -> list[dict]:
     """Replays prior turns as real user/assistant/tool messages so DeepSeek
     sees actual conversation history, not a paraphrase of it. Each prior

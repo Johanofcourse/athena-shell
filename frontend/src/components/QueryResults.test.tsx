@@ -33,6 +33,7 @@ function response(overrides: Partial<MarketQueryResponse>): MarketQueryResponse 
     approximated_metros: [],
     results: [],
     commentary: null,
+    narrative: null,
     ...overrides,
   };
 }
@@ -54,9 +55,35 @@ describe("QueryResults", () => {
     expect(screen.getByText("No data to show for this query.")).toBeInTheDocument();
   });
 
-  it("does not render an analysis summary when there are no results", () => {
+  it("does not render a summary paragraph when there are no results", () => {
     render(<QueryResults response={response({})} query="What's the rent trend in Anaheim?" />);
-    expect(document.querySelector(".analysis")).not.toBeInTheDocument();
+    expect(document.querySelector(".commentary-summary")).not.toBeInTheDocument();
+  });
+
+  it("shows the backend narrative, prominently, above the chart when present", () => {
+    render(
+      <QueryResults
+        response={response({
+          results: [{ metro: "Anaheim, CA", period: "2024-01-01", value: 2000 }],
+          narrative: "Rent in Anaheim has climbed steadily this year.",
+        })}
+        query="What's the rent trend in Anaheim?"
+      />,
+    );
+    expect(screen.getByText("Rent in Anaheim has climbed steadily this year.")).toBeInTheDocument();
+  });
+
+  it("falls back to the deterministic analysis summary when narrative is null", () => {
+    render(
+      <QueryResults
+        response={response({
+          results: [{ metro: "Anaheim, CA", period: "2024-01-01", value: 2000 }],
+          narrative: null,
+        })}
+        query="What's the rent trend in Anaheim?"
+      />,
+    );
+    expect(screen.getByText("Anaheim, CA: $2,000.")).toBeInTheDocument();
   });
 
   it("still renders the feedback widget and interpretation panel with no results", () => {

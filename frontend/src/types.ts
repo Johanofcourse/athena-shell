@@ -80,6 +80,11 @@ export interface MarketQueryResponse {
   approximated_metros: string[];
   results: MarketMetricPoint[];
   commentary: MarketCommentaryResult | null;
+  // Thesis-first prose for a metric query (see backend
+  // nl_query.synthesize_metric_answer) - null when there's nothing to
+  // narrate yet, or the synthesis call failed server-side; QueryResults
+  // falls back to its own analysis.ts summary in that case.
+  narrative: string | null;
 }
 
 export interface ConversationTurn {
