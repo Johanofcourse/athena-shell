@@ -601,6 +601,17 @@ header h1 {
   flex: none;
   background-color: var(--map-parchment);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+  /* background-color paints the full border-box by default, which
+     includes the area under the border-image - so every gap in the
+     frame's openwork scrollwork (the negative space between each
+     repeated motif) was showing the parchment yellow, right next to
+     the page's white immediately outside the frame (Johan: "in between
+     the intricate thingies in the borders the color is yellow"). Padding-
+     box keeps the parchment to the map's own interior and lets the
+     page's own background show through the border area's gaps instead,
+     so the frame reads as sitting on the page rather than on a patch
+     of mismatched yellow. */
+  background-clip: padding-box;
   border-width: 40px;
   border-style: solid;
   border-image-source: url("./assets/baroque-frame.png");
