@@ -1,31 +1,31 @@
 :root {
-  --bg: #1c1712;
-  --surface: #241d16;
-  --surface-raised: #2d251b;
-  --border: #4a3e2e;
-  --edge: #6b5c45;
-  --text: #e8dcc8;
-  --text-muted: #a89878;
-  --accent: #b6512c;
-  --accent-ink: #1c1712;
-  --danger: #7a2f1d;
-  --success: #7d9471;
+  --bg: #f3efe3;
+  --surface: #ece6d5;
+  --surface-raised: #e3dcc6;
+  --border: #d9d0b8;
+  --edge: #b9ad8d;
+  --text: #211e1a;
+  --text-muted: #6b6253;
+  --accent: #8a6a35;
+  --accent-ink: #f3efe3;
+  --danger: #7a3327;
+  --success: #5f7a5e;
 
   --font-display: "Cinzel", "Times New Roman", serif;
   --font-body: "Spectral", Georgia, serif;
   --font-mono: "Spectral", Georgia, serif;
 }
 
-/* Neoclassical, not industrial: Attic red-figure pottery's own palette
-   (clay/terracotta against near-black glaze, a cream slip for the
-   figures) and its own technique - pure single-weight contour line,
-   nothing shaded or boxed. Cinzel (cut from Roman inscriptional capitals)
-   carries the wordmark and section titles only; everything else,
-   including real data, stays in a quiet, legible body serif - a
-   monument face on a data table is unreadable, not elegant. Boxes,
-   shadows and uppercase-monospace data labels (the prior industrial
-   look) are retired in favor of hairline rules and restraint. Still
-   doesn't soften for prefers-color-scheme: light - a vase doesn't either. */
+/* Round two of the neoclassical direction: a gallery wall, not a vase.
+   Eggshell ground instead of near-black glaze, a real painting (Johann
+   Heinrich Tischbein's "Minerva in Military Clothes," 1779, public
+   domain) standing in for the line-art owl mark, and an accent pulled
+   directly from that painting's armor - aged bronze-gold, not the
+   terracotta this project already used once. Same bones as round one
+   (hairline rules, Cinzel for the wordmark only, Spectral for
+   everything real data lives in): the material reference changed, the
+   restraint didn't. Still doesn't soften for prefers-color-scheme: dark
+   - a gallery wall doesn't either. */
 
 * {
   box-sizing: border-box;
@@ -45,18 +45,52 @@ body {
 }
 
 header {
-  padding-top: 28px;
+  padding-top: 32px;
 }
 
+/* Flex row, not absolute positioning - the portrait (image + caption)
+   and the wordmark column each take the height they actually need, so
+   one can never overlap the other regardless of caption line count or
+   image aspect ratio. A fixed-height guess here was the first draft and
+   it broke exactly how fixed-height guesses always break: the caption
+   wrapped to more lines than planned for and collided with the next
+   section down (caught in Playwright, not just read from the diff). */
 .brand {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 28px;
 }
 
-.athena-mark {
+/* The painting itself - a real oval portrait, not a cropped rectangle.
+   Its own scan background is already near-white, so it sits on the
+   eggshell page with only a soft mask at the bottom edge needed to
+   avoid a visible seam, rather than a hard image boundary. */
+.brand-portrait {
   flex: none;
-  color: var(--text);
+  margin: 0;
+  width: 168px;
+}
+
+.brand-portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+  mask-image: linear-gradient(to bottom, black 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 78%, transparent 100%);
+}
+
+.brand-portrait figcaption {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 10.5px;
+  line-height: 1.4;
+  max-width: 168px;
+}
+
+.brand-text {
+  padding-top: 8px;
 }
 
 header h1 {
@@ -73,7 +107,7 @@ header h1 {
   font-family: var(--font-body);
   font-style: italic;
   color: var(--text-muted);
-  margin: 14px 0 32px;
+  margin: 14px 0 0;
   font-size: 15px;
   letter-spacing: 0.01em;
 }
@@ -217,7 +251,7 @@ header h1 {
   margin-top: 20px;
   max-width: 68ch;
   padding: 18px 22px;
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  background: var(--surface);
   border-left: 3px solid var(--accent);
   color: var(--text);
   font-family: var(--font-body);
@@ -525,6 +559,21 @@ header h1 {
   }
 }
 
+@media (max-width: 560px) {
+  .brand {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .brand-portrait {
+    width: 140px;
+  }
+
+  .brand-text {
+    padding-top: 0;
+  }
+}
+
 .query-results {
   margin-top: 8px;
 }
@@ -540,7 +589,7 @@ header h1 {
 .detail-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 8, 5, 0.75);
+  background: rgba(33, 30, 26, 0.55);
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -685,8 +734,8 @@ header h1 {
 }
 
 .conversation-history li {
-  padding: 6px 0 6px 12px;
-  border-left: 1px solid var(--border);
+  padding: 8px 12px 8px 12px;
+  border-left: 2px solid var(--border);
   color: var(--text-muted);
   font-family: var(--font-body);
   font-size: 13px;
@@ -695,7 +744,7 @@ header h1 {
 
 .intro {
   max-width: 680px;
-  margin: 0 0 8px;
+  margin: 20px 0 8px;
 }
 
 .intro-label {

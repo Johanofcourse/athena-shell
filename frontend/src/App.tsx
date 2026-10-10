@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchMetros, runQuery } from "./api";
-import { AthenaMark } from "./components/AthenaMark";
+import minervaPainting from "./assets/minerva-tischbein.jpg";
 import { ConversationHistory } from "./components/ConversationHistory";
 import { MetroDetailPanel } from "./components/MetroDetailPanel";
 import { QueryResults } from "./components/QueryResults";
@@ -59,13 +59,20 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <button className="home-link" onClick={handleReset} aria-label="Back to browse">
-          <span className="brand">
-            <AthenaMark />
-            <h1>Athena</h1>
-          </span>
-        </button>
-        <p className="tagline">Real estate market trends, searchable in plain English.</p>
+        <div className="brand">
+          <figure className="brand-portrait">
+            <img src={minervaPainting} alt="" aria-hidden="true" />
+            <figcaption>
+              Minerva in Military Clothes, Johann Heinrich Tischbein, 1779 — public domain, Wikimedia Commons
+            </figcaption>
+          </figure>
+          <div className="brand-text">
+            <button className="home-link" onClick={handleReset} aria-label="Back to browse">
+              <h1>Athena</h1>
+            </button>
+            <p className="tagline">Real estate market trends, searchable in plain English.</p>
+          </div>
+        </div>
         <details className="intro">
           <summary className="intro-label">What is this?</summary>
           <p className="intro-body">
