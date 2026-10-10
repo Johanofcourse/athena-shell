@@ -130,8 +130,33 @@ header h1 {
   text-align: left;
 }
 
+.home-link-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .home-link:hover h1 {
   color: var(--accent);
+}
+
+/* Hidden on wider screens - the full background portrait already does
+   this job there. Shown only at the width where that portrait itself
+   is hidden (it was overlapping the wrapped tagline there), as a
+   compact stand-in next to the wordmark instead of behind running
+   text. Same crop already validated at small sizes for the favicon. */
+.wordmark-icon {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: none;
+}
+
+@media (max-width: 560px) {
+  .wordmark-icon {
+    display: block;
+  }
 }
 
 .back-link {

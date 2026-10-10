@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchMetros, runQuery } from "./api";
+import minervaIcon from "./assets/minerva-icon.jpg";
 import minervaPainting from "./assets/minerva-tischbein.jpg";
 import { ConversationHistory } from "./components/ConversationHistory";
 import { MetroDetailPanel } from "./components/MetroDetailPanel";
@@ -68,7 +69,17 @@ export default function App() {
         <img className="brand-watermark" src={minervaPainting} alt="" aria-hidden="true" />
         <div className="brand-text">
           <button className="home-link" onClick={handleReset} aria-label="Back to browse">
-            <h1>Athena</h1>
+            <span className="home-link-row">
+              <h1>Athena</h1>
+              {/* The big background portrait is hidden below 560px (she
+                  was overlapping the wrapped tagline there - see
+                  .brand-watermark's mobile rule). This is a compact
+                  stand-in just for that width: the same face+plume crop
+                  already validated at small sizes for the favicon, sized
+                  to sit cleanly next to the wordmark instead of behind
+                  running text. */}
+              <img className="wordmark-icon" src={minervaIcon} alt="" aria-hidden="true" />
+            </span>
           </button>
           <p className="tagline">Intelligent Real Estate Trends, searchable in plain English.</p>
           <details className="intro">
