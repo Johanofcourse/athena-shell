@@ -215,7 +215,16 @@ header h1 {
   border-image-source: url("./assets/baroque-frame.png");
   border-image-slice: 291;
   border-image-width: 40px;
-  border-image-repeat: round;
+  /* Was 'round' - clean in Chromium, but Safari/WebKit rasterizes the
+     whole border-image at the small tile resolution 'round' computes
+     for the edges, then reuses that for the un-tiled corners too, so
+     the corner's dense scrollwork comes out as a muddy blur bleeding
+     past the frame into the page (Johan: "yellow spots that contrast
+     in an ugly way with the white background" - reproduced exactly in
+     Playwright's webkit engine, not in chromium). 'repeat' gives
+     WebKit a correctly-resolved corner raster and still tiles the
+     rail motif cleanly - verified in both engines, desktop and mobile. */
+  border-image-repeat: repeat;
   /* Was var(--surface) - a visibly different tone from the page's own
      --bg, which read as a mismatched seam right behind the frame
      (Johan: "the space right after the border is not matching the
@@ -597,7 +606,7 @@ header h1 {
   border-image-source: url("./assets/baroque-frame.png");
   border-image-slice: 291;
   border-image-width: 40px;
-  border-image-repeat: round;
+  border-image-repeat: repeat;
   padding: 16px 12px 12px;
   min-width: 0;
   position: relative;
