@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchMetros, runQuery } from "./api";
-import minervaIcon from "./assets/minerva-icon.jpg";
-import minervaPainting from "./assets/minerva-tischbein.jpg";
+import athenaIcon from "./assets/pallas-athena-icon.jpg";
+import athenaPainting from "./assets/pallas-athena.jpg";
 import { ConversationHistory } from "./components/ConversationHistory";
 import { MetroDetailPanel } from "./components/MetroDetailPanel";
 import { QueryResults } from "./components/QueryResults";
@@ -66,7 +66,7 @@ export default function App() {
             ways to let her affect layout (a flex row's height, a
             guessed min-height) and each one leaked a gap somewhere;
             this can't, because nothing here ever measures her. */}
-        <img className="brand-watermark" src={minervaPainting} alt="" aria-hidden="true" />
+        <img className="brand-watermark" src={athenaPainting} alt="" aria-hidden="true" />
         <div className="brand-text">
           <button className="home-link" onClick={handleReset} aria-label="Back to browse">
             <span className="home-link-row">
@@ -74,11 +74,11 @@ export default function App() {
               {/* The big background portrait is hidden below 560px (she
                   was overlapping the wrapped tagline there - see
                   .brand-watermark's mobile rule). This is a compact
-                  stand-in just for that width: the same face+plume crop
+                  stand-in just for that width: the same face crop
                   already validated at small sizes for the favicon, sized
                   to sit cleanly next to the wordmark instead of behind
                   running text. */}
-              <img className="wordmark-icon" src={minervaIcon} alt="" aria-hidden="true" />
+              <img className="wordmark-icon" src={athenaIcon} alt="" aria-hidden="true" />
             </span>
           </button>
           <p className="tagline">Intelligent Real Estate Trends, searchable in plain English.</p>
@@ -131,8 +131,7 @@ export default function App() {
           metrics below the full-metro level there, so we never fake a number to fill the gap.
         </p>
         <p>
-          Portrait: "Minerva in Military Clothes," Johann Heinrich Tischbein, 1779 — public domain,
-          Wikimedia Commons.
+          Portrait: "Pallas Athena," Rembrandt van Rijn, c. 1655 — public domain, Wikimedia Commons.
         </p>
       </footer>
     </div>
