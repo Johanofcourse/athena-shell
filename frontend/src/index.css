@@ -205,13 +205,18 @@ header h1 {
 .search-bar {
   position: relative;
   padding: 26px 28px;
-  border-width: 34px;
+  border-width: 40px;
   border-style: solid;
   border-image-source: url("./assets/baroque-frame.png");
-  border-image-slice: 204;
-  border-image-width: 34px;
+  border-image-slice: 309;
+  border-image-width: 40px;
   border-image-repeat: round;
-  background: var(--surface);
+  /* Was var(--surface) - a visibly different tone from the page's own
+     --bg, which read as a mismatched seam right behind the frame
+     (Johan: "the space right after the border is not matching the
+     background color... stands out in a very ugly way"). Matching the
+     page itself removes the seam entirely. */
+  background: var(--bg);
 }
 
 /* The 34px frame plus its padding eats too much of a phone-width
@@ -221,9 +226,31 @@ header h1 {
    area inside a fixed-size frame. */
 @media (max-width: 560px) {
   .search-bar {
-    padding: 14px 14px;
+    padding: 12px 10px;
     border-width: 20px;
     border-image-width: 20px;
+  }
+
+  /* Johan: "make the search button a tiny bit smaller so the search
+     box is a bit bigger, the 'make your query' text got cut off there
+     a bit due to the borders I assume." Correct - checked with a real
+     390px screenshot both before and after this: the first pass
+     (border-width 24, button padding 16px) still truncated to "Make
+     your que...". Tightened further - smaller border, less padding,
+     a narrower button - and confirmed the placeholder renders in full
+     this time rather than assuming the numbers were enough. */
+  .search-bar form {
+    gap: 8px;
+  }
+
+  .search-bar input {
+    padding: 11px 10px;
+  }
+
+  .search-bar button[type="submit"] {
+    padding: 10px 12px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
   }
 }
 
@@ -542,6 +569,13 @@ header h1 {
    flourish), a title cartouche, and a compass rose - see the reference
    Johan sent. The map now looks like a real object placed on the page,
    not another bordered box matching the rest of the UI. */
+/* Same gold border-image as the search bar (Johan: "Lets match the
+   borders with the map as well") - the hand-drawn CompassRose/
+   OrnateCorners scroll was always the fallback for not having a real
+   asset; now that one exists, both ornate frames in the app use it,
+   not just one. The parchment interior (background-color/texture)
+   stays - that tone is the map's own, not the mismatch Johan flagged
+   on the search bar. */
 .metro-map-canvas {
   width: 100%;
   height: 360px;
@@ -553,13 +587,23 @@ header h1 {
   flex: none;
   background-color: var(--map-parchment);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
-  border: 2px solid var(--accent);
-  box-shadow: 0 0 0 5px var(--map-parchment), 0 0 0 6px var(--accent);
-  margin: 6px;
+  border-width: 40px;
+  border-style: solid;
+  border-image-source: url("./assets/baroque-frame.png");
+  border-image-slice: 309;
+  border-image-width: 40px;
+  border-image-repeat: round;
   padding: 16px 12px 12px;
   min-width: 0;
   position: relative;
   color: var(--map-ink);
+}
+
+@media (max-width: 560px) {
+  .metro-map-canvas {
+    border-width: 24px;
+    border-image-width: 24px;
+  }
 }
 
 .metro-map-title {
@@ -589,56 +633,6 @@ header h1 {
   color: var(--map-ink);
   opacity: 0.8;
   pointer-events: none;
-}
-
-/* One scroll (CornerFlourish), mirrored into all four corners of
-   whichever ornate double-ruled frame it's placed in (the search bar,
-   the map) - a shared convention rather than a one-off per element.
-   Each slot is sized to match the SVG exactly and anchored with the
-   matching pair of corner properties (top+left, top+right, ...), so
-   the mirror transform below just flips around the slot's own center
-   with no extra position math. Bleeds slightly past the frame's own
-   border on purpose - a flourish sitting flush inside the line reads
-   as a corner icon, one escaping it slightly reads as an ornament. */
-.corner-flourish-slot {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  color: var(--accent);
-  opacity: 0.75;
-  pointer-events: none;
-}
-
-.corner-flourish-slot[data-corner="top-left"] {
-  top: -10px;
-  left: -10px;
-}
-
-.corner-flourish-slot[data-corner="top-right"] {
-  top: -10px;
-  right: -10px;
-}
-
-.corner-flourish-slot[data-corner="bottom-left"] {
-  bottom: -10px;
-  left: -10px;
-}
-
-.corner-flourish-slot[data-corner="bottom-right"] {
-  bottom: -10px;
-  right: -10px;
-}
-
-.corner-flourish-slot[data-corner="top-left"] .corner-flourish {
-  transform: scaleY(-1);
-}
-
-.corner-flourish-slot[data-corner="top-right"] .corner-flourish {
-  transform: scale(-1, -1);
-}
-
-.corner-flourish-slot[data-corner="bottom-right"] .corner-flourish {
-  transform: scaleX(-1);
 }
 
 .metro-map-canvas svg:not(.compass-rose) {

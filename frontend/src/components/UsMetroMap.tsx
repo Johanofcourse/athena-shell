@@ -9,7 +9,6 @@ import { ComposableMap, Geographies, Geography, Graticule, Marker } from "react-
 // pre-projected variant here would silently misalign the two.
 import usStatesTopology from "us-atlas/states-10m.json?url";
 import { CompassRose } from "./CompassRose";
-import { OrnateCorners } from "./OrnateCorners";
 import type { Metro } from "../types";
 
 interface Props {
@@ -23,7 +22,6 @@ export function UsMetroMap({ metros, onSelect }: Props) {
   return (
     <div className="metro-map-layout">
       <div className="metro-map-canvas">
-        <OrnateCorners />
         {/* A title cartouche, same convention every map on
             thoughtco.com/maps-of-ancient-greece uses - the reference
             Johan sent for this redesign. */}
