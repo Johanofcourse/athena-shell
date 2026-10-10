@@ -47,34 +47,36 @@ body {
 header {
   position: relative;
   padding-top: 32px;
-  /* Crops the watermark's negative offset at the header's own edges,
-     instead of letting it bleed into the page margin or cause
-     horizontal scroll on narrow viewports. Harmless to .intro-body
-     opening below it - header's height still grows to fit real
-     content; this only clips the absolutely-positioned watermark. */
-  overflow: hidden;
 }
 
+/* Explicit min-height, not an overflow:hidden guess - round one of this
+   treatment used a negative-offset image inside an overflow:hidden
+   header whose real height (brand-text + collapsed .intro) was far
+   shorter than the image, so most of her was silently cropped off
+   (Johan: "only see from clavicle up... used to be able to see from
+   almost her hip up"). 352px is 240px-wide image height (×1.378
+   aspect) plus headroom, computed instead of guessed, so the full
+   portrait actually fits. */
 .brand {
   position: relative;
+  min-height: 352px;
 }
 
-/* A true background wash, not a bounded figure taking up its own
-   layout column (the first pass - Johan: "blend in the background...
-   so it doesn't take up UI space"). Oversized, faded, and masked to a
-   soft radial fade on every edge so there's no visible image boundary
-   at all - it should read as part of the page texture, not a photo
-   sitting on top of it. Credit moved to the footer, since there's no
-   longer a bounded thumbnail to caption directly. */
+/* On the right side now, clear of the wordmark entirely, so she can
+   run at real opacity instead of being faded down for text contrast
+   (Johan: "opacity is pretty low too cant really see her... move her
+   to the right side"). Only the left edge fades, to blend into the
+   page rather than showing a hard rectangle - top/right stay at full
+   strength. */
 .brand-watermark {
   position: absolute;
-  top: -70px;
-  left: -60px;
-  width: 460px;
-  max-width: 70vw;
-  opacity: 0.15;
-  mask-image: radial-gradient(ellipse 60% 60% at 34% 36%, black 30%, transparent 72%);
-  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 34% 36%, black 30%, transparent 72%);
+  top: 0;
+  right: 0;
+  width: 240px;
+  height: auto;
+  opacity: 0.92;
+  mask-image: linear-gradient(to left, black 72%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 72%, transparent 100%);
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -83,6 +85,7 @@ header {
 .brand-text {
   position: relative;
   z-index: 1;
+  max-width: 600px;
 }
 
 header h1 {
@@ -560,10 +563,24 @@ header h1 {
 }
 
 @media (max-width: 560px) {
+  /* Side-by-side with the wordmark doesn't fit a narrow viewport - a
+     240px-wide absolutely-positioned image would overlap .brand-text
+     directly rather than sitting clear of it. Drop it back into normal
+     flow below the text instead of trying to make the overlap work. */
+  .brand {
+    min-height: 0;
+  }
+
+  .brand-text {
+    max-width: none;
+  }
+
   .brand-watermark {
-    width: 300px;
-    top: -50px;
-    left: -40px;
+    position: static;
+    width: 180px;
+    margin-top: 16px;
+    mask-image: none;
+    -webkit-mask-image: none;
   }
 }
 
@@ -736,6 +753,8 @@ header h1 {
 }
 
 .intro {
+  position: relative;
+  z-index: 1;
   max-width: 680px;
   margin: 20px 0 8px;
 }

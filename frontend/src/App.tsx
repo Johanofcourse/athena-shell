@@ -60,13 +60,13 @@ export default function App() {
     <div className="app">
       <header>
         <div className="brand">
-          <img className="brand-watermark" src={minervaPainting} alt="" aria-hidden="true" />
           <div className="brand-text">
             <button className="home-link" onClick={handleReset} aria-label="Back to browse">
               <h1>Athena</h1>
             </button>
-            <p className="tagline">Real estate market trends, searchable in plain English.</p>
+            <p className="tagline">Intelligent Real Estate Trends, searchable in plain English.</p>
           </div>
+          <img className="brand-watermark" src={minervaPainting} alt="" aria-hidden="true" />
         </div>
         <details className="intro">
           <summary className="intro-label">What is this?</summary>
