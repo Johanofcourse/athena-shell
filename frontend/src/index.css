@@ -44,39 +44,47 @@ body {
   padding: 0 20px 80px;
 }
 
+/* min-height lives here, not on .brand - the previous version put it on
+   .brand alone, which pushed .brand's own box to 352px tall even though
+   brand-text's real content (wordmark + tagline) is far shorter,
+   leaving a dead gap between the tagline and "What is this?" below it
+   (.intro is a sibling of .brand, rendered right after .brand's
+   inflated box ends). Reserving the height on header instead lets
+   brand-text and .intro sit close together, flowing naturally, while
+   the portrait - absolutely positioned relative to header, not .brand
+   - still has the room it needs and simply extends down behind/past
+   .intro on the right rather than opening a gap on the left. */
 header {
   position: relative;
   padding-top: 32px;
+  min-height: 360px;
 }
 
-/* Explicit min-height, not an overflow:hidden guess - round one of this
-   treatment used a negative-offset image inside an overflow:hidden
-   header whose real height (brand-text + collapsed .intro) was far
-   shorter than the image, so most of her was silently cropped off
-   (Johan: "only see from clavicle up... used to be able to see from
-   almost her hip up"). 352px is 240px-wide image height (×1.378
-   aspect) plus headroom, computed instead of guessed, so the full
-   portrait actually fits. */
 .brand {
   position: relative;
-  min-height: 352px;
 }
 
-/* On the right side now, clear of the wordmark entirely, so she can
-   run at real opacity instead of being faded down for text contrast
-   (Johan: "opacity is pretty low too cant really see her... move her
-   to the right side"). Only the left edge fades, to blend into the
-   page rather than showing a hard rectangle - top/right stay at full
-   strength. */
+/* On the right side, clear of the wordmark, at real opacity (Johan:
+   "opacity is pretty low too cant really see her... move her to the
+   right side"). border-radius: 50% clips to a true ellipse rather than
+   the source photo's rectangular scan boundary - this isn't a cosmetic
+   fade, the painting's own oval is a near-exact ellipse inscribed in
+   its frame (confirmed by sampling the actual pixel boundary before
+   picking this), so the clip lines up with the real paint edge instead
+   of showing the white scan corners around it (Johan: "the painting is
+   an oval but contained in a rectangle and there[']s negative space
+   thats white triangles"). A light radial fade still softens the very
+   edge so the oval doesn't read as a sticker pasted on top. */
 .brand-watermark {
   position: absolute;
   top: 0;
   right: 0;
   width: 240px;
   height: auto;
-  opacity: 0.92;
-  mask-image: linear-gradient(to left, black 72%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to left, black 72%, transparent 100%);
+  border-radius: 50%;
+  opacity: 0.88;
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, black 82%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, black 82%, transparent 100%);
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -566,8 +574,10 @@ header h1 {
   /* Side-by-side with the wordmark doesn't fit a narrow viewport - a
      240px-wide absolutely-positioned image would overlap .brand-text
      directly rather than sitting clear of it. Drop it back into normal
-     flow below the text instead of trying to make the overlap work. */
-  .brand {
+     flow below the text instead of trying to make the overlap work -
+     and drop header's reserved height with it, since nothing needs it
+     once the image is back in flow. */
+  header {
     min-height: 0;
   }
 
