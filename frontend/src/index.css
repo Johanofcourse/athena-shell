@@ -67,43 +67,34 @@ header {
   padding-top: 32px;
 }
 
+/* Mirrored per Johan: "move 'Athena'... to the right as much as
+   needed and lets move the Pallas Athena to the far left and up...
+   we will move away from minimalism into baroque." Text column pushed
+   right to clear her instead of the other way around. */
 .brand-text {
   position: relative;
   z-index: 1;
   max-width: 600px;
+  margin-left: 240px;
 }
 
-/* At real opacity (Johan: "opacity is pretty low too cant really see
-   her"), clear of the wordmark on the right. border-radius: 50% clips
-   to an oval cameo - the original reason for this was pixel-matching
-   the Tischbein scan's own inscribed-ellipse frame, but it's kept as
-   the site's standing portrait convention now that the source is
-   Rembrandt's "Pallas Athena" (a plain rectangular canvas, no oval of
-   its own) - a deliberate medallion treatment rather than a boundary
-   match, consistent with how the mobile wordmark icon and favicon are
-   also circular. The radial fade is shifted up and tightened well past
-   the oval clip itself: she needs to visibly fade out before her
-   natural height would reach the search input below, since nothing
-   here reserves room to stop her there - verified by screenshot that
-   the fade actually clears the search row, not just assumed from the
-   numbers (checked again after the portrait swap, since the new crop's
-   proportions differ from the old one). */
+/* Bold and top-left now, not a quiet corner wash - baroque wants
+   presence, not restraint. Still the same oval-cameo convention
+   (border-radius: 50%, see the mobile icon and favicon) and the same
+   reasoning on the fade: she needs to visibly clear the search input
+   below before her natural height gets there, verified by screenshot,
+   not assumed from the numbers - re-checked here since both her size
+   and position changed from the right-aligned version. */
 .brand-watermark {
   position: absolute;
-  top: 0;
-  right: 0;
-  /* The Rembrandt crop is proportionally taller than the Tischbein one
-     it replaced (0.571 vs 0.726 width:height) - narrower display width
-     keeps the rendered height close to what the fade below was tuned
-     for, instead of fighting a taller box with a steeper gradient and
-     losing the face to an over-aggressive fade (tried that first,
-     looked wrong in the screenshot, reverted). */
-  width: 190px;
+  top: -20px;
+  left: -20px;
+  width: 230px;
   height: auto;
   border-radius: 50%;
-  opacity: 0.85;
-  mask-image: radial-gradient(ellipse 50% 42% at 50% 34%, black 45%, transparent 88%);
-  -webkit-mask-image: radial-gradient(ellipse 50% 42% at 50% 34%, black 45%, transparent 88%);
+  opacity: 0.95;
+  mask-image: radial-gradient(ellipse 50% 36% at 50% 30%, black 48%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 36% at 50% 30%, black 48%, transparent 80%);
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -659,6 +650,7 @@ header h1 {
      text she'd sit behind. */
   .brand-text {
     max-width: none;
+    margin-left: 0;
   }
 
   .brand-watermark {
@@ -892,6 +884,13 @@ details[open] > .intro-label::after {
   position: relative;
   z-index: 1;
   margin-top: 36px;
+  margin-left: 240px;
+}
+
+@media (max-width: 560px) {
+  .ask {
+    margin-left: 0;
+  }
 }
 
 .browse {
