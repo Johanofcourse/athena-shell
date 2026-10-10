@@ -44,55 +44,53 @@ body {
   padding: 0 20px 80px;
 }
 
+/* Every previous version let the portrait influence layout somehow - a
+   flex row's own height, a guessed min-height on some ancestor - and
+   each one leaked a gap somewhere else on the page the moment the
+   image was taller than the real text content next to it (Johan,
+   twice: "the picture somehow occupies or reserves space... theres
+   still a space gap"). True background decoration this time: position:
+   absolute, out of flow entirely, so nothing ever measures her height
+   when sizing header, .brand-text or anything after it - there is no
+   number left to get wrong. */
 header {
+  position: relative;
   padding-top: 32px;
 }
 
-/* Real flex layout, not absolute positioning with a guessed min-height
-   - that was the previous two attempts, and both leaked a dead gap
-   somewhere else in the page (tagline-to-intro, then intro-to-search)
-   because a min-height reserves trailing space that nothing fills
-   (Johan: "the picture somehow occupies or reserves space on the left
-   even though its on the right" - correct diagnosis). As a genuine
-   flex item, the portrait needs no reserved height anywhere: the row's
-   own height is just whichever child is taller, flex handles it, and
-   .ask starts right where that row actually ends - no magic numbers,
-   nothing to leak. "What is this?" also moved inside .brand-text
-   (it was a sibling of .brand before) so the whole left column -
-   wordmark, tagline, disclosure - flows as one block with no gap
-   between any of it, same reason. */
-.brand {
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-}
-
 .brand-text {
-  flex: 1;
-  min-width: 0;
+  position: relative;
+  z-index: 1;
   max-width: 600px;
 }
 
-/* At real opacity, clear of the wordmark (Johan: "opacity is pretty
-   low too cant really see her... move her to the right side").
-   border-radius: 50% clips to a true ellipse rather than the source
-   photo's rectangular scan boundary - this isn't a cosmetic fade, the
-   painting's own oval is a near-exact ellipse inscribed in its frame
-   (confirmed by sampling the actual pixel boundary before picking
-   this), so the clip lines up with the real paint edge instead of
-   showing the white scan corners around it (Johan: "the painting is an
-   oval but contained in a rectangle and there[']s negative space thats
-   white triangles"). A light radial fade still softens the very edge
-   so the oval doesn't read as a sticker pasted on top. */
+/* At real opacity (Johan: "opacity is pretty low too cant really see
+   her"), clear of the wordmark on the right. border-radius: 50% clips
+   to a true ellipse rather than the source photo's rectangular scan
+   boundary - the painting's own oval is a near-exact ellipse inscribed
+   in its frame (confirmed by sampling the actual pixel boundary before
+   picking this), so the clip lines up with the real paint edge instead
+   of showing the white scan corners (Johan: "the painting is an oval
+   but contained in a rectangle and there[']s negative space thats white
+   triangles"). The radial fade is shifted up and tightened well past
+   the ellipse clip itself: she needs to visibly fade out before her
+   natural height would reach the search input below, since nothing
+   here reserves room to stop her there any more - verified by
+   screenshot that the fade actually clears the search row, not just
+   assumed from the numbers. */
 .brand-watermark {
-  flex: none;
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 240px;
   height: auto;
   border-radius: 50%;
-  opacity: 0.88;
-  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, black 82%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, black 82%, transparent 100%);
+  opacity: 0.85;
+  mask-image: radial-gradient(ellipse 50% 42% at 50% 34%, black 45%, transparent 88%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 42% at 50% 34%, black 45%, transparent 88%);
+  pointer-events: none;
   user-select: none;
+  z-index: 0;
 }
 
 header h1 {
@@ -570,21 +568,19 @@ header h1 {
 }
 
 @media (max-width: 560px) {
-  /* Side-by-side with the wordmark doesn't fit a narrow viewport at
-     240px wide - stack instead of staying in a row. */
-  .brand {
-    flex-direction: column;
-    gap: 16px;
-  }
-
+  /* At phone width the tagline wraps to two lines and runs right under
+     where a shrunk watermark would sit, so shrinking it further just
+     means it overlaps actual words instead of empty space (caught by
+     screenshot: "plain" in the tagline partly covered). She's pure
+     decoration here, not content - hidden below this width is a
+     cleaner result than fighting for the same few square inches as the
+     text she'd sit behind. */
   .brand-text {
     max-width: none;
   }
 
   .brand-watermark {
-    width: 180px;
-    mask-image: none;
-    -webkit-mask-image: none;
+    display: none;
   }
 }
 
@@ -811,6 +807,8 @@ details[open] > .intro-label::after {
 }
 
 .ask {
+  position: relative;
+  z-index: 1;
   margin-top: 36px;
 }
 
