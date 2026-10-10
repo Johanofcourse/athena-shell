@@ -19,9 +19,10 @@ from app.nl_query import (
     _sanitize_filters,
     explain_filters,
     run_market_query,
+    summarize_metric_facts,
 )
 from app.models import MetricSource, Metro, NationalMetric
-from app.schemas import MarketQueryFilters, MetricName
+from app.schemas import MarketMetricPoint, MarketQueryFilters, MetricName
 from tests.conftest import GAPFORD_GROSS_RENT, TESTVILLE_INCOME, TESTVILLE_RENT_FEB, TESTVILLE_RENT_JAN
 
 
@@ -330,3 +331,73 @@ def test_explain_filters_national_ranking_has_no_ranking_language(db_session):
     # claim to be ranking across metros that were never involved.
     assert "across all metros" not in text
     assert "ranked" not in text
+
+
+# --- summarize_metric_facts ---
+# Same cases as frontend/src/analysis.test.ts's summarizeResults - this is
+# a deliberate Python port of that same deterministic logic (see
+# summarize_metric_facts' docstring), so it's tested the same way.
+
+
+def _point(metro: str, period: str, value: float) -> MarketMetricPoint:
+    return MarketMetricPoint(metro=metro, period=date.fromisoformat(period), value=value)
+
+
+def test_summarize_metric_facts_empty():
+    assert summarize_metric_facts([], MetricName.MEDIAN_SALE_PRICE, "period") == ""
+
+
+def test_summarize_metric_facts_ranking_single_point():
+    text = summarize_metric_facts(
+        [_point("Austin, TX", "2026-08-01", 450000)], MetricName.MEDIAN_SALE_PRICE, "value"
+    )
+    assert text == "Austin, TX: $450,000."
+
+
+def test_summarize_metric_facts_ranking_multiple_points():
+    points = [
+        _point("Miami, FL", "2026-08-01", 28.4),
+        _point("Boston, MA", "2026-08-01", 23.5),
+        _point("Austin, TX", "2026-08-01", 20.1),
+    ]
+    text = summarize_metric_facts(points, MetricName.RENT_TO_INCOME_PCT, "value")
+    assert text == "Miami, FL leads at 28.4%; Austin, TX is lowest at 20.1%."
+
+
+def test_summarize_metric_facts_trend_single_period():
+    text = summarize_metric_facts([_point("Denver, CO", "2026-08-01", 2000)], MetricName.MEDIAN_RENT, "period")
+    assert text == "Denver, CO: $2,000."
+
+
+def test_summarize_metric_facts_trend_direction_and_pct_change():
+    points = [_point("Denver, CO", "2024-01-01", 2000), _point("Denver, CO", "2024-02-01", 2200)]
+    text = summarize_metric_facts(points, MetricName.MEDIAN_RENT, "period")
+    assert text == "Denver, CO: $2,000 -> $2,200 (up 10.0%)."
+
+
+def test_summarize_metric_facts_calls_out_real_peak():
+    points = [
+        _point("Denver, CO", "2024-01-01", 2000),
+        _point("Denver, CO", "2024-02-01", 2500),
+        _point("Denver, CO", "2024-03-01", 2100),
+    ]
+    text = summarize_metric_facts(points, MetricName.MEDIAN_RENT, "period")
+    assert "peaked at $2,500 in Feb 2024" in text
+
+
+def test_summarize_metric_facts_near_zero_change_is_flat():
+    points = [_point("Denver, CO", "2024-01-01", 2000), _point("Denver, CO", "2024-02-01", 2000.5)]
+    text = summarize_metric_facts(points, MetricName.MEDIAN_RENT, "period")
+    assert "(flat" in text
+
+
+def test_summarize_metric_facts_handles_multiple_metros_independently():
+    points = [
+        _point("Austin, TX", "2024-01-01", 400000),
+        _point("Austin, TX", "2024-02-01", 420000),
+        _point("Denver, CO", "2024-01-01", 500000),
+        _point("Denver, CO", "2024-02-01", 480000),
+    ]
+    text = summarize_metric_facts(points, MetricName.MEDIAN_SALE_PRICE, "period")
+    assert "Austin, TX: $400,000 -> $420,000 (up 5.0%)." in text
+    assert "Denver, CO: $500,000 -> $480,000 (down 4.0%)." in text

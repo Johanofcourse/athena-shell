@@ -31,7 +31,7 @@ function renderCommentaryBlocks(text: string) {
 }
 
 export function QueryResults({ response, query }: Props) {
-  const { filters, explanation, results, commentary } = response;
+  const { filters, explanation, results, commentary, narrative } = response;
 
   if (commentary) {
     // The backend already prefers one chunk per distinct section, but if
@@ -92,12 +92,21 @@ export function QueryResults({ response, query }: Props) {
         <p className="empty-state">No data to show for this query.</p>
       ) : (
         <>
+          {/* The thesis someone should be able to glance at and understand,
+              not a caption underneath the chart - same prominent treatment
+              as a commentary answer (.commentary-summary), reused here
+              rather than duplicated, so both response types read as "the
+              answer first, supporting visual/citations after." Falls back
+              to the deterministic analysis.ts sentence if the backend's
+              LLM synthesis didn't run or failed - never shows nothing. */}
+          <p className="commentary-summary">
+            {narrative ?? summarizeResults(results, filters.metric, filters.sort_by)}
+          </p>
           {filters.sort_by === "value" ? (
             <RankingChart points={results} metric={filters.metric} />
           ) : (
             <TrendChart points={results} metric={filters.metric} />
           )}
-          <p className="analysis">{summarizeResults(results, filters.metric, filters.sort_by)}</p>
         </>
       )}
       <FeedbackWidget query={query} filters={filters} />

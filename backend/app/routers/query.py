@@ -8,7 +8,13 @@ from app.config import settings
 from app.database import get_db
 from app.market_commentary import explain_commentary, run_commentary_query, synthesize_commentary_answer
 from app.models import FeedbackRating, Metro, QueryFeedback
-from app.nl_query import explain_filters, interpret_query, run_market_query
+from app.nl_query import (
+    explain_filters,
+    interpret_query,
+    run_market_query,
+    summarize_metric_facts,
+    synthesize_metric_answer,
+)
 from app.rate_limit import limiter
 from app.schemas import CommentaryQuery, FeedbackRequest, MarketQueryResponse, QueryRequest
 from app.usage import FREE_DAILY_QUERY_LIMIT, check_and_increment_usage
@@ -65,6 +71,21 @@ def run_query(request: Request, payload: QueryRequest, db: Session = Depends(get
     results, unmatched_metros, no_data_metros, approximated_metros = run_market_query(db, resolved)
     explanation = explain_filters(resolved, unmatched_metros, no_data_metros, approximated_metros, db)
 
+    # Thesis-first prose above the chart, not just a filter-echo caption -
+    # grounded in summarize_metric_facts' deterministic numbers, never the
+    # raw results directly (see synthesize_metric_answer). Best-effort: a
+    # failed synthesis call falls back to narrative=None rather than
+    # failing the whole request, same as commentary's synthesize/explain
+    # fallback pair - the frontend has its own deterministic summary ready
+    # to show instead.
+    narrative = None
+    if results:
+        facts = summarize_metric_facts(results, resolved.metric, resolved.sort_by)
+        try:
+            narrative = synthesize_metric_answer(payload.query, resolved, facts)
+        except APIError:
+            narrative = None
+
     return MarketQueryResponse(
         filters=resolved,
         explanation=explanation,
@@ -72,6 +93,7 @@ def run_query(request: Request, payload: QueryRequest, db: Session = Depends(get
         no_data_metros=no_data_metros,
         approximated_metros=approximated_metros,
         results=results,
+        narrative=narrative,
     )
 
 

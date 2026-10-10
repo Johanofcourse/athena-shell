@@ -489,16 +489,6 @@ header h1 {
   font-style: italic;
 }
 
-.analysis {
-  margin-top: 14px;
-  padding: 14px 0 0;
-  border-top: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.6;
-}
-
 .empty-state {
   margin-top: 20px;
   color: var(--text-muted);
