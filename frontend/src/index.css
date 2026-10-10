@@ -628,6 +628,7 @@ header h1 {
   .metro-map-canvas {
     border-width: 24px;
     border-image-width: 24px;
+    padding: 16px 6px 6px;
   }
 }
 
@@ -709,6 +710,25 @@ header h1 {
 
 .metro-map-pin[data-hovered="true"] {
   fill: var(--accent);
+}
+
+/* Johan: "the dots are barely clickable" on mobile - the map is
+   width-constrained at phone sizes (it scales to fit the viewport's
+   width, well under its 800x440 viewBox), so the pins, sized in the
+   same SVG user units as desktop, end up visually and physically
+   tiny. Bumping r here overrides the JS-set presentation attribute
+   (CSS always wins over a presentation attribute) with a bigger
+   mobile-only tap target - the hover-pulse radius barely matters on
+   touch (hover rarely fires from a tap), so the base radius is the
+   one that actually needs to grow. */
+@media (max-width: 560px) {
+  .metro-map-pin {
+    r: 10;
+  }
+
+  .metro-map-pin[data-hovered="true"] {
+    r: 13;
+  }
 }
 
 /* Collapsed by default - 50 rows was a lot of page to scroll past just
@@ -1056,6 +1076,20 @@ details[open] > .intro-label::after {
   font-style: italic;
   font-size: 12.5px;
   line-height: 1.6;
+}
+
+/* Reuses .intro-label - the same collapsed-by-default disclosure
+   pattern as "What is this?" and "Top 50 metros". Was two always-
+   visible paragraphs; Johan wanted them tucked away since they're
+   reference material, not something most visitors need up front. */
+.footnote .intro-label {
+  padding: 0;
+  font-size: 12.5px;
+  font-style: normal;
+}
+
+.footnote-body {
+  margin-top: 8px;
 }
 
 .footnote p {
