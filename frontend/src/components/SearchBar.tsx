@@ -44,7 +44,7 @@ export function SearchBar({ onSearch, loading }: Props) {
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Ask about market trends, e.g. “how has rent changed in Denver”"
+          placeholder="Make your query"
           aria-label="Natural language market trend search"
         />
         <button type="submit" disabled={loading || !value.trim()}>
