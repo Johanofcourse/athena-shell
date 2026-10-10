@@ -54,7 +54,14 @@ export function TrendChart({ points, metric }: Props) {
             tick={{ fontSize: 12, fill: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
             axisLine={{ stroke: "var(--border)" }}
             tickLine={false}
-            interval={Math.max(0, Math.floor(rows.length / 6) - 1)}
+            // "preserveStartEnd" measures actual rendered label width and
+            // drops as many in-between ticks as it takes to avoid overlap
+            // - a fixed interval computed from rows.length alone (the
+            // previous version) ignores the chart's real pixel width
+            // entirely, so the same tick count that reads fine on desktop
+            // crams into an unreadable pile on a narrow mobile viewport
+            // (caught via an actual 390px-wide screenshot, not assumed).
+            interval="preserveStartEnd"
             padding={{ left: 8, right: 8 }}
           />
           <YAxis
