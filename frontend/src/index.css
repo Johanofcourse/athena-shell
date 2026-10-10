@@ -25,10 +25,11 @@
 }
 
 /* Round two of the neoclassical direction: a gallery wall, not a vase.
-   Eggshell ground instead of near-black glaze, a real painting (Johann
-   Heinrich Tischbein's "Minerva in Military Clothes," 1779, public
-   domain) standing in for the line-art owl mark, and an accent pulled
-   directly from that painting's armor - aged bronze-gold, not the
+   Eggshell ground instead of near-black glaze, a real painting
+   (Rembrandt's "Pallas Athena," c. 1655, public domain - swapped in
+   from the original Tischbein portrait at Johan's request, same
+   treatment throughout) standing in for the line-art owl mark, and an
+   accent pulled from that painting's armor - aged bronze-gold, not the
    terracotta this project already used once. Same bones as round one
    (hairline rules, Cinzel for the wordmark only, Spectral for
    everything real data lives in): the material reference changed, the
@@ -74,23 +75,30 @@ header {
 
 /* At real opacity (Johan: "opacity is pretty low too cant really see
    her"), clear of the wordmark on the right. border-radius: 50% clips
-   to a true ellipse rather than the source photo's rectangular scan
-   boundary - the painting's own oval is a near-exact ellipse inscribed
-   in its frame (confirmed by sampling the actual pixel boundary before
-   picking this), so the clip lines up with the real paint edge instead
-   of showing the white scan corners (Johan: "the painting is an oval
-   but contained in a rectangle and there[']s negative space thats white
-   triangles"). The radial fade is shifted up and tightened well past
-   the ellipse clip itself: she needs to visibly fade out before her
+   to an oval cameo - the original reason for this was pixel-matching
+   the Tischbein scan's own inscribed-ellipse frame, but it's kept as
+   the site's standing portrait convention now that the source is
+   Rembrandt's "Pallas Athena" (a plain rectangular canvas, no oval of
+   its own) - a deliberate medallion treatment rather than a boundary
+   match, consistent with how the mobile wordmark icon and favicon are
+   also circular. The radial fade is shifted up and tightened well past
+   the oval clip itself: she needs to visibly fade out before her
    natural height would reach the search input below, since nothing
-   here reserves room to stop her there any more - verified by
-   screenshot that the fade actually clears the search row, not just
-   assumed from the numbers. */
+   here reserves room to stop her there - verified by screenshot that
+   the fade actually clears the search row, not just assumed from the
+   numbers (checked again after the portrait swap, since the new crop's
+   proportions differ from the old one). */
 .brand-watermark {
   position: absolute;
   top: 0;
   right: 0;
-  width: 240px;
+  /* The Rembrandt crop is proportionally taller than the Tischbein one
+     it replaced (0.571 vs 0.726 width:height) - narrower display width
+     keeps the rendered height close to what the fade below was tuned
+     for, instead of fighting a taller box with a steeper gradient and
+     losing the face to an over-aggressive fade (tried that first,
+     looked wrong in the screenshot, reverted). */
+  width: 190px;
   height: auto;
   border-radius: 50%;
   opacity: 0.85;
