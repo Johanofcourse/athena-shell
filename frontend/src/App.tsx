@@ -126,13 +126,18 @@ export default function App() {
       )}
 
       <footer className="footnote">
-        <p>
-          A few metros don't show rent or income badges — Apartment List and Census don't publish those
-          metrics below the full-metro level there, so we never fake a number to fill the gap.
-        </p>
-        <p>
-          Portrait: "Pallas Athena," Rembrandt van Rijn, c. 1655 — public domain, Wikimedia Commons.
-        </p>
+        <details>
+          <summary className="intro-label">Disclaimer</summary>
+          <div className="footnote-body">
+            <p>
+              A few metros don't show rent or income badges — Apartment List and Census don't publish
+              those metrics below the full-metro level there, so we never fake a number to fill the gap.
+            </p>
+            <p>
+              Portrait: "Pallas Athena," Rembrandt van Rijn, c. 1655 — public domain, Wikimedia Commons.
+            </p>
+          </div>
+        </details>
       </footer>
     </div>
   );
