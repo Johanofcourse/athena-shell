@@ -116,6 +116,47 @@ METRIC_LABELS = {
     MetricName.MORTGAGE_RATE_5_1_ARM: "5/1 ARM rate",
 }
 
+# Short, reader-facing citations for the "Source:" line shown under a
+# metric query's chart - the inverted-pyramid treatment Johan asked for
+# (thesis first, supporting chart and citation last) needs this to exist
+# at all: previously a metric query's real source only lived inside
+# METRIC_DESCRIPTIONS, tool-schema hint text for the model, never shown
+# to the person reading the answer. Same spirit as the commentary path's
+# own "Source: HUD Comprehensive Housing Market Analysis..." line, just
+# for the metric-query path, which never had an equivalent.
+METRIC_SOURCES = {
+    MetricName.MEDIAN_SALE_PRICE: "Redfin",
+    MetricName.MEDIAN_DAYS_ON_MARKET: "Redfin",
+    MetricName.HOMES_SOLD: "Redfin",
+    MetricName.NEW_LISTINGS: "Redfin",
+    MetricName.ACTIVE_LISTINGS: "Redfin",
+    MetricName.PENDING_SALES: "Redfin",
+    MetricName.MEDIAN_PRICE_PER_SQFT: "Redfin",
+    MetricName.PRICE_DROP_COUNT: "Redfin",
+    MetricName.PRICE_DROP_PCT_AVG: "Redfin",
+    MetricName.PCT_ACTIVE_WITH_PRICE_DROP: "Redfin",
+    MetricName.HOMES_SOLD_WITH_PRICE_DROP: "Redfin",
+    MetricName.TOTAL_DELISTINGS: "Redfin",
+    MetricName.TOTAL_RELISTINGS: "Redfin",
+    MetricName.SHARE_DELISTED_PCT: "Redfin",
+    MetricName.SHARE_RELISTED_PCT: "Redfin",
+    MetricName.MEDIAN_RENT: "Apartment List",
+    MetricName.VACANCY_RATE: "Apartment List",
+    MetricName.TIME_ON_MARKET_DAYS: "Apartment List",
+    MetricName.MEDIAN_HOUSEHOLD_INCOME: "Census ACS 5-Year",
+    MetricName.RENT_TO_INCOME_PCT: "Apartment List rent and Census ACS household income, computed",
+    MetricName.UNEMPLOYMENT_RATE: "BLS Local Area Unemployment Statistics",
+    MetricName.HOUSE_PRICE_INDEX: "FHFA via FRED",
+    MetricName.MEAN_COMMUTE_MINUTES: "Census ACS 5-Year",
+    MetricName.MEDIAN_PROPERTY_TAX: "Census ACS 5-Year",
+    MetricName.TOTAL_POPULATION: "Census ACS 1-Year",
+    MetricName.NATURAL_HAZARD_RISK_SCORE: "FEMA National Risk Index",
+    MetricName.MEDIAN_GROSS_RENT: "Census ACS 5-Year",
+    MetricName.MORTGAGE_RATE_30YR_FIXED: "Freddie Mac PMMS",
+    MetricName.MORTGAGE_RATE_15YR_FIXED: "Freddie Mac PMMS",
+    MetricName.MORTGAGE_RATE_5_1_ARM: "Freddie Mac PMMS",
+}
+
 # Mortgage rates are a national series with no metro dimension - metros
 # is always sanitized to empty for these (see _sanitize_filters), and
 # run_market_query routes them to _run_national_query instead of
@@ -673,6 +714,24 @@ def run_market_query(
         points.extend(MarketMetricPoint(metro=metro.canonical_name, period=r.period, value=r.value) for r in rows)
 
     return points, unmatched, no_data, approximated
+
+
+def source_citation(filters: MarketQueryFilters, approximated_metros: list[str]) -> str:
+    """The reader-facing 'Source: X' line under a metric query's chart.
+    Always one source, same as explain_filters always naming one metric:
+    query_market_metrics resolves to exactly one metric per call, and
+    METRIC_SOURCES is a straight 1:1 mapping, no per-result branching
+    needed. The one real exception - a rent query that fell back to
+    Census median_gross_rent for some metros - already gets its own
+    specific, named caveat in explain_filters ("Apartment List doesn't
+    publish rent at this granularity for X, Y..."), so this only adds a
+    second, parenthetical note when that's actually in play, rather than
+    silently citing just Apartment List for a response partly sourced
+    from Census."""
+    base = METRIC_SOURCES.get(filters.metric, "")
+    if filters.metric == MetricName.MEDIAN_RENT and approximated_metros:
+        return f"{base} (Census ACS gross rent for metros noted above)"
+    return base
 
 
 def explain_filters(

@@ -168,6 +168,10 @@ class MarketQueryResponse(BaseModel):
     # always-present filter echo + honesty notes - this is additive, not a
     # replacement for it.
     narrative: str | None = None
+    # Reader-facing "Source: X" citation for a metric query's chart (see
+    # nl_query.source_citation) - None for a commentary response, which
+    # already carries its own citation inline (commentary.source_file).
+    source_citation: str | None = None
 
 
 class FeedbackRequest(BaseModel):

@@ -89,6 +89,10 @@ export interface MarketQueryResponse {
   // narrate yet, or the synthesis call failed server-side; QueryResults
   // falls back to its own analysis.ts summary in that case.
   narrative: string | null;
+  // Reader-facing "Source: X" citation for a metric query's chart (see
+  // backend nl_query.source_citation) - null for a commentary response,
+  // which already carries its own citation inline.
+  source_citation: string | null;
 }
 
 export interface ConversationTurn {

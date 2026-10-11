@@ -34,6 +34,7 @@ function response(overrides: Partial<MarketQueryResponse>): MarketQueryResponse 
     results: [],
     commentary: null,
     narrative: null,
+    source_citation: null,
     ...overrides,
   };
 }
@@ -84,6 +85,52 @@ describe("QueryResults", () => {
       />,
     );
     expect(screen.getByText("Anaheim, CA: $2,000.")).toBeInTheDocument();
+  });
+
+  it("shows the source citation when present, and omits the line when it's not", () => {
+    const { rerender } = render(
+      <QueryResults
+        response={response({
+          results: [{ metro: "Anaheim, CA", period: "2024-01-01", value: 2000 }],
+          source_citation: "Apartment List",
+        })}
+        query="What's the rent trend in Anaheim?"
+      />,
+    );
+    expect(screen.getByText("Source: Apartment List")).toBeInTheDocument();
+
+    rerender(
+      <QueryResults
+        response={response({
+          results: [{ metro: "Anaheim, CA", period: "2024-01-01", value: 2000 }],
+          source_citation: null,
+        })}
+        query="What's the rent trend in Anaheim?"
+      />,
+    );
+    expect(screen.queryByText(/^Source:/)).not.toBeInTheDocument();
+  });
+
+  it("orders the thesis before supporting detail before the chart - inverted pyramid, not a caption-then-graph layout", () => {
+    render(
+      <QueryResults
+        response={response({
+          results: [{ metro: "Anaheim, CA", period: "2024-01-01", value: 2000 }],
+          narrative: "Rent in Anaheim has climbed steadily this year.",
+          source_citation: "Apartment List",
+        })}
+        query="What's the rent trend in Anaheim?"
+      />,
+    );
+    const container = document.querySelector(".query-results")!;
+    const html = container.innerHTML;
+    const narrativeIndex = html.indexOf("Rent in Anaheim has climbed steadily this year.");
+    const explanationIndex = html.indexOf("Showing median rent for Anaheim, CA.");
+    const citationIndex = html.indexOf("Source: Apartment List");
+    const chartIndex = html.indexOf("chart-card");
+    expect(narrativeIndex).toBeLessThan(explanationIndex);
+    expect(explanationIndex).toBeLessThan(citationIndex);
+    expect(citationIndex).toBeLessThan(chartIndex);
   });
 
   it("still renders the feedback widget and interpretation panel with no results", () => {

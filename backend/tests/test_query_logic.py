@@ -19,6 +19,7 @@ from app.nl_query import (
     _sanitize_filters,
     explain_filters,
     run_market_query,
+    source_citation,
     summarize_metric_facts,
 )
 from app.models import MetricSource, Metro, NationalMetric
@@ -262,6 +263,30 @@ def test_explain_filters_surfaces_unsupported_aspects():
     )
     text = explain_filters(filters, [], [], [], None)
     assert "This system can't evaluate: school quality." in text
+
+
+# --- source_citation ---
+
+
+def test_source_citation_names_the_real_source():
+    filters = MarketQueryFilters(metros=["Austin, TX"], metric=MetricName.MEDIAN_SALE_PRICE)
+    assert source_citation(filters, []) == "Redfin"
+
+
+def test_source_citation_notes_the_census_fallback_when_actually_used():
+    # A plain median_rent query is Apartment List - but one that actually
+    # fell back to Census gross rent for some metros is partly sourced
+    # from Census too, and citing only Apartment List would misattribute
+    # the number a reader is looking at.
+    filters = MarketQueryFilters(metros=["Gapford, GF"], metric=MetricName.MEDIAN_RENT)
+    text = source_citation(filters, ["Gapford, GF"])
+    assert "Apartment List" in text
+    assert "Census ACS gross rent" in text
+
+
+def test_source_citation_is_plain_apartment_list_without_a_fallback():
+    filters = MarketQueryFilters(metros=["Austin, TX"], metric=MetricName.MEDIAN_RENT)
+    assert source_citation(filters, []) == "Apartment List"
 
 
 # --- National metrics (Freddie Mac mortgage rates - no metro dimension) ---

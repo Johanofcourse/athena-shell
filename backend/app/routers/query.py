@@ -12,6 +12,7 @@ from app.nl_query import (
     explain_filters,
     interpret_query,
     run_market_query,
+    source_citation,
     summarize_metric_facts,
     synthesize_metric_answer,
 )
@@ -94,6 +95,7 @@ def run_query(request: Request, payload: QueryRequest, db: Session = Depends(get
         approximated_metros=approximated_metros,
         results=results,
         narrative=narrative,
+        source_citation=source_citation(resolved, approximated_metros) if results else None,
     )
 
 
