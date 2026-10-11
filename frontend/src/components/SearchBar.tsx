@@ -17,7 +17,17 @@ const EXAMPLE_QUERY_POOL = [
   "Which metros have the highest property taxes?",
   "How has the population changed in Austin over the last decade?",
   "Which metros have the highest natural disaster risk?",
+  // "Why" questions only resolve for the 23 metros with real HUD CHMA
+  // coverage (not all 50) - confirmed each of these specifically has
+  // commentary, and that the real answer actually matches the question's
+  // premise, before adding. A couple of other candidates tested here
+  // (Houston construction, Miami rental competitiveness) correctly
+  // contradicted their own premise instead of confirming it - a genuine,
+  // on-brand demonstration of the grounding discipline, but not what a
+  // first-time visitor's default example chip should lead with.
   "Why has rent been declining in Austin?",
+  "Why are home prices rising in Dallas?",
+  "Why is population growing in Tampa?",
 ];
 const EXAMPLE_COUNT = 4;
 
