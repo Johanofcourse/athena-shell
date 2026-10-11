@@ -298,6 +298,56 @@ def ingest_census_commute(db, income_to_id: dict[str, str]) -> int:
     return count
 
 
+CENSUS_PROPERTY_TAX_FILE = "census_property_tax.json"
+
+
+def ingest_census_property_tax(db, income_to_id: dict[str, str]) -> int:
+    """Parses the raw response saved by fetch_census_property_tax.py (a
+    live, registered Census API call) into MarketMetric rows. Reuses
+    income_to_id: same ACS table family, same CBSA geography, same
+    metro-name format as median_household_income and
+    mean_commute_minutes - confirmed by direct comparison, not assumed.
+    Optional, same skip-cleanly pattern as ingest_bls_unemployment and
+    ingest_census_commute."""
+    path = DATA_DIR / CENSUS_PROPERTY_TAX_FILE
+    if not path.exists():
+        print(
+            f"{CENSUS_PROPERTY_TAX_FILE} not found - run `python -m app.fetch_census_property_tax` first. Skipping."
+        )
+        return 0
+
+    with open(path, encoding="utf-8") as f:
+        rows = json.load(f)
+
+    header, data_rows = rows[0], rows[1:]
+    name_idx = header.index("NAME")
+    value_idx = header.index("B25103_001E")
+
+    values = {}
+    for row in data_rows:
+        value = _parse_float(row[value_idx])
+        if value is not None:
+            values[row[name_idx]] = value
+
+    count = 0
+    for geography, metro_id in income_to_id.items():
+        value = values.get(geography)
+        if value is None:
+            continue
+        db.add(
+            MarketMetric(
+                metro_id=metro_id,
+                period=CENSUS_ACS_PERIOD,
+                source=MetricSource.CENSUS,
+                metric="median_property_tax",
+                bed_size=None,
+                value=value,
+            )
+        )
+        count += 1
+    return count
+
+
 def ingest_census_gross_rent_fallback(db) -> int:
     count = 0
     for filename, county_to_metro in CENSUS_GROSS_RENT_GAP_FILES:
@@ -638,6 +688,10 @@ def ingest() -> None:
         commute_count = ingest_census_commute(db, income_to_id)
         db.commit()
         print(f"Ingested {commute_count} Census mean commute time rows.")
+
+        property_tax_count = ingest_census_property_tax(db, income_to_id)
+        db.commit()
+        print(f"Ingested {property_tax_count} Census median property tax rows.")
 
         gross_rent_count = ingest_census_gross_rent_fallback(db)
         db.commit()

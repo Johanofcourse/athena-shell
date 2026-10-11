@@ -8,6 +8,7 @@ const CURRENCY_METRICS = new Set<MetricName>([
   "median_price_per_sqft",
   "median_household_income",
   "median_gross_rent",
+  "median_property_tax",
 ]);
 
 // Stored as a 0-1 fraction (0.0848 = 8.48%), unlike the metrics below.

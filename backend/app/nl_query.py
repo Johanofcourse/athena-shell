@@ -66,6 +66,7 @@ METRIC_DESCRIPTIONS = {
     MetricName.UNEMPLOYMENT_RATE: "Metro-level unemployment rate, monthly, as a percent (BLS Local Area Unemployment Statistics)",
     MetricName.HOUSE_PRICE_INDEX: "Home price appreciation index (not a dollar value - a normalized index, quarterly), an independent measure from median_sale_price (FHFA via FRED). Not available for large multi-division metros (LA, Chicago, SF, Seattle, DC, Miami, Philadelphia, Dallas, Detroit) - FHFA doesn't publish one for those.",
     MetricName.MEAN_COMMUTE_MINUTES: "Mean one-way commute time to work, in minutes, a single latest-estimate snapshot not a monthly series (Census ACS 5-Year 2024). Same 10 metro-division metros median_household_income lacks are missing this too - Census doesn't publish a combined-metro commute figure for those.",
+    MetricName.MEDIAN_PROPERTY_TAX: "Median annual real estate taxes paid by owner-occupied households, in dollars, a single latest-estimate snapshot not a monthly series (Census ACS 5-Year 2024). Same 10 metro-division metros median_household_income lacks are missing this too.",
     MetricName.MORTGAGE_RATE_30YR_FIXED: "National average 30-year fixed mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
     MetricName.MORTGAGE_RATE_15YR_FIXED: "National average 15-year fixed mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
     MetricName.MORTGAGE_RATE_5_1_ARM: "National average 5/1 adjustable-rate mortgage rate, weekly - NOT metro-specific, leave metros empty (Freddie Mac PMMS)",
@@ -104,6 +105,7 @@ METRIC_LABELS = {
     MetricName.UNEMPLOYMENT_RATE: "unemployment rate",
     MetricName.HOUSE_PRICE_INDEX: "house price index",
     MetricName.MEAN_COMMUTE_MINUTES: "mean commute time (minutes)",
+    MetricName.MEDIAN_PROPERTY_TAX: "median annual property tax",
     MetricName.MEDIAN_GROSS_RENT: "median gross rent (Census)",
     MetricName.MORTGAGE_RATE_30YR_FIXED: "30-year fixed mortgage rate",
     MetricName.MORTGAGE_RATE_15YR_FIXED: "15-year fixed mortgage rate",
@@ -207,6 +209,7 @@ _CURRENCY_METRICS = {
     MetricName.MEDIAN_PRICE_PER_SQFT,
     MetricName.MEDIAN_HOUSEHOLD_INCOME,
     MetricName.MEDIAN_GROSS_RENT,
+    MetricName.MEDIAN_PROPERTY_TAX,
 }
 _FRACTION_PERCENT_METRICS = {MetricName.VACANCY_RATE}
 _PERCENT_METRICS = {
