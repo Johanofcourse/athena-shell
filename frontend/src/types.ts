@@ -24,6 +24,7 @@ export type MetricName =
   | "mean_commute_minutes"
   | "median_property_tax"
   | "natural_hazard_risk_score"
+  | "total_population"
   | "median_gross_rent"
   | "mortgage_rate_30yr_fixed"
   | "mortgage_rate_15yr_fixed"
