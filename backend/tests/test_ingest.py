@@ -264,6 +264,44 @@ def test_ingest_census_commute_missing_file_returns_zero_without_erroring(db_ses
     assert ingest.ingest_census_commute(db_session, {}) == 0
 
 
+# --- ingest_census_property_tax (live-API source, offline-parsed from a saved JSON) ---
+
+
+def test_ingest_census_property_tax_parses_response_and_maps_by_name(db_session, monkeypatch, tmp_path):
+    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
+    db_session.commit()
+
+    path = tmp_path / "property_tax.json"
+    path.write_text(
+        json.dumps(
+            [
+                ["NAME", "B25103_001E", "metropolitan statistical area/micropolitan statistical area"],
+                ["Testville, TS Metro Area", "4200", "99999"],
+                ["Unmapped Place, ZZ Metro Area", "3100", "88888"],
+            ]
+        )
+    )
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_PROPERTY_TAX_FILE", "property_tax.json")
+
+    count = ingest.ingest_census_property_tax(db_session, {"Testville, TS Metro Area": "testville-ts"})
+    db_session.commit()
+    assert count == 1
+
+    row = db_session.query(MarketMetric).filter_by(metro_id="testville-ts").one()
+    assert row.metric == "median_property_tax"
+    assert row.source == MetricSource.CENSUS
+    assert row.value == 4200.0
+    assert row.bed_size is None
+    assert row.period == ingest.CENSUS_ACS_PERIOD
+
+
+def test_ingest_census_property_tax_missing_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_PROPERTY_TAX_FILE", "does_not_exist.json")
+    assert ingest.ingest_census_property_tax(db_session, {}) == 0
+
+
 # --- ingest_census_gross_rent_fallback ---
 
 

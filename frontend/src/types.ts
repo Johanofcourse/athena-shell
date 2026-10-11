@@ -22,6 +22,7 @@ export type MetricName =
   | "unemployment_rate"
   | "house_price_index"
   | "mean_commute_minutes"
+  | "median_property_tax"
   | "median_gross_rent"
   | "mortgage_rate_30yr_fixed"
   | "mortgage_rate_15yr_fixed"
