@@ -35,6 +35,7 @@ class MetricName(str, enum.Enum):
     MEAN_COMMUTE_MINUTES = "mean_commute_minutes"
     MEDIAN_PROPERTY_TAX = "median_property_tax"
     TOTAL_POPULATION = "total_population"
+    NATURAL_HAZARD_RISK_SCORE = "natural_hazard_risk_score"
     # Not user-selectable (excluded from the tool schema's enum) - an
     # internal fallback value substituted into median_rent results for the
     # 10 metro-division metros Apartment List doesn't cover, always

@@ -442,6 +442,107 @@ def ingest_census_population(db, income_to_id: dict[str, str]) -> int:
     return count
 
 
+FEMA_NRI_COUNTY_FILE = "fema_nri_county_risk.csv"
+# NRI's own stated release - v1.20, December 2025 - a different vintage
+# from CENSUS_ACS_PERIOD, and a different source agency, so it gets its
+# own period rather than reusing that constant.
+FEMA_NRI_PERIOD = date(2025, 12, 1)
+
+# OMB's July 2023 CBSA delineation - which counties belong to which
+# metro area. Static reference data, not something to re-fetch on every
+# run: OMB only revises these every few years, same category as
+# METRO_CROSSWALK itself (also hand-maintained, also only needs
+# updating when the underlying geography actually changes). Source:
+# https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2023/delineation-files/list1_2023.xlsx
+# - extracted to plain CSV once rather than adding a new xlsx-parsing
+# dependency (openpyxl) for a file this static.
+CENSUS_CBSA_DELINEATION_FILE = "census_cbsa_county_delineation.csv"
+
+
+def ingest_fema_nri_risk(db, income_to_id: dict[str, str]) -> int:
+    """Aggregates FEMA's county-level National Risk Index composite score
+    (fetch_fema_nri.py's output) up to one score per metro - a
+    population-weighted average across a CBSA's constituent counties
+    (via CENSUS_CBSA_DELINEATION_FILE), since NRI itself doesn't publish
+    a metro-level figure. A real methodology choice, not an arbitrary
+    one: a simple unweighted average would let a sparsely-populated
+    outlying county (e.g. a few thousand people) pull a metro's score
+    around just as much as its dense urban core, misrepresenting where
+    the metro's actual risk exposure sits.
+
+    Can't reuse income_to_id's names directly against county data (that
+    needs the metro's CBSA code, not its name) - builds its own
+    metro_id -> cbsa_code map by matching income_to_id's names against
+    the delineation file's own (title, area-type) columns, reconstructed
+    into the same "X, ST Metro Area" shape income_to_id's names already
+    use. Self-contained: doesn't depend on commute/population's data
+    existing or having been ingested first.
+
+    Optional, same skip-cleanly pattern as every other newer source
+    here - and needs BOTH files present, not just one, since a risk
+    score with no delineation to aggregate it (or vice versa) isn't a
+    real result."""
+    county_path = DATA_DIR / FEMA_NRI_COUNTY_FILE
+    delineation_path = DATA_DIR / CENSUS_CBSA_DELINEATION_FILE
+    if not county_path.exists():
+        print(f"{FEMA_NRI_COUNTY_FILE} not found - run `python -m app.fetch_fema_nri` first. Skipping.")
+        return 0
+    if not delineation_path.exists():
+        print(f"{CENSUS_CBSA_DELINEATION_FILE} not found - skipping FEMA NRI ingest.")
+        return 0
+
+    with open(delineation_path, encoding="utf-8") as f:
+        delineation_rows = list(csv.DictReader(f))
+
+    name_to_cbsa_code = {}
+    cbsa_code_to_counties: dict[str, list[str]] = {}
+    for row in delineation_rows:
+        code = row["cbsa_code"]
+        suffix = "Metro Area" if row["area_type"] == "Metropolitan Statistical Area" else "Micro Area"
+        name_to_cbsa_code[f"{row['cbsa_title']} {suffix}"] = code
+        cbsa_code_to_counties.setdefault(code, []).append(row["stcofips"])
+
+    metro_id_to_cbsa_code = {
+        metro_id: name_to_cbsa_code[geography]
+        for geography, metro_id in income_to_id.items()
+        if geography in name_to_cbsa_code
+    }
+
+    with open(county_path, encoding="utf-8") as f:
+        county_risk = {}
+        for row in csv.DictReader(f):
+            risk = _parse_float(row["RISK_SCORE"])
+            pop = _parse_float(row["POPULATION"])
+            if risk is not None and pop is not None:
+                county_risk[row["STCOFIPS"]] = (risk, pop)
+
+    count = 0
+    for metro_id, cbsa_code in metro_id_to_cbsa_code.items():
+        counties = cbsa_code_to_counties.get(cbsa_code, [])
+        weighted_sum = 0.0
+        total_population = 0.0
+        for stcofips in counties:
+            if stcofips not in county_risk:
+                continue
+            risk, pop = county_risk[stcofips]
+            weighted_sum += risk * pop
+            total_population += pop
+        if total_population == 0:
+            continue
+        db.add(
+            MarketMetric(
+                metro_id=metro_id,
+                period=FEMA_NRI_PERIOD,
+                source=MetricSource.FEMA,
+                metric="natural_hazard_risk_score",
+                bed_size=None,
+                value=weighted_sum / total_population,
+            )
+        )
+        count += 1
+    return count
+
+
 def ingest_census_gross_rent_fallback(db) -> int:
     count = 0
     for filename, county_to_metro in CENSUS_GROSS_RENT_GAP_FILES:
@@ -790,6 +891,10 @@ def ingest() -> None:
         population_count = ingest_census_population(db, income_to_id)
         db.commit()
         print(f"Ingested {population_count} Census total population rows.")
+
+        nri_count = ingest_fema_nri_risk(db, income_to_id)
+        db.commit()
+        print(f"Ingested {nri_count} FEMA National Risk Index rows.")
 
         gross_rent_count = ingest_census_gross_rent_fallback(db)
         db.commit()
