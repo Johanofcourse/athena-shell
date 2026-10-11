@@ -302,6 +302,93 @@ def test_ingest_census_property_tax_missing_file_returns_zero_without_erroring(d
     assert ingest.ingest_census_property_tax(db_session, {}) == 0
 
 
+# --- ingest_census_population (live-API source, offline-parsed from a saved JSON) ---
+
+
+def test_ingest_census_population_matches_by_cbsa_code_across_a_rename(db_session, monkeypatch, tmp_path):
+    # The real bug this guards against: OMB renamed Austin's CBSA three
+    # times in this project's own date range while its numeric code
+    # (12420) never changed. This fixture mirrors that exactly - same
+    # code, different name in the older year - to prove the ingest
+    # follows the code, not the name, across the gap. A version that
+    # matched by name alone would silently drop the 2019 row entirely.
+    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
+    db_session.commit()
+
+    path = tmp_path / "population.json"
+    path.write_text(
+        json.dumps(
+            {
+                "2019": [
+                    ["NAME", "B01003_001E", "metropolitan statistical area/micropolitan statistical area"],
+                    ["Old Testville Name, TS Metro Area", "100000", "99999"],
+                ],
+                "2024": [
+                    ["NAME", "B01003_001E", "metropolitan statistical area/micropolitan statistical area"],
+                    ["Testville, TS Metro Area", "105000", "99999"],
+                ],
+            }
+        )
+    )
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_POPULATION_FILE", "population.json")
+
+    # income_to_id only ever carries the CURRENT (2024) name - the same
+    # shape load_metros actually produces, since it's built from the
+    # single-snapshot income file, not a multi-year one.
+    count = ingest.ingest_census_population(db_session, {"Testville, TS Metro Area": "testville-ts"})
+    db_session.commit()
+    assert count == 2
+
+    rows = (
+        db_session.query(MarketMetric)
+        .filter_by(metro_id="testville-ts", metric="total_population")
+        .order_by(MarketMetric.period)
+        .all()
+    )
+    assert [r.period for r in rows] == [date(2019, 1, 1), date(2024, 1, 1)]
+    assert [r.value for r in rows] == [100000.0, 105000.0]
+    assert all(r.source == MetricSource.CENSUS for r in rows)
+    assert all(r.bed_size is None for r in rows)
+
+
+def test_ingest_census_population_skips_a_code_not_in_the_reference_year(db_session, monkeypatch, tmp_path):
+    # A code present in an older year but absent from the reference
+    # year (e.g. a metro that's since been merged/retired) has nothing
+    # in income_to_id to map to - must be skipped, not crash.
+    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
+    db_session.commit()
+
+    path = tmp_path / "population.json"
+    path.write_text(
+        json.dumps(
+            {
+                "2013": [
+                    ["NAME", "B01003_001E", "metropolitan statistical area/micropolitan statistical area"],
+                    ["Testville, TS Metro Area", "90000", "99999"],
+                    ["Retired Metro, XX Metro Area", "50000", "11111"],
+                ],
+                "2024": [
+                    ["NAME", "B01003_001E", "metropolitan statistical area/micropolitan statistical area"],
+                    ["Testville, TS Metro Area", "105000", "99999"],
+                ],
+            }
+        )
+    )
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_POPULATION_FILE", "population.json")
+
+    count = ingest.ingest_census_population(db_session, {"Testville, TS Metro Area": "testville-ts"})
+    db_session.commit()
+    assert count == 2  # just Testville's 2 years, Retired Metro never matched
+
+
+def test_ingest_census_population_missing_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_POPULATION_FILE", "does_not_exist.json")
+    assert ingest.ingest_census_population(db_session, {}) == 0
+
+
 # --- ingest_census_gross_rent_fallback ---
 
 

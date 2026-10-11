@@ -348,6 +348,100 @@ def ingest_census_property_tax(db, income_to_id: dict[str, str]) -> int:
     return count
 
 
+CENSUS_POPULATION_FILE = "census_population.json"
+
+
+def ingest_census_population(db, income_to_id: dict[str, str]) -> int:
+    """Parses the raw multi-year response saved by
+    fetch_census_population.py into MarketMetric rows - one per
+    (metro, year). Unlike the other Census ingests here, this one can't
+    just match on the metro-name string income_to_id provides: OMB
+    revises CBSA delineations (and their names) periodically, and Austin
+    alone was named three different ways across this very date range -
+    "Austin-Round Rock-San Marcos" (2012), "Austin-Round Rock" (2013),
+    "Austin-Round Rock-Georgetown" (2019-2022), back to "...San Marcos"
+    (2023-2024) - all the SAME CBSA. A name-keyed join silently matched
+    only the 2 years that happened to share the current name and
+    dropped the other 10, which a first version of this function shipped
+    with (caught by testing an actual decade-trend query before
+    shipping it, not by eye: the narrative said "grew modestly... over
+    the decade" while actually comparing just 2023 to 2024). The CBSA
+    numeric code (the API's last column) is stable across those renames,
+    so this builds a metro_id -> code map from the latest year present
+    (the one most likely to share income_to_id's own current-as-of-2024
+    naming) via income_to_id's names, then matches every other year by
+    that code instead - immune to the area simply being renamed, still
+    correctly silent on a genuine boundary change big enough to assign a
+    new code.
+
+    One row per year, same shape as any other trend metric - unlike
+    median_household_income/mean_commute_minutes/median_property_tax
+    (single-snapshot values), this flows through the existing
+    trend-chart and narrative-synthesis machinery with no
+    special-casing. Period is January 1 of the ACS survey year - a
+    simple, consistent convention for a once-a-year data point, not a
+    claim about a specific collection date (ACS 1-Year collects
+    year-round). Optional, same skip-cleanly pattern as every other
+    newer source here."""
+    path = DATA_DIR / CENSUS_POPULATION_FILE
+    if not path.exists():
+        print(f"{CENSUS_POPULATION_FILE} not found - run `python -m app.fetch_census_population` first. Skipping.")
+        return 0
+
+    with open(path, encoding="utf-8") as f:
+        by_year = json.load(f)
+
+    def parse_year(rows):
+        header, data_rows = rows[0], rows[1:]
+        name_idx = header.index("NAME")
+        value_idx = header.index("B01003_001E")
+        code_idx = header.index("metropolitan statistical area/micropolitan statistical area")
+        return data_rows, name_idx, value_idx, code_idx
+
+    # The latest year, not just whichever has the most rows: income_to_id's
+    # names come from the 2024-vintage ACS income file, so the population
+    # year closest to that vintage is the one most likely to share its
+    # current OMB naming - matching against an older year risked picking
+    # up ITS renamed-since-then names instead.
+    reference_year = max(by_year, key=int)
+    ref_rows, ref_name_idx, _, ref_code_idx = parse_year(by_year[reference_year])
+    name_to_code = {row[ref_name_idx]: row[ref_code_idx] for row in ref_rows}
+    metro_id_to_code = {
+        metro_id: name_to_code[geography]
+        for geography, metro_id in income_to_id.items()
+        if geography in name_to_code
+    }
+    code_to_metro_id = {code: metro_id for metro_id, code in metro_id_to_code.items()}
+
+    count = 0
+    for year_str, rows in by_year.items():
+        data_rows, _, value_idx, code_idx = parse_year(rows)
+
+        values_by_code = {}
+        for row in data_rows:
+            value = _parse_float(row[value_idx])
+            if value is not None:
+                values_by_code[row[code_idx]] = value
+
+        period = date(int(year_str), 1, 1)
+        for code, metro_id in code_to_metro_id.items():
+            value = values_by_code.get(code)
+            if value is None:
+                continue
+            db.add(
+                MarketMetric(
+                    metro_id=metro_id,
+                    period=period,
+                    source=MetricSource.CENSUS,
+                    metric="total_population",
+                    bed_size=None,
+                    value=value,
+                )
+            )
+            count += 1
+    return count
+
+
 def ingest_census_gross_rent_fallback(db) -> int:
     count = 0
     for filename, county_to_metro in CENSUS_GROSS_RENT_GAP_FILES:
@@ -692,6 +786,10 @@ def ingest() -> None:
         property_tax_count = ingest_census_property_tax(db, income_to_id)
         db.commit()
         print(f"Ingested {property_tax_count} Census median property tax rows.")
+
+        population_count = ingest_census_population(db, income_to_id)
+        db.commit()
+        print(f"Ingested {population_count} Census total population rows.")
 
         gross_rent_count = ingest_census_gross_rent_fallback(db)
         db.commit()
