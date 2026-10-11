@@ -47,6 +47,7 @@ class MetricSource(str, enum.Enum):
     FREDDIE_MAC = "freddie_mac"
     BLS = "bls"
     FRED = "fred"
+    FEMA = "fema"
 
 
 class MarketMetric(Base):

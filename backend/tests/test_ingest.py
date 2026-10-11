@@ -11,6 +11,8 @@ import csv
 import json
 from datetime import date
 
+import pytest
+
 from app import ingest_market_data as ingest
 from app import ingest_national_data as ingest_national
 from app.models import MarketMetric, MetricSource, Metro, NationalMetric
@@ -300,6 +302,107 @@ def test_ingest_census_property_tax_missing_file_returns_zero_without_erroring(d
     monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
     monkeypatch.setattr(ingest, "CENSUS_PROPERTY_TAX_FILE", "does_not_exist.json")
     assert ingest.ingest_census_property_tax(db_session, {}) == 0
+
+
+# --- ingest_fema_nri_risk ---
+
+
+def _write_delineation_csv(path, rows):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["cbsa_code", "cbsa_title", "area_type", "stcofips"])
+        writer.writerows(rows)
+
+
+def _write_nri_csv(path, rows):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["STCOFIPS", "COUNTY", "STATEABBRV", "RISK_SCORE", "POPULATION"])
+        writer.writerows(rows)
+
+
+def test_ingest_fema_nri_risk_is_population_weighted_not_a_plain_average(db_session, monkeypatch, tmp_path):
+    # The real reason this is weighted, not averaged: a sparsely-populated
+    # outlying county (here, 100 people) shouldn't pull a metro's score
+    # around as much as its dense urban core (300 people) - a plain
+    # average of 50 and 90 would give 70; population-weighted gives 80,
+    # correctly closer to the county where most residents actually are.
+    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
+    db_session.commit()
+
+    delineation_path = tmp_path / "delineation.csv"
+    _write_delineation_csv(
+        delineation_path,
+        [
+            ["99999", "Testville, TS", "Metropolitan Statistical Area", "11111"],
+            ["99999", "Testville, TS", "Metropolitan Statistical Area", "22222"],
+        ],
+    )
+    nri_path = tmp_path / "nri.csv"
+    _write_nri_csv(
+        nri_path,
+        [
+            ["11111", "Outlying", "TS", "50", "100"],
+            ["22222", "Urban Core", "TS", "90", "300"],
+        ],
+    )
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_CBSA_DELINEATION_FILE", "delineation.csv")
+    monkeypatch.setattr(ingest, "FEMA_NRI_COUNTY_FILE", "nri.csv")
+
+    count = ingest.ingest_fema_nri_risk(db_session, {"Testville, TS Metro Area": "testville-ts"})
+    db_session.commit()
+    assert count == 1
+
+    row = db_session.query(MarketMetric).filter_by(metro_id="testville-ts", metric="natural_hazard_risk_score").one()
+    assert row.value == pytest.approx(80.0)
+    assert row.source == MetricSource.FEMA
+    assert row.period == ingest.FEMA_NRI_PERIOD
+    assert row.bed_size is None
+
+
+def test_ingest_fema_nri_risk_skips_a_county_with_no_risk_data(db_session, monkeypatch, tmp_path):
+    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
+    db_session.commit()
+
+    delineation_path = tmp_path / "delineation.csv"
+    _write_delineation_csv(
+        delineation_path,
+        [
+            ["99999", "Testville, TS", "Metropolitan Statistical Area", "11111"],
+            # 22222 belongs to the CBSA but never appears in the NRI file -
+            # must be skipped, not crash, and must not count as zero risk.
+            ["99999", "Testville, TS", "Metropolitan Statistical Area", "22222"],
+        ],
+    )
+    nri_path = tmp_path / "nri.csv"
+    _write_nri_csv(nri_path, [["11111", "Only County", "TS", "60", "500"]])
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_CBSA_DELINEATION_FILE", "delineation.csv")
+    monkeypatch.setattr(ingest, "FEMA_NRI_COUNTY_FILE", "nri.csv")
+
+    count = ingest.ingest_fema_nri_risk(db_session, {"Testville, TS Metro Area": "testville-ts"})
+    db_session.commit()
+    assert count == 1
+
+    row = db_session.query(MarketMetric).filter_by(metro_id="testville-ts", metric="natural_hazard_risk_score").one()
+    assert row.value == pytest.approx(60.0)
+
+
+def test_ingest_fema_nri_risk_missing_county_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
+    _write_delineation_csv(tmp_path / "delineation.csv", [])
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_CBSA_DELINEATION_FILE", "delineation.csv")
+    monkeypatch.setattr(ingest, "FEMA_NRI_COUNTY_FILE", "does_not_exist.csv")
+    assert ingest.ingest_fema_nri_risk(db_session, {}) == 0
+
+
+def test_ingest_fema_nri_risk_missing_delineation_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
+    _write_nri_csv(tmp_path / "nri.csv", [])
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_CBSA_DELINEATION_FILE", "does_not_exist.csv")
+    monkeypatch.setattr(ingest, "FEMA_NRI_COUNTY_FILE", "nri.csv")
+    assert ingest.ingest_fema_nri_risk(db_session, {}) == 0
 
 
 # --- ingest_census_gross_rent_fallback ---
