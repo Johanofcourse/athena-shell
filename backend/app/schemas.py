@@ -32,6 +32,7 @@ class MetricName(str, enum.Enum):
     RENT_TO_INCOME_PCT = "rent_to_income_pct"
     UNEMPLOYMENT_RATE = "unemployment_rate"
     HOUSE_PRICE_INDEX = "house_price_index"
+    MEAN_COMMUTE_MINUTES = "mean_commute_minutes"
     # Not user-selectable (excluded from the tool schema's enum) - an
     # internal fallback value substituted into median_rent results for the
     # 10 metro-division metros Apartment List doesn't cover, always

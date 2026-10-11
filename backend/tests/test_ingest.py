@@ -226,6 +226,44 @@ def test_ingest_census_income(db_session, monkeypatch, tmp_path):
     assert row.period == ingest.CENSUS_ACS_PERIOD
 
 
+# --- ingest_census_commute (live-API source, offline-parsed from a saved JSON) ---
+
+
+def test_ingest_census_commute_parses_response_and_maps_by_name(db_session, monkeypatch, tmp_path):
+    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
+    db_session.commit()
+
+    path = tmp_path / "commute.json"
+    path.write_text(
+        json.dumps(
+            [
+                ["NAME", "S0801_C01_046E", "metropolitan statistical area/micropolitan statistical area"],
+                ["Testville, TS Metro Area", "24.3", "99999"],
+                ["Unmapped Place, ZZ Metro Area", "19.0", "88888"],
+            ]
+        )
+    )
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_COMMUTE_FILE", "commute.json")
+
+    count = ingest.ingest_census_commute(db_session, {"Testville, TS Metro Area": "testville-ts"})
+    db_session.commit()
+    assert count == 1
+
+    row = db_session.query(MarketMetric).filter_by(metro_id="testville-ts").one()
+    assert row.metric == "mean_commute_minutes"
+    assert row.source == MetricSource.CENSUS
+    assert row.value == 24.3
+    assert row.bed_size is None
+    assert row.period == ingest.CENSUS_ACS_PERIOD
+
+
+def test_ingest_census_commute_missing_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_COMMUTE_FILE", "does_not_exist.json")
+    assert ingest.ingest_census_commute(db_session, {}) == 0
+
+
 # --- ingest_census_gross_rent_fallback ---
 
 

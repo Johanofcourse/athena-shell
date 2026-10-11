@@ -13,6 +13,12 @@ class Settings(BaseSettings):
     # For the planned FRED (FHFA House Price Index by metro) ingest, not built yet.
     fred_api_key: str = ""
 
+    # For fetch_census_commute_time.py - Census now requires a key for every
+    # API request, not just high-volume ones (confirmed by testing; it used
+    # to allow some keyless traffic). Free, instant signup at
+    # https://api.census.gov/data/key_signup.html.
+    census_api_key: str = ""
+
     database_url: str = "sqlite:///./athena.db"
 
     cors_origins: str = "http://localhost:5173"

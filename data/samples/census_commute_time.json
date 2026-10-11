@@ -1,0 +1,4682 @@
+[
+  [
+    "NAME",
+    "S0801_C01_046E",
+    "metropolitan statistical area/micropolitan statistical area"
+  ],
+  [
+    "Aberdeen, SD Micro Area",
+    "14.3",
+    "10100"
+  ],
+  [
+    "Aberdeen, WA Micro Area",
+    "24.3",
+    "10140"
+  ],
+  [
+    "Abilene, TX Metro Area",
+    "18.5",
+    "10180"
+  ],
+  [
+    "Ada, OK Micro Area",
+    "17.7",
+    "10220"
+  ],
+  [
+    "Adrian, MI Micro Area",
+    "27.6",
+    "10300"
+  ],
+  [
+    "Aguadilla, PR Metro Area",
+    "24.0",
+    "10380"
+  ],
+  [
+    "Akron, OH Metro Area",
+    "23.5",
+    "10420"
+  ],
+  [
+    "Alamogordo, NM Micro Area",
+    "22.1",
+    "10460"
+  ],
+  [
+    "Alamosa, CO Micro Area",
+    "18.7",
+    "10480"
+  ],
+  [
+    "Albany, GA Metro Area",
+    "22.2",
+    "10500"
+  ],
+  [
+    "Albany, OR Metro Area",
+    "25.7",
+    "10540"
+  ],
+  [
+    "Albany-Schenectady-Troy, NY Metro Area",
+    "23.5",
+    "10580"
+  ],
+  [
+    "Albemarle, NC Micro Area",
+    "28.1",
+    "10620"
+  ],
+  [
+    "Albert Lea, MN Micro Area",
+    "19.7",
+    "10660"
+  ],
+  [
+    "Albertville, AL Micro Area",
+    "25.5",
+    "10700"
+  ],
+  [
+    "Albuquerque, NM Metro Area",
+    "24.8",
+    "10740"
+  ],
+  [
+    "Alexander City, AL Micro Area",
+    "25.2",
+    "10760"
+  ],
+  [
+    "Alexandria, LA Metro Area",
+    "23.2",
+    "10780"
+  ],
+  [
+    "Alexandria, MN Micro Area",
+    "20.5",
+    "10820"
+  ],
+  [
+    "Alice, TX Micro Area",
+    "23.3",
+    "10860"
+  ],
+  [
+    "Allentown-Bethlehem-Easton, PA-NJ Metro Area",
+    "27.5",
+    "10900"
+  ],
+  [
+    "Alma, MI Micro Area",
+    "23.9",
+    "10940"
+  ],
+  [
+    "Alpena, MI Micro Area",
+    "17.5",
+    "10980"
+  ],
+  [
+    "Altoona, PA Metro Area",
+    "20.5",
+    "11020"
+  ],
+  [
+    "Altus, OK Micro Area",
+    "13.1",
+    "11060"
+  ],
+  [
+    "Amarillo, TX Metro Area",
+    "20.5",
+    "11100"
+  ],
+  [
+    "Americus, GA Micro Area",
+    "21.1",
+    "11140"
+  ],
+  [
+    "Ames, IA Metro Area",
+    "18.8",
+    "11180"
+  ],
+  [
+    "Amherst Town-Northampton, MA Metro Area",
+    "23.2",
+    "11200"
+  ],
+  [
+    "Amsterdam, NY Micro Area",
+    "24.0",
+    "11220"
+  ],
+  [
+    "Anchorage, AK Metro Area",
+    "22.7",
+    "11260"
+  ],
+  [
+    "Anderson Creek, NC Micro Area",
+    "32.8",
+    "11360"
+  ],
+  [
+    "Andrews, TX Micro Area",
+    "24.0",
+    "11380"
+  ],
+  [
+    "Angola, IN Micro Area",
+    "21.0",
+    "11420"
+  ],
+  [
+    "Ann Arbor, MI Metro Area",
+    "23.5",
+    "11460"
+  ],
+  [
+    "Anniston-Oxford, AL Metro Area",
+    "25.2",
+    "11500"
+  ],
+  [
+    "Appleton, WI Metro Area",
+    "20.8",
+    "11540"
+  ],
+  [
+    "Arcadia, FL Micro Area",
+    "30.5",
+    "11580"
+  ],
+  [
+    "Ardmore, OK Micro Area",
+    "20.8",
+    "11620"
+  ],
+  [
+    "Arecibo, PR Metro Area",
+    "26.6",
+    "11640"
+  ],
+  [
+    "Arkadelphia, AR Micro Area",
+    "21.4",
+    "11660"
+  ],
+  [
+    "Arkansas City-Winfield, KS Micro Area",
+    "21.1",
+    "11680"
+  ],
+  [
+    "Asheville, NC Metro Area",
+    "22.1",
+    "11700"
+  ],
+  [
+    "Ashland, OH Micro Area",
+    "23.9",
+    "11740"
+  ],
+  [
+    "Astoria, OR Micro Area",
+    "21.6",
+    "11820"
+  ],
+  [
+    "Atchison, KS Micro Area",
+    "21.2",
+    "11860"
+  ],
+  [
+    "Athens, OH Micro Area",
+    "24.1",
+    "11900"
+  ],
+  [
+    "Athens, TN Micro Area",
+    "26.3",
+    "11940"
+  ],
+  [
+    "Athens, TX Micro Area",
+    "29.1",
+    "11980"
+  ],
+  [
+    "Athens-Clarke County, GA Metro Area",
+    "23.5",
+    "12020"
+  ],
+  [
+    "Atlanta-Sandy Springs-Roswell, GA Metro Area",
+    "31.0",
+    "12060"
+  ],
+  [
+    "Atlantic City-Hammonton, NJ Metro Area",
+    "24.4",
+    "12100"
+  ],
+  [
+    "Auburn, IN Micro Area",
+    "21.3",
+    "12140"
+  ],
+  [
+    "Auburn, NY Micro Area",
+    "22.8",
+    "12180"
+  ],
+  [
+    "Auburn-Opelika, AL Metro Area",
+    "22.4",
+    "12220"
+  ],
+  [
+    "Augusta-Richmond County, GA-SC Metro Area",
+    "23.9",
+    "12260"
+  ],
+  [
+    "Augusta-Waterville, ME Micro Area",
+    "25.4",
+    "12300"
+  ],
+  [
+    "Austin, MN Micro Area",
+    "20.7",
+    "12380"
+  ],
+  [
+    "Austin-Round Rock-San Marcos, TX Metro Area",
+    "27.3",
+    "12420"
+  ],
+  [
+    "Bainbridge, GA Micro Area",
+    "21.4",
+    "12460"
+  ],
+  [
+    "Baker City, OR Micro Area",
+    "15.1",
+    "12520"
+  ],
+  [
+    "Bakersfield-Delano, CA Metro Area",
+    "24.4",
+    "12540"
+  ],
+  [
+    "Baltimore-Columbia-Towson, MD Metro Area",
+    "29.4",
+    "12580"
+  ],
+  [
+    "Bangor, ME Metro Area",
+    "22.7",
+    "12620"
+  ],
+  [
+    "Baraboo, WI Micro Area",
+    "23.0",
+    "12660"
+  ],
+  [
+    "Barnstable Town, MA Metro Area",
+    "24.8",
+    "12700"
+  ],
+  [
+    "Barre, VT Micro Area",
+    "23.4",
+    "12740"
+  ],
+  [
+    "Bartlesville, OK Micro Area",
+    "20.7",
+    "12780"
+  ],
+  [
+    "Batavia, NY Micro Area",
+    "23.5",
+    "12860"
+  ],
+  [
+    "Batesville, AR Micro Area",
+    "19.5",
+    "12900"
+  ],
+  [
+    "Baton Rouge, LA Metro Area",
+    "27.2",
+    "12940"
+  ],
+  [
+    "Battle Creek, MI Metro Area",
+    "20.5",
+    "12980"
+  ],
+  [
+    "Bay City, MI Metro Area",
+    "23.1",
+    "13020"
+  ],
+  [
+    "Bay City, TX Micro Area",
+    "24.0",
+    "13060"
+  ],
+  [
+    "Beatrice, NE Micro Area",
+    "21.2",
+    "13100"
+  ],
+  [
+    "Beaumont-Port Arthur, TX Metro Area",
+    "23.4",
+    "13140"
+  ],
+  [
+    "Beaver Dam, WI Micro Area",
+    "24.1",
+    "13180"
+  ],
+  [
+    "Beckley, WV Metro Area",
+    "25.9",
+    "13220"
+  ],
+  [
+    "Bedford, IN Micro Area",
+    "27.2",
+    "13260"
+  ],
+  [
+    "Beeville, TX Micro Area",
+    "21.5",
+    "13300"
+  ],
+  [
+    "Bellefontaine, OH Micro Area",
+    "21.8",
+    "13340"
+  ],
+  [
+    "Bellingham, WA Metro Area",
+    "21.6",
+    "13380"
+  ],
+  [
+    "Bemidji, MN Micro Area",
+    "21.0",
+    "13420"
+  ],
+  [
+    "Bend, OR Metro Area",
+    "20.9",
+    "13460"
+  ],
+  [
+    "Bennington, VT Micro Area",
+    "20.3",
+    "13540"
+  ],
+  [
+    "Big Rapids, MI Micro Area",
+    "23.7",
+    "13660"
+  ],
+  [
+    "Big Spring, TX Micro Area",
+    "21.7",
+    "13700"
+  ],
+  [
+    "Billings, MT Metro Area",
+    "19.8",
+    "13740"
+  ],
+  [
+    "Binghamton, NY Metro Area",
+    "20.3",
+    "13780"
+  ],
+  [
+    "Birmingham, AL Metro Area",
+    "27.0",
+    "13820"
+  ],
+  [
+    "Bishop, CA Micro Area",
+    "16.0",
+    "13860"
+  ],
+  [
+    "Bismarck, ND Metro Area",
+    "18.2",
+    "13900"
+  ],
+  [
+    "Blackfoot, ID Micro Area",
+    "22.2",
+    "13940"
+  ],
+  [
+    "Blacksburg-Christiansburg-Radford, VA Metro Area",
+    "21.2",
+    "13980"
+  ],
+  [
+    "Bloomington, IL Metro Area",
+    "18.3",
+    "14010"
+  ],
+  [
+    "Bloomington, IN Metro Area",
+    "21.7",
+    "14020"
+  ],
+  [
+    "Bloomsburg-Berwick, PA Micro Area",
+    "21.7",
+    "14100"
+  ],
+  [
+    "Bluefield, WV-VA Micro Area",
+    "25.1",
+    "14140"
+  ],
+  [
+    "Blytheville, AR Micro Area",
+    "19.8",
+    "14180"
+  ],
+  [
+    "Bogalusa, LA Micro Area",
+    "32.6",
+    "14220"
+  ],
+  [
+    "Boise City, ID Metro Area",
+    "22.9",
+    "14260"
+  ],
+  [
+    "Bonham, TX Micro Area",
+    "31.6",
+    "14300"
+  ],
+  [
+    "Boone, NC Micro Area",
+    "21.2",
+    "14380"
+  ],
+  [
+    "Borger, TX Micro Area",
+    "20.3",
+    "14420"
+  ],
+  [
+    "Boston-Cambridge-Newton, MA-NH Metro Area",
+    "30.3",
+    "14460"
+  ],
+  [
+    "Boulder, CO Metro Area",
+    "22.3",
+    "14500"
+  ],
+  [
+    "Bowling Green, KY Metro Area",
+    "22.1",
+    "14540"
+  ],
+  [
+    "Bozeman, MT Metro Area",
+    "18.3",
+    "14580"
+  ],
+  [
+    "Bradford, PA Micro Area",
+    "20.4",
+    "14620"
+  ],
+  [
+    "Brainerd, MN Micro Area",
+    "23.7",
+    "14660"
+  ],
+  [
+    "Branson, MO Micro Area",
+    "23.3",
+    "14700"
+  ],
+  [
+    "Brattleboro, VT Micro Area",
+    "22.2",
+    "14710"
+  ],
+  [
+    "Breckenridge, CO Micro Area",
+    "21.8",
+    "14720"
+  ],
+  [
+    "Bremerton-Silverdale-Port Orchard, WA Metro Area",
+    "28.4",
+    "14740"
+  ],
+  [
+    "Brenham, TX Micro Area",
+    "23.1",
+    "14780"
+  ],
+  [
+    "Brevard, NC Micro Area",
+    "21.9",
+    "14820"
+  ],
+  [
+    "Bridgeport-Stamford-Danbury, CT Metro Area",
+    "31.0",
+    "14860"
+  ],
+  [
+    "Brigham City, UT-ID Micro Area",
+    "22.6",
+    "14940"
+  ],
+  [
+    "Brookhaven, MS Micro Area",
+    "28.7",
+    "15020"
+  ],
+  [
+    "Brookings, OR Micro Area",
+    "18.5",
+    "15060"
+  ],
+  [
+    "Brookings, SD Micro Area",
+    "14.3",
+    "15100"
+  ],
+  [
+    "Brownsville-Harlingen, TX Metro Area",
+    "21.3",
+    "15180"
+  ],
+  [
+    "Brownwood, TX Micro Area",
+    "18.9",
+    "15220"
+  ],
+  [
+    "Brunswick-St. Simons, GA Metro Area",
+    "23.2",
+    "15260"
+  ],
+  [
+    "Bucyrus, OH Micro Area",
+    "23.9",
+    "15340"
+  ],
+  [
+    "Buffalo-Cheektowaga, NY Metro Area",
+    "21.5",
+    "15380"
+  ],
+  [
+    "Burley, ID Micro Area",
+    "17.7",
+    "15420"
+  ],
+  [
+    "Burlington, IA-IL Micro Area",
+    "19.0",
+    "15460"
+  ],
+  [
+    "Burlington, NC Metro Area",
+    "25.9",
+    "15500"
+  ],
+  [
+    "Burlington-South Burlington, VT Metro Area",
+    "22.7",
+    "15540"
+  ],
+  [
+    "Butte-Silver Bow, MT Micro Area",
+    "16.9",
+    "15580"
+  ],
+  [
+    "Cadillac, MI Micro Area",
+    "23.9",
+    "15620"
+  ],
+  [
+    "Calhoun, GA Micro Area",
+    "25.3",
+    "15660"
+  ],
+  [
+    "Cambridge, MD Micro Area",
+    "26.9",
+    "15700"
+  ],
+  [
+    "Cambridge, OH Micro Area",
+    "22.9",
+    "15740"
+  ],
+  [
+    "Camden, AR Micro Area",
+    "22.8",
+    "15780"
+  ],
+  [
+    "Campbellsville, KY Micro Area",
+    "24.0",
+    "15820"
+  ],
+  [
+    "Ca\u00f1on City, CO Micro Area",
+    "24.7",
+    "15860"
+  ],
+  [
+    "Canton, IL Micro Area",
+    "25.8",
+    "15900"
+  ],
+  [
+    "Canton-Massillon, OH Metro Area",
+    "22.3",
+    "15940"
+  ],
+  [
+    "Cape Coral-Fort Myers, FL Metro Area",
+    "29.4",
+    "15980"
+  ],
+  [
+    "Cape Girardeau, MO-IL Metro Area",
+    "21.4",
+    "16020"
+  ],
+  [
+    "Carbondale, IL Micro Area",
+    "20.3",
+    "16060"
+  ],
+  [
+    "Carlsbad-Artesia, NM Micro Area",
+    "21.4",
+    "16100"
+  ],
+  [
+    "Carroll, IA Micro Area",
+    "15.7",
+    "16140"
+  ],
+  [
+    "Carson City, NV Metro Area",
+    "20.5",
+    "16180"
+  ],
+  [
+    "Casper, WY Metro Area",
+    "19.0",
+    "16220"
+  ],
+  [
+    "Cedar City, UT Micro Area",
+    "16.9",
+    "16260"
+  ],
+  [
+    "Cedar Rapids, IA Metro Area",
+    "20.2",
+    "16300"
+  ],
+  [
+    "Cedartown, GA Micro Area",
+    "30.5",
+    "16340"
+  ],
+  [
+    "Celina, OH Micro Area",
+    "18.5",
+    "16380"
+  ],
+  [
+    "Centralia, IL Micro Area",
+    "21.1",
+    "16460"
+  ],
+  [
+    "Centralia, WA Micro Area",
+    "28.5",
+    "16500"
+  ],
+  [
+    "Chambersburg, PA Metro Area",
+    "24.3",
+    "16540"
+  ],
+  [
+    "Champaign-Urbana, IL Metro Area",
+    "17.9",
+    "16580"
+  ],
+  [
+    "Charleston, WV Metro Area",
+    "23.5",
+    "16620"
+  ],
+  [
+    "Charleston-Mattoon, IL Micro Area",
+    "18.2",
+    "16660"
+  ],
+  [
+    "Charleston-North Charleston, SC Metro Area",
+    "27.7",
+    "16700"
+  ],
+  [
+    "Charlotte-Concord-Gastonia, NC-SC Metro Area",
+    "26.6",
+    "16740"
+  ],
+  [
+    "Charlottesville, VA Metro Area",
+    "23.9",
+    "16820"
+  ],
+  [
+    "Chattanooga, TN-GA Metro Area",
+    "24.1",
+    "16860"
+  ],
+  [
+    "Cheyenne, WY Metro Area",
+    "17.8",
+    "16940"
+  ],
+  [
+    "Chicago-Naperville-Elgin, IL-IN Metro Area",
+    "30.3",
+    "16980"
+  ],
+  [
+    "Chico, CA Metro Area",
+    "21.0",
+    "17020"
+  ],
+  [
+    "Chillicothe, OH Micro Area",
+    "26.4",
+    "17060"
+  ],
+  [
+    "Cincinnati, OH-KY-IN Metro Area",
+    "24.7",
+    "17140"
+  ],
+  [
+    "Clarksburg, WV Micro Area",
+    "23.8",
+    "17220"
+  ],
+  [
+    "Clarksdale, MS Micro Area",
+    "20.1",
+    "17260"
+  ],
+  [
+    "Clarksville, TN-KY Metro Area",
+    "26.4",
+    "17300"
+  ],
+  [
+    "Clearlake, CA Micro Area",
+    "32.4",
+    "17340"
+  ],
+  [
+    "Cleveland, MS Micro Area",
+    "20.1",
+    "17380"
+  ],
+  [
+    "Cleveland, OH Metro Area",
+    "24.2",
+    "17410"
+  ],
+  [
+    "Cleveland, TN Metro Area",
+    "24.4",
+    "17420"
+  ],
+  [
+    "Clewiston, FL Micro Area",
+    "31.5",
+    "17500"
+  ],
+  [
+    "Clinton, IA Micro Area",
+    "21.7",
+    "17540"
+  ],
+  [
+    "Clovis, NM Micro Area",
+    "16.2",
+    "17580"
+  ],
+  [
+    "Coamo, PR Micro Area",
+    "26.3",
+    "17620"
+  ],
+  [
+    "Coco, PR Micro Area",
+    "26.6",
+    "17640"
+  ],
+  [
+    "Cody, WY Micro Area",
+    "16.6",
+    "17650"
+  ],
+  [
+    "Coeur d'Alene, ID Metro Area",
+    "22.8",
+    "17660"
+  ],
+  [
+    "Coldwater, MI Micro Area",
+    "22.7",
+    "17740"
+  ],
+  [
+    "College Station-Bryan, TX Metro Area",
+    "19.6",
+    "17780"
+  ],
+  [
+    "Colorado Springs, CO Metro Area",
+    "23.7",
+    "17820"
+  ],
+  [
+    "Columbia, MO Metro Area",
+    "19.6",
+    "17860"
+  ],
+  [
+    "Columbia, SC Metro Area",
+    "25.0",
+    "17900"
+  ],
+  [
+    "Columbus, GA-AL Metro Area",
+    "22.6",
+    "17980"
+  ],
+  [
+    "Columbus, IN Metro Area",
+    "21.5",
+    "18020"
+  ],
+  [
+    "Columbus, MS Micro Area",
+    "21.9",
+    "18060"
+  ],
+  [
+    "Columbus, NE Micro Area",
+    "16.4",
+    "18100"
+  ],
+  [
+    "Columbus, OH Metro Area",
+    "23.6",
+    "18140"
+  ],
+  [
+    "Concord, NH Micro Area",
+    "26.6",
+    "18180"
+  ],
+  [
+    "Connersville, IN Micro Area",
+    "26.8",
+    "18220"
+  ],
+  [
+    "Cookeville, TN Micro Area",
+    "23.3",
+    "18260"
+  ],
+  [
+    "Coos Bay-North Bend, OR Micro Area",
+    "18.3",
+    "18300"
+  ],
+  [
+    "Corbin, KY Micro Area",
+    "24.1",
+    "18340"
+  ],
+  [
+    "Cordele, GA Micro Area",
+    "20.6",
+    "18380"
+  ],
+  [
+    "Corinth, MS Micro Area",
+    "22.3",
+    "18420"
+  ],
+  [
+    "Cornelia, GA Micro Area",
+    "27.7",
+    "18460"
+  ],
+  [
+    "Corning, NY Micro Area",
+    "22.2",
+    "18500"
+  ],
+  [
+    "Corpus Christi, TX Metro Area",
+    "21.9",
+    "18580"
+  ],
+  [
+    "Corsicana, TX Micro Area",
+    "27.1",
+    "18620"
+  ],
+  [
+    "Cortland, NY Micro Area",
+    "22.3",
+    "18660"
+  ],
+  [
+    "Corvallis, OR Metro Area",
+    "19.6",
+    "18700"
+  ],
+  [
+    "Coshocton, OH Micro Area",
+    "24.8",
+    "18740"
+  ],
+  [
+    "Crawfordsville, IN Micro Area",
+    "22.8",
+    "18820"
+  ],
+  [
+    "Crescent City, CA Micro Area",
+    "19.6",
+    "18860"
+  ],
+  [
+    "Crestview-Fort Walton Beach-Destin, FL Metro Area",
+    "27.1",
+    "18880"
+  ],
+  [
+    "Crossville, TN Micro Area",
+    "22.9",
+    "18900"
+  ],
+  [
+    "Cullman, AL Micro Area",
+    "27.0",
+    "18980"
+  ],
+  [
+    "Cumberland, MD-WV Micro Area",
+    "24.1",
+    "19060"
+  ],
+  [
+    "Dallas-Fort Worth-Arlington, TX Metro Area",
+    "27.9",
+    "19100"
+  ],
+  [
+    "Dalton, GA Metro Area",
+    "23.7",
+    "19140"
+  ],
+  [
+    "Danville, IL Micro Area",
+    "20.1",
+    "19180"
+  ],
+  [
+    "Danville, KY Micro Area",
+    "25.4",
+    "19220"
+  ],
+  [
+    "Danville, VA Micro Area",
+    "24.4",
+    "19260"
+  ],
+  [
+    "Daphne-Fairhope-Foley, AL Metro Area",
+    "27.0",
+    "19300"
+  ],
+  [
+    "Davenport-Moline-Rock Island, IA-IL Metro Area",
+    "20.6",
+    "19340"
+  ],
+  [
+    "Dayton-Kettering-Beavercreek, OH Metro Area",
+    "22.0",
+    "19430"
+  ],
+  [
+    "Decatur, AL Metro Area",
+    "26.0",
+    "19460"
+  ],
+  [
+    "Decatur, IL Metro Area",
+    "19.4",
+    "19500"
+  ],
+  [
+    "Decatur, IN Micro Area",
+    "24.6",
+    "19540"
+  ],
+  [
+    "Defiance, OH Micro Area",
+    "19.8",
+    "19580"
+  ],
+  [
+    "Del Rio, TX Micro Area",
+    "19.1",
+    "19620"
+  ],
+  [
+    "Deltona-Daytona Beach-Ormond Beach, FL Metro Area",
+    "27.5",
+    "19660"
+  ],
+  [
+    "Deming, NM Micro Area",
+    "19.1",
+    "19700"
+  ],
+  [
+    "Denver-Aurora-Centennial, CO Metro Area",
+    "27.0",
+    "19740"
+  ],
+  [
+    "DeRidder, LA Micro Area",
+    "33.2",
+    "19760"
+  ],
+  [
+    "Des Moines-West Des Moines, IA Metro Area",
+    "21.0",
+    "19780"
+  ],
+  [
+    "Detroit Lakes, MN Micro Area",
+    "21.7",
+    "19810"
+  ],
+  [
+    "Detroit-Warren-Dearborn, MI Metro Area",
+    "26.0",
+    "19820"
+  ],
+  [
+    "Dickinson, ND Micro Area",
+    "18.6",
+    "19860"
+  ],
+  [
+    "Dixon, IL Micro Area",
+    "24.6",
+    "19940"
+  ],
+  [
+    "Dodge City, KS Micro Area",
+    "12.7",
+    "19980"
+  ],
+  [
+    "Dothan, AL Metro Area",
+    "23.5",
+    "20020"
+  ],
+  [
+    "Douglas, GA Micro Area",
+    "19.6",
+    "20060"
+  ],
+  [
+    "Dover, DE Metro Area",
+    "26.5",
+    "20100"
+  ],
+  [
+    "Dublin, GA Micro Area",
+    "25.0",
+    "20140"
+  ],
+  [
+    "DuBois, PA Micro Area",
+    "25.3",
+    "20180"
+  ],
+  [
+    "Dubuque, IA Metro Area",
+    "16.7",
+    "20220"
+  ],
+  [
+    "Duluth, MN-WI Metro Area",
+    "20.4",
+    "20260"
+  ],
+  [
+    "Dumas, TX Micro Area",
+    "17.4",
+    "20300"
+  ],
+  [
+    "Duncan, OK Micro Area",
+    "23.7",
+    "20340"
+  ],
+  [
+    "Durango, CO Micro Area",
+    "20.3",
+    "20420"
+  ],
+  [
+    "Durant, OK Micro Area",
+    "20.4",
+    "20460"
+  ],
+  [
+    "Durham-Chapel Hill, NC Metro Area",
+    "24.1",
+    "20500"
+  ],
+  [
+    "Dyersburg, TN Micro Area",
+    "19.8",
+    "20540"
+  ],
+  [
+    "Eagle Pass, TX Metro Area",
+    "21.8",
+    "20580"
+  ],
+  [
+    "Easton, MD Micro Area",
+    "24.7",
+    "20660"
+  ],
+  [
+    "East Stroudsburg, PA Micro Area",
+    "38.1",
+    "20700"
+  ],
+  [
+    "Eau Claire, WI Metro Area",
+    "19.8",
+    "20740"
+  ],
+  [
+    "Edwards, CO Micro Area",
+    "22.2",
+    "20780"
+  ],
+  [
+    "Effingham, IL Micro Area",
+    "19.4",
+    "20820"
+  ],
+  [
+    "El Campo, TX Micro Area",
+    "25.7",
+    "20900"
+  ],
+  [
+    "El Centro, CA Metro Area",
+    "22.1",
+    "20940"
+  ],
+  [
+    "El Dorado, AR Micro Area",
+    "20.1",
+    "20980"
+  ],
+  [
+    "Elizabeth City, NC Micro Area",
+    "28.0",
+    "21020"
+  ],
+  [
+    "Elizabethtown, KY Metro Area",
+    "23.1",
+    "21060"
+  ],
+  [
+    "Elk City, OK Micro Area",
+    "16.2",
+    "21120"
+  ],
+  [
+    "Elkhart-Goshen, IN Metro Area",
+    "20.0",
+    "21140"
+  ],
+  [
+    "Elkins, WV Micro Area",
+    "21.1",
+    "21180"
+  ],
+  [
+    "Elko, NV Micro Area",
+    "29.2",
+    "21220"
+  ],
+  [
+    "Ellensburg, WA Micro Area",
+    "23.3",
+    "21260"
+  ],
+  [
+    "Elmira, NY Metro Area",
+    "20.2",
+    "21300"
+  ],
+  [
+    "El Paso, TX Metro Area",
+    "24.1",
+    "21340"
+  ],
+  [
+    "Emporia, KS Micro Area",
+    "15.2",
+    "21380"
+  ],
+  [
+    "Enid, OK Metro Area",
+    "17.6",
+    "21420"
+  ],
+  [
+    "Enterprise, AL Micro Area",
+    "23.0",
+    "21460"
+  ],
+  [
+    "Erie, PA Metro Area",
+    "19.6",
+    "21500"
+  ],
+  [
+    "Escanaba, MI Micro Area",
+    "18.2",
+    "21540"
+  ],
+  [
+    "Espa\u00f1ola, NM Micro Area",
+    "30.1",
+    "21580"
+  ],
+  [
+    "Eufaula, AL-GA Micro Area",
+    "27.0",
+    "21640"
+  ],
+  [
+    "Eugene-Springfield, OR Metro Area",
+    "20.2",
+    "21660"
+  ],
+  [
+    "Eureka-Arcata, CA Micro Area",
+    "19.0",
+    "21700"
+  ],
+  [
+    "Evanston, WY-UT Micro Area",
+    "20.6",
+    "21740"
+  ],
+  [
+    "Evansville, IN Metro Area",
+    "20.9",
+    "21780"
+  ],
+  [
+    "Fairbanks-College, AK Metro Area",
+    "19.2",
+    "21820"
+  ],
+  [
+    "Fairmont, MN Micro Area",
+    "16.9",
+    "21860"
+  ],
+  [
+    "Fairmont, WV Micro Area",
+    "25.7",
+    "21900"
+  ],
+  [
+    "Fallon, NV Micro Area",
+    "24.1",
+    "21980"
+  ],
+  [
+    "Fargo, ND-MN Metro Area",
+    "17.7",
+    "22020"
+  ],
+  [
+    "Faribault-Northfield, MN Micro Area",
+    "21.8",
+    "22060"
+  ],
+  [
+    "Farmington, MO Micro Area",
+    "25.9",
+    "22100"
+  ],
+  [
+    "Farmington, NM Metro Area",
+    "24.2",
+    "22140"
+  ],
+  [
+    "Fayetteville, NC Metro Area",
+    "22.5",
+    "22180"
+  ],
+  [
+    "Fayetteville, TN Micro Area",
+    "30.8",
+    "22190"
+  ],
+  [
+    "Fayetteville-Springdale-Rogers, AR Metro Area",
+    "21.6",
+    "22220"
+  ],
+  [
+    "Fergus Falls, MN Micro Area",
+    "20.7",
+    "22260"
+  ],
+  [
+    "Findlay, OH Micro Area",
+    "18.0",
+    "22300"
+  ],
+  [
+    "Fitzgerald, GA Micro Area",
+    "16.8",
+    "22340"
+  ],
+  [
+    "Flagstaff, AZ Metro Area",
+    "19.3",
+    "22380"
+  ],
+  [
+    "Flint, MI Metro Area",
+    "26.9",
+    "22420"
+  ],
+  [
+    "Florence, SC Metro Area",
+    "22.1",
+    "22500"
+  ],
+  [
+    "Florence-Muscle Shoals, AL Metro Area",
+    "24.6",
+    "22520"
+  ],
+  [
+    "Fond du Lac, WI Metro Area",
+    "21.2",
+    "22540"
+  ],
+  [
+    "Forest City, NC Micro Area",
+    "26.1",
+    "22580"
+  ],
+  [
+    "Forrest City, AR Micro Area",
+    "23.0",
+    "22620"
+  ],
+  [
+    "Fort Collins-Loveland, CO Metro Area",
+    "23.4",
+    "22660"
+  ],
+  [
+    "Fort Dodge, IA Micro Area",
+    "20.2",
+    "22700"
+  ],
+  [
+    "Fort Leonard Wood, MO Micro Area",
+    "19.5",
+    "22780"
+  ],
+  [
+    "Fort Madison, IA Micro Area",
+    "20.4",
+    "22800"
+  ],
+  [
+    "Fort Morgan, CO Micro Area",
+    "23.3",
+    "22820"
+  ],
+  [
+    "Fort Payne, AL Micro Area",
+    "24.8",
+    "22840"
+  ],
+  [
+    "Fort Smith, AR-OK Metro Area",
+    "21.5",
+    "22900"
+  ],
+  [
+    "Fort Wayne, IN Metro Area",
+    "22.1",
+    "23060"
+  ],
+  [
+    "Frankfort, IN Micro Area",
+    "21.7",
+    "23140"
+  ],
+  [
+    "Frankfort, KY Micro Area",
+    "23.5",
+    "23180"
+  ],
+  [
+    "Franklin, KY Micro Area",
+    "21.0",
+    "23190"
+  ],
+  [
+    "Fredericksburg, TX Micro Area",
+    "21.9",
+    "23240"
+  ],
+  [
+    "Freeport, IL Micro Area",
+    "20.7",
+    "23300"
+  ],
+  [
+    "Fremont, NE Micro Area",
+    "18.8",
+    "23340"
+  ],
+  [
+    "Fremont, OH Micro Area",
+    "20.7",
+    "23380"
+  ],
+  [
+    "Fresno, CA Metro Area",
+    "24.0",
+    "23420"
+  ],
+  [
+    "Gadsden, AL Metro Area",
+    "25.5",
+    "23460"
+  ],
+  [
+    "Gaffney, SC Micro Area",
+    "25.1",
+    "23500"
+  ],
+  [
+    "Gainesville, FL Metro Area",
+    "23.3",
+    "23540"
+  ],
+  [
+    "Gainesville, GA Metro Area",
+    "27.3",
+    "23580"
+  ],
+  [
+    "Gainesville, TX Micro Area",
+    "25.7",
+    "23620"
+  ],
+  [
+    "Galesburg, IL Micro Area",
+    "20.4",
+    "23660"
+  ],
+  [
+    "Gallipolis, OH Micro Area",
+    "25.4",
+    "23680"
+  ],
+  [
+    "Gallup, NM Micro Area",
+    "27.0",
+    "23700"
+  ],
+  [
+    "Garden City, KS Micro Area",
+    "14.7",
+    "23780"
+  ],
+  [
+    "Gardnerville Ranchos, NV-CA Micro Area",
+    "26.4",
+    "23820"
+  ],
+  [
+    "Gettysburg, PA Metro Area",
+    "28.2",
+    "23900"
+  ],
+  [
+    "Gillette, WY Micro Area",
+    "21.2",
+    "23940"
+  ],
+  [
+    "Glasgow, KY Micro Area",
+    "23.8",
+    "23980"
+  ],
+  [
+    "Glens Falls, NY Metro Area",
+    "24.1",
+    "24020"
+  ],
+  [
+    "Gloversville, NY Micro Area",
+    "25.4",
+    "24100"
+  ],
+  [
+    "Goldsboro, NC Metro Area",
+    "22.9",
+    "24140"
+  ],
+  [
+    "Granbury, TX Micro Area",
+    "32.8",
+    "24180"
+  ],
+  [
+    "Grand Forks, ND-MN Metro Area",
+    "16.6",
+    "24220"
+  ],
+  [
+    "Grand Island, NE Metro Area",
+    "18.6",
+    "24260"
+  ],
+  [
+    "Grand Junction, CO Metro Area",
+    "18.9",
+    "24300"
+  ],
+  [
+    "Grand Rapids, MN Micro Area",
+    "24.1",
+    "24330"
+  ],
+  [
+    "Grand Rapids-Wyoming-Kentwood, MI Metro Area",
+    "22.0",
+    "24340"
+  ],
+  [
+    "Grants Pass, OR Metro Area",
+    "21.5",
+    "24420"
+  ],
+  [
+    "Great Bend, KS Micro Area",
+    "15.2",
+    "24460"
+  ],
+  [
+    "Great Falls, MT Metro Area",
+    "16.5",
+    "24500"
+  ],
+  [
+    "Greeley, CO Metro Area",
+    "27.9",
+    "24540"
+  ],
+  [
+    "Green Bay, WI Metro Area",
+    "20.9",
+    "24580"
+  ],
+  [
+    "Greencastle, IN Micro Area",
+    "27.5",
+    "24600"
+  ],
+  [
+    "Greeneville, TN Micro Area",
+    "26.0",
+    "24620"
+  ],
+  [
+    "Greenfield, MA Micro Area",
+    "23.8",
+    "24640"
+  ],
+  [
+    "Greensboro-High Point, NC Metro Area",
+    "23.2",
+    "24660"
+  ],
+  [
+    "Greensburg, IN Micro Area",
+    "24.0",
+    "24700"
+  ],
+  [
+    "Greenville, MS Micro Area",
+    "19.6",
+    "24740"
+  ],
+  [
+    "Greenville, NC Metro Area",
+    "22.1",
+    "24780"
+  ],
+  [
+    "Greenville, OH Micro Area",
+    "23.0",
+    "24820"
+  ],
+  [
+    "Greenville-Anderson-Greer, SC Metro Area",
+    "24.6",
+    "24860"
+  ],
+  [
+    "Greenwood, MS Micro Area",
+    "22.8",
+    "24900"
+  ],
+  [
+    "Greenwood, SC Micro Area",
+    "21.4",
+    "24940"
+  ],
+  [
+    "Grenada, MS Micro Area",
+    "21.5",
+    "24980"
+  ],
+  [
+    "Guayama, PR Metro Area",
+    "27.0",
+    "25020"
+  ],
+  [
+    "Gulfport-Biloxi, MS Metro Area",
+    "25.8",
+    "25060"
+  ],
+  [
+    "Guymon, OK Micro Area",
+    "16.9",
+    "25100"
+  ],
+  [
+    "Hagerstown-Martinsburg, MD-WV Metro Area",
+    "30.2",
+    "25180"
+  ],
+  [
+    "Hailey, ID Micro Area",
+    "21.8",
+    "25200"
+  ],
+  [
+    "Hammond, LA Metro Area",
+    "29.6",
+    "25220"
+  ],
+  [
+    "Hanford-Corcoran, CA Metro Area",
+    "23.0",
+    "25260"
+  ],
+  [
+    "Hannibal, MO Micro Area",
+    "18.8",
+    "25300"
+  ],
+  [
+    "Harrisburg-Carlisle, PA Metro Area",
+    "22.5",
+    "25420"
+  ],
+  [
+    "Harrison, AR Micro Area",
+    "22.1",
+    "25460"
+  ],
+  [
+    "Harrisonburg, VA Metro Area",
+    "20.4",
+    "25500"
+  ],
+  [
+    "Hartford-West Hartford-East Hartford, CT Metro Area",
+    "24.0",
+    "25540"
+  ],
+  [
+    "Hastings, NE Micro Area",
+    "16.8",
+    "25580"
+  ],
+  [
+    "Hattiesburg, MS Metro Area",
+    "23.8",
+    "25620"
+  ],
+  [
+    "Hays, KS Micro Area",
+    "12.9",
+    "25700"
+  ],
+  [
+    "Heber, UT Micro Area",
+    "22.0",
+    "25720"
+  ],
+  [
+    "Helena, MT Metro Area",
+    "20.0",
+    "25740"
+  ],
+  [
+    "Hemlock Farms, PA Micro Area",
+    "42.3",
+    "25770"
+  ],
+  [
+    "Henderson, KY Micro Area",
+    "24.0",
+    "25775"
+  ],
+  [
+    "Henderson, NC Micro Area",
+    "25.9",
+    "25780"
+  ],
+  [
+    "Hereford, TX Micro Area",
+    "16.6",
+    "25820"
+  ],
+  [
+    "Hermiston-Pendleton, OR Micro Area",
+    "19.7",
+    "25840"
+  ],
+  [
+    "Hermitage, PA Micro Area",
+    "21.7",
+    "25850"
+  ],
+  [
+    "Hickory-Lenoir-Morganton, NC Metro Area",
+    "24.1",
+    "25860"
+  ],
+  [
+    "Hillsdale, MI Micro Area",
+    "24.0",
+    "25880"
+  ],
+  [
+    "Hilo-Kailua, HI Micro Area",
+    "27.4",
+    "25900"
+  ],
+  [
+    "Hilton Head Island-Bluffton-Port Royal, SC Metro Area",
+    "24.3",
+    "25940"
+  ],
+  [
+    "Hinesville, GA Metro Area",
+    "25.0",
+    "25980"
+  ],
+  [
+    "Hobbs, NM Micro Area",
+    "24.4",
+    "26020"
+  ],
+  [
+    "Holland, MI Micro Area",
+    "24.2",
+    "26090"
+  ],
+  [
+    "Homosassa Springs, FL Metro Area",
+    "27.8",
+    "26140"
+  ],
+  [
+    "Hood River, OR Micro Area",
+    "18.3",
+    "26220"
+  ],
+  [
+    "Hot Springs, AR Metro Area",
+    "21.4",
+    "26300"
+  ],
+  [
+    "Houghton, MI Micro Area",
+    "15.8",
+    "26340"
+  ],
+  [
+    "Houma-Bayou Cane-Thibodaux, LA Metro Area",
+    "25.5",
+    "26380"
+  ],
+  [
+    "Houston-Pasadena-The Woodlands, TX Metro Area",
+    "29.9",
+    "26420"
+  ],
+  [
+    "Hudson, NY Micro Area",
+    "25.7",
+    "26460"
+  ],
+  [
+    "Huntingdon, PA Micro Area",
+    "31.2",
+    "26500"
+  ],
+  [
+    "Huntington, IN Micro Area",
+    "22.0",
+    "26540"
+  ],
+  [
+    "Huntington-Ashland, WV-KY-OH Metro Area",
+    "24.3",
+    "26580"
+  ],
+  [
+    "Huntsville, AL Metro Area",
+    "23.0",
+    "26620"
+  ],
+  [
+    "Huntsville, TX Micro Area",
+    "25.9",
+    "26660"
+  ],
+  [
+    "Huron, SD Micro Area",
+    "13.4",
+    "26700"
+  ],
+  [
+    "Hutchinson, KS Micro Area",
+    "17.5",
+    "26740"
+  ],
+  [
+    "Hutchinson, MN Micro Area",
+    "23.0",
+    "26780"
+  ],
+  [
+    "Idaho Falls, ID Metro Area",
+    "21.7",
+    "26820"
+  ],
+  [
+    "Indiana, PA Micro Area",
+    "24.9",
+    "26860"
+  ],
+  [
+    "Indianapolis-Carmel-Greenwood, IN Metro Area",
+    "25.5",
+    "26900"
+  ],
+  [
+    "Iowa City, IA Metro Area",
+    "19.9",
+    "26980"
+  ],
+  [
+    "Iron Mountain, MI-WI Micro Area",
+    "17.4",
+    "27020"
+  ],
+  [
+    "Ithaca, NY Metro Area",
+    "20.1",
+    "27060"
+  ],
+  [
+    "Jackson, MI Metro Area",
+    "22.5",
+    "27100"
+  ],
+  [
+    "Jackson, MS Metro Area",
+    "25.0",
+    "27140"
+  ],
+  [
+    "Jackson, TN Metro Area",
+    "22.9",
+    "27180"
+  ],
+  [
+    "Jackson, WY-ID Micro Area",
+    "21.3",
+    "27220"
+  ],
+  [
+    "Jacksonville, FL Metro Area",
+    "26.0",
+    "27260"
+  ],
+  [
+    "Jacksonville, IL Micro Area",
+    "19.4",
+    "27300"
+  ],
+  [
+    "Jacksonville, NC Metro Area",
+    "22.4",
+    "27340"
+  ],
+  [
+    "Jacksonville, TX Micro Area",
+    "26.9",
+    "27380"
+  ],
+  [
+    "Jamestown, ND Micro Area",
+    "14.1",
+    "27420"
+  ],
+  [
+    "Jamestown-Dunkirk, NY Micro Area",
+    "19.6",
+    "27460"
+  ],
+  [
+    "Janesville-Beloit, WI Metro Area",
+    "23.8",
+    "27500"
+  ],
+  [
+    "Jasper, IN Micro Area",
+    "19.8",
+    "27540"
+  ],
+  [
+    "Jefferson, GA Micro Area",
+    "31.3",
+    "27600"
+  ],
+  [
+    "Jefferson City, MO Metro Area",
+    "21.2",
+    "27620"
+  ],
+  [
+    "Jesup, GA Micro Area",
+    "28.0",
+    "27700"
+  ],
+  [
+    "Johnson City, TN Metro Area",
+    "22.7",
+    "27740"
+  ],
+  [
+    "Johnstown, PA Metro Area",
+    "23.4",
+    "27780"
+  ],
+  [
+    "Jonesboro, AR Metro Area",
+    "20.3",
+    "27860"
+  ],
+  [
+    "Joplin, MO-KS Metro Area",
+    "20.4",
+    "27900"
+  ],
+  [
+    "Juneau, AK Micro Area",
+    "15.1",
+    "27940"
+  ],
+  [
+    "Kahului-Wailuku, HI Metro Area",
+    "23.0",
+    "27980"
+  ],
+  [
+    "Kalamazoo-Portage, MI Metro Area",
+    "20.7",
+    "28020"
+  ],
+  [
+    "Kalispell, MT Micro Area",
+    "19.6",
+    "28060"
+  ],
+  [
+    "Kankakee, IL Metro Area",
+    "24.9",
+    "28100"
+  ],
+  [
+    "Kansas City, MO-KS Metro Area",
+    "23.2",
+    "28140"
+  ],
+  [
+    "Kapaa, HI Micro Area",
+    "22.4",
+    "28180"
+  ],
+  [
+    "Kearney, NE Micro Area",
+    "16.6",
+    "28260"
+  ],
+  [
+    "Keene, NH Micro Area",
+    "23.7",
+    "28300"
+  ],
+  [
+    "Kendallville, IN Micro Area",
+    "26.1",
+    "28340"
+  ],
+  [
+    "Kennett, MO Micro Area",
+    "23.1",
+    "28380"
+  ],
+  [
+    "Kennewick-Richland, WA Metro Area",
+    "22.3",
+    "28420"
+  ],
+  [
+    "Kenosha, WI Metro Area",
+    "25.1",
+    "28450"
+  ],
+  [
+    "Kerrville, TX Micro Area",
+    "21.5",
+    "28500"
+  ],
+  [
+    "Ketchikan, AK Micro Area",
+    "14.6",
+    "28540"
+  ],
+  [
+    "Key West-Key Largo, FL Micro Area",
+    "19.5",
+    "28580"
+  ],
+  [
+    "Kill Devil Hills, NC Micro Area",
+    "22.4",
+    "28620"
+  ],
+  [
+    "Killeen-Temple, TX Metro Area",
+    "24.3",
+    "28660"
+  ],
+  [
+    "Kingsland, GA Micro Area",
+    "28.3",
+    "28680"
+  ],
+  [
+    "Kingsport-Bristol, TN-VA Metro Area",
+    "23.5",
+    "28700"
+  ],
+  [
+    "Kingston, NY Metro Area",
+    "27.5",
+    "28740"
+  ],
+  [
+    "Kingsville, TX Micro Area",
+    "20.0",
+    "28780"
+  ],
+  [
+    "Kinston, NC Micro Area",
+    "24.3",
+    "28820"
+  ],
+  [
+    "Kirksville, MO Micro Area",
+    "17.0",
+    "28860"
+  ],
+  [
+    "Kiryas Joel-Poughkeepsie-Newburgh, NY Metro Area",
+    "32.8",
+    "28880"
+  ],
+  [
+    "Klamath Falls, OR Micro Area",
+    "17.9",
+    "28900"
+  ],
+  [
+    "Knoxville, TN Metro Area",
+    "24.4",
+    "28940"
+  ],
+  [
+    "Kokomo, IN Metro Area",
+    "20.4",
+    "29020"
+  ],
+  [
+    "Laconia, NH Micro Area",
+    "25.0",
+    "29060"
+  ],
+  [
+    "La Crosse-Onalaska, WI-MN Metro Area",
+    "20.1",
+    "29100"
+  ],
+  [
+    "Lafayette, LA Metro Area",
+    "25.1",
+    "29180"
+  ],
+  [
+    "Lafayette-West Lafayette, IN Metro Area",
+    "19.2",
+    "29200"
+  ],
+  [
+    "La Grande, OR Micro Area",
+    "16.3",
+    "29260"
+  ],
+  [
+    "LaGrange, GA-AL Micro Area",
+    "23.1",
+    "29300"
+  ],
+  [
+    "Lake Charles, LA Metro Area",
+    "22.8",
+    "29340"
+  ],
+  [
+    "Lake City, FL Micro Area",
+    "25.8",
+    "29380"
+  ],
+  [
+    "Lake Havasu City-Kingman, AZ Metro Area",
+    "19.9",
+    "29420"
+  ],
+  [
+    "Lakeland-Winter Haven, FL Metro Area",
+    "30.5",
+    "29460"
+  ],
+  [
+    "Lake of the Woods, VA Micro Area",
+    "37.0",
+    "29470"
+  ],
+  [
+    "Lancaster, PA Metro Area",
+    "23.8",
+    "29540"
+  ],
+  [
+    "Lansing-East Lansing, MI Metro Area",
+    "21.6",
+    "29620"
+  ],
+  [
+    "Laramie, WY Micro Area",
+    "15.3",
+    "29660"
+  ],
+  [
+    "Laredo, TX Metro Area",
+    "22.1",
+    "29700"
+  ],
+  [
+    "Lares, PR Micro Area",
+    "30.7",
+    "29720"
+  ],
+  [
+    "Las Cruces, NM Metro Area",
+    "22.8",
+    "29740"
+  ],
+  [
+    "Las Vegas, NM Micro Area",
+    "23.7",
+    "29780"
+  ],
+  [
+    "Las Vegas-Henderson-North Las Vegas, NV Metro Area",
+    "25.1",
+    "29820"
+  ],
+  [
+    "Laurel, MS Micro Area",
+    "25.9",
+    "29860"
+  ],
+  [
+    "Laurinburg, NC Micro Area",
+    "25.1",
+    "29900"
+  ],
+  [
+    "Lawrence, KS Metro Area",
+    "20.8",
+    "29940"
+  ],
+  [
+    "Lawrenceburg, TN Micro Area",
+    "25.6",
+    "29980"
+  ],
+  [
+    "Lawton, OK Metro Area",
+    "18.7",
+    "30020"
+  ],
+  [
+    "Lebanon, MO Micro Area",
+    "21.4",
+    "30060"
+  ],
+  [
+    "Lebanon, PA Metro Area",
+    "22.1",
+    "30140"
+  ],
+  [
+    "Lebanon-Claremont, NH-VT Micro Area",
+    "23.7",
+    "30150"
+  ],
+  [
+    "Le Mars, IA Micro Area",
+    "19.2",
+    "30180"
+  ],
+  [
+    "Lewisburg, PA Micro Area",
+    "17.9",
+    "30260"
+  ],
+  [
+    "Lewisburg, TN Micro Area",
+    "29.9",
+    "30280"
+  ],
+  [
+    "Lewiston, ID-WA Metro Area",
+    "16.2",
+    "30300"
+  ],
+  [
+    "Lewiston-Auburn, ME Metro Area",
+    "24.4",
+    "30340"
+  ],
+  [
+    "Lewistown, PA Micro Area",
+    "25.0",
+    "30380"
+  ],
+  [
+    "Lexington, NE Micro Area",
+    "17.9",
+    "30420"
+  ],
+  [
+    "Lexington-Fayette, KY Metro Area",
+    "21.9",
+    "30460"
+  ],
+  [
+    "Lexington Park, MD Metro Area",
+    "34.1",
+    "30500"
+  ],
+  [
+    "Liberal, KS Micro Area",
+    "14.7",
+    "30580"
+  ],
+  [
+    "Lima, OH Metro Area",
+    "18.7",
+    "30620"
+  ],
+  [
+    "Lincoln, IL Micro Area",
+    "21.0",
+    "30660"
+  ],
+  [
+    "Lincoln, NE Metro Area",
+    "19.2",
+    "30700"
+  ],
+  [
+    "Little Rock-North Little Rock-Conway, AR Metro Area",
+    "23.4",
+    "30780"
+  ],
+  [
+    "Lock Haven, PA Micro Area",
+    "23.6",
+    "30820"
+  ],
+  [
+    "Logan, UT-ID Metro Area",
+    "18.3",
+    "30860"
+  ],
+  [
+    "Logansport, IN Micro Area",
+    "22.3",
+    "30900"
+  ],
+  [
+    "Longview, TX Metro Area",
+    "23.6",
+    "30980"
+  ],
+  [
+    "Longview-Kelso, WA Metro Area",
+    "26.1",
+    "31020"
+  ],
+  [
+    "Los Alamos, NM Micro Area",
+    "14.7",
+    "31060"
+  ],
+  [
+    "Los Angeles-Long Beach-Anaheim, CA Metro Area",
+    "29.5",
+    "31080"
+  ],
+  [
+    "Louisville/Jefferson County, KY-IN Metro Area",
+    "24.1",
+    "31140"
+  ],
+  [
+    "Lubbock, TX Metro Area",
+    "17.8",
+    "31180"
+  ],
+  [
+    "Ludington, MI Micro Area",
+    "19.5",
+    "31220"
+  ],
+  [
+    "Lufkin, TX Micro Area",
+    "20.9",
+    "31260"
+  ],
+  [
+    "Lumberton, NC Micro Area",
+    "25.3",
+    "31300"
+  ],
+  [
+    "Lynchburg, VA Metro Area",
+    "22.8",
+    "31340"
+  ],
+  [
+    "Macomb, IL Micro Area",
+    "18.6",
+    "31380"
+  ],
+  [
+    "Macon-Bibb County, GA Metro Area",
+    "24.5",
+    "31420"
+  ],
+  [
+    "Madison, IN Micro Area",
+    "22.2",
+    "31500"
+  ],
+  [
+    "Madison, WI Metro Area",
+    "21.5",
+    "31540"
+  ],
+  [
+    "Madisonville, KY Micro Area",
+    "21.3",
+    "31580"
+  ],
+  [
+    "Magnolia, AR Micro Area",
+    "22.3",
+    "31620"
+  ],
+  [
+    "Malvern, AR Micro Area",
+    "29.9",
+    "31680"
+  ],
+  [
+    "Manchester-Nashua, NH Metro Area",
+    "27.3",
+    "31700"
+  ],
+  [
+    "Manhattan, KS Metro Area",
+    "17.8",
+    "31740"
+  ],
+  [
+    "Manitowoc, WI Micro Area",
+    "20.3",
+    "31820"
+  ],
+  [
+    "Mankato, MN Metro Area",
+    "16.7",
+    "31860"
+  ],
+  [
+    "Mansfield, OH Metro Area",
+    "21.8",
+    "31900"
+  ],
+  [
+    "Marietta, OH Micro Area",
+    "23.5",
+    "31930"
+  ],
+  [
+    "Marinette, WI-MI Micro Area",
+    "21.7",
+    "31940"
+  ],
+  [
+    "Marion, IN Micro Area",
+    "22.0",
+    "31980"
+  ],
+  [
+    "Marion, NC Micro Area",
+    "24.7",
+    "32000"
+  ],
+  [
+    "Marion, OH Micro Area",
+    "24.5",
+    "32020"
+  ],
+  [
+    "Marion-Herrin, IL Micro Area",
+    "23.5",
+    "32060"
+  ],
+  [
+    "Marquette, MI Micro Area",
+    "18.0",
+    "32100"
+  ],
+  [
+    "Marshall, MN Micro Area",
+    "14.6",
+    "32140"
+  ],
+  [
+    "Marshall, MO Micro Area",
+    "17.5",
+    "32180"
+  ],
+  [
+    "Marshalltown, IA Micro Area",
+    "19.9",
+    "32260"
+  ],
+  [
+    "Martin, TN Micro Area",
+    "20.9",
+    "32280"
+  ],
+  [
+    "Martinsville, VA Micro Area",
+    "24.4",
+    "32300"
+  ],
+  [
+    "Maryville, MO Micro Area",
+    "15.8",
+    "32340"
+  ],
+  [
+    "Mason City, IA Micro Area",
+    "16.5",
+    "32380"
+  ],
+  [
+    "Massena-Ogdensburg, NY Micro Area",
+    "21.0",
+    "32390"
+  ],
+  [
+    "Mayag\u00fcez, PR Metro Area",
+    "24.1",
+    "32420"
+  ],
+  [
+    "Mayfield, KY Micro Area",
+    "20.7",
+    "32460"
+  ],
+  [
+    "McAlester, OK Micro Area",
+    "21.3",
+    "32540"
+  ],
+  [
+    "McAllen-Edinburg-Mission, TX Metro Area",
+    "22.5",
+    "32580"
+  ],
+  [
+    "McComb, MS Micro Area",
+    "29.6",
+    "32620"
+  ],
+  [
+    "McMinnville, TN Micro Area",
+    "26.9",
+    "32660"
+  ],
+  [
+    "McPherson, KS Micro Area",
+    "14.8",
+    "32700"
+  ],
+  [
+    "Meadville, PA Micro Area",
+    "23.3",
+    "32740"
+  ],
+  [
+    "Medford, OR Metro Area",
+    "19.1",
+    "32780"
+  ],
+  [
+    "Memphis, TN-MS-AR Metro Area",
+    "24.3",
+    "32820"
+  ],
+  [
+    "Menomonie, WI Micro Area",
+    "23.4",
+    "32860"
+  ],
+  [
+    "Merced, CA Metro Area",
+    "31.3",
+    "32900"
+  ],
+  [
+    "Meridian, MS Micro Area",
+    "25.7",
+    "32940"
+  ],
+  [
+    "Mexico, MO Micro Area",
+    "21.7",
+    "33020"
+  ],
+  [
+    "Miami, OK Micro Area",
+    "20.6",
+    "33060"
+  ],
+  [
+    "Miami-Fort Lauderdale-West Palm Beach, FL Metro Area",
+    "29.3",
+    "33100"
+  ],
+  [
+    "Michigan City-La Porte, IN Metro Area",
+    "25.0",
+    "33140"
+  ],
+  [
+    "Middlesborough, KY Micro Area",
+    "22.7",
+    "33180"
+  ],
+  [
+    "Midland, MI Metro Area",
+    "23.7",
+    "33220"
+  ],
+  [
+    "Midland, TX Metro Area",
+    "21.8",
+    "33260"
+  ],
+  [
+    "Milledgeville, GA Micro Area",
+    "25.3",
+    "33300"
+  ],
+  [
+    "Milwaukee-Waukesha, WI Metro Area",
+    "22.7",
+    "33340"
+  ],
+  [
+    "Minden, LA Micro Area",
+    "27.3",
+    "33380"
+  ],
+  [
+    "Mineral Wells, TX Micro Area",
+    "28.7",
+    "33420"
+  ],
+  [
+    "Minneapolis-St. Paul-Bloomington, MN-WI Metro Area",
+    "23.9",
+    "33460"
+  ],
+  [
+    "Minot, ND Metro Area",
+    "20.2",
+    "33500"
+  ],
+  [
+    "Missoula, MT Metro Area",
+    "18.4",
+    "33540"
+  ],
+  [
+    "Mitchell, SD Micro Area",
+    "15.7",
+    "33580"
+  ],
+  [
+    "Moberly, MO Micro Area",
+    "21.8",
+    "33620"
+  ],
+  [
+    "Mobile, AL Metro Area",
+    "26.1",
+    "33660"
+  ],
+  [
+    "Modesto, CA Metro Area",
+    "30.8",
+    "33700"
+  ],
+  [
+    "Monroe, LA Metro Area",
+    "23.5",
+    "33740"
+  ],
+  [
+    "Monroe, MI Metro Area",
+    "26.2",
+    "33780"
+  ],
+  [
+    "Montgomery, AL Metro Area",
+    "24.3",
+    "33860"
+  ],
+  [
+    "Monticello, IN Micro Area",
+    "23.4",
+    "33900"
+  ],
+  [
+    "Monticello, NY Micro Area",
+    "28.0",
+    "33910"
+  ],
+  [
+    "Montrose, CO Micro Area",
+    "21.1",
+    "33940"
+  ],
+  [
+    "Morehead City, NC Micro Area",
+    "23.2",
+    "33980"
+  ],
+  [
+    "Morgan City, LA Micro Area",
+    "23.2",
+    "34020"
+  ],
+  [
+    "Morgantown, WV Metro Area",
+    "23.1",
+    "34060"
+  ],
+  [
+    "Morristown, TN Metro Area",
+    "26.3",
+    "34100"
+  ],
+  [
+    "Moscow, ID Micro Area",
+    "18.7",
+    "34140"
+  ],
+  [
+    "Moses Lake, WA Micro Area",
+    "20.2",
+    "34180"
+  ],
+  [
+    "Moultrie, GA Micro Area",
+    "21.1",
+    "34220"
+  ],
+  [
+    "Mountain Home, AR Micro Area",
+    "19.4",
+    "34260"
+  ],
+  [
+    "Mountain Home, ID Micro Area",
+    "22.0",
+    "34300"
+  ],
+  [
+    "Mount Airy, NC Micro Area",
+    "24.3",
+    "34340"
+  ],
+  [
+    "Mount Pleasant, MI Micro Area",
+    "19.6",
+    "34380"
+  ],
+  [
+    "Mount Pleasant, TX Micro Area",
+    "21.8",
+    "34420"
+  ],
+  [
+    "Mount Sterling, KY Micro Area",
+    "27.2",
+    "34460"
+  ],
+  [
+    "Mount Vernon, IL Micro Area",
+    "19.6",
+    "34500"
+  ],
+  [
+    "Mount Vernon, OH Micro Area",
+    "25.7",
+    "34540"
+  ],
+  [
+    "Mount Vernon-Anacortes, WA Metro Area",
+    "26.4",
+    "34580"
+  ],
+  [
+    "Muncie, IN Metro Area",
+    "21.2",
+    "34620"
+  ],
+  [
+    "Murray, KY Micro Area",
+    "17.3",
+    "34660"
+  ],
+  [
+    "Murrells Inlet, SC Micro Area",
+    "29.1",
+    "34680"
+  ],
+  [
+    "Muscatine, IA Micro Area",
+    "19.0",
+    "34700"
+  ],
+  [
+    "Muskegon-Norton Shores, MI Metro Area",
+    "21.6",
+    "34740"
+  ],
+  [
+    "Muskogee, OK Micro Area",
+    "22.1",
+    "34780"
+  ],
+  [
+    "Myrtle Beach-Conway-North Myrtle Beach, SC Metro Area",
+    "23.1",
+    "34820"
+  ],
+  [
+    "Nacogdoches, TX Micro Area",
+    "20.1",
+    "34860"
+  ],
+  [
+    "Nantucket, MA Micro Area",
+    "16.0",
+    "34880"
+  ],
+  [
+    "Napa, CA Metro Area",
+    "24.9",
+    "34900"
+  ],
+  [
+    "Naples-Marco Island, FL Metro Area",
+    "26.1",
+    "34940"
+  ],
+  [
+    "Nashville-Davidson--Murfreesboro--Franklin, TN Metro Area",
+    "27.8",
+    "34980"
+  ],
+  [
+    "Natchez, MS-LA Micro Area",
+    "22.2",
+    "35020"
+  ],
+  [
+    "Natchitoches, LA Micro Area",
+    "22.5",
+    "35060"
+  ],
+  [
+    "New Bern, NC Micro Area",
+    "22.5",
+    "35100"
+  ],
+  [
+    "Newberry, SC Micro Area",
+    "27.2",
+    "35140"
+  ],
+  [
+    "New Castle, IN Micro Area",
+    "25.8",
+    "35220"
+  ],
+  [
+    "New Haven, CT Metro Area",
+    "23.5",
+    "35300"
+  ],
+  [
+    "New Iberia, LA Micro Area",
+    "25.3",
+    "35340"
+  ],
+  [
+    "New Orleans-Metairie, LA Metro Area",
+    "24.4",
+    "35380"
+  ],
+  [
+    "New Philadelphia-Dover, OH Micro Area",
+    "23.2",
+    "35420"
+  ],
+  [
+    "Newport, OR Micro Area",
+    "22.1",
+    "35440"
+  ],
+  [
+    "Newport, TN Micro Area",
+    "32.8",
+    "35460"
+  ],
+  [
+    "New Ulm, MN Micro Area",
+    "14.6",
+    "35580"
+  ],
+  [
+    "New York-Newark-Jersey City, NY-NJ Metro Area",
+    "35.6",
+    "35620"
+  ],
+  [
+    "Niles, MI Metro Area",
+    "21.2",
+    "35660"
+  ],
+  [
+    "Nogales, AZ Micro Area",
+    "24.2",
+    "35700"
+  ],
+  [
+    "Norfolk, NE Micro Area",
+    "16.1",
+    "35740"
+  ],
+  [
+    "North Platte, NE Micro Area",
+    "15.5",
+    "35820"
+  ],
+  [
+    "North Port-Bradenton-Sarasota, FL Metro Area",
+    "25.9",
+    "35840"
+  ],
+  [
+    "North Wilkesboro, NC Micro Area",
+    "25.9",
+    "35900"
+  ],
+  [
+    "Norwalk, OH Micro Area",
+    "22.4",
+    "35940"
+  ],
+  [
+    "Norwich-New London-Willimantic, CT Metro Area",
+    "23.9",
+    "35980"
+  ],
+  [
+    "Oak Harbor, WA Micro Area",
+    "26.2",
+    "36020"
+  ],
+  [
+    "Ocala, FL Metro Area",
+    "26.8",
+    "36100"
+  ],
+  [
+    "Ocean Pines, MD Micro Area",
+    "23.3",
+    "36180"
+  ],
+  [
+    "Odessa, TX Metro Area",
+    "25.0",
+    "36220"
+  ],
+  [
+    "Ogden, UT Metro Area",
+    "23.1",
+    "36260"
+  ],
+  [
+    "Oil City, PA Micro Area",
+    "23.1",
+    "36340"
+  ],
+  [
+    "Okeechobee, FL Micro Area",
+    "28.4",
+    "36380"
+  ],
+  [
+    "Oklahoma City, OK Metro Area",
+    "23.4",
+    "36420"
+  ],
+  [
+    "Olean, NY Micro Area",
+    "22.6",
+    "36460"
+  ],
+  [
+    "Olympia-Lacey-Tumwater, WA Metro Area",
+    "25.8",
+    "36500"
+  ],
+  [
+    "Omaha, NE-IA Metro Area",
+    "20.9",
+    "36540"
+  ],
+  [
+    "Oneonta, NY Micro Area",
+    "22.9",
+    "36580"
+  ],
+  [
+    "Ontario, OR-ID Micro Area",
+    "21.1",
+    "36620"
+  ],
+  [
+    "Opelousas, LA Micro Area",
+    "29.8",
+    "36660"
+  ],
+  [
+    "Orangeburg, SC Micro Area",
+    "30.7",
+    "36700"
+  ],
+  [
+    "Orlando-Kissimmee-Sanford, FL Metro Area",
+    "29.2",
+    "36740"
+  ],
+  [
+    "Oshkosh-Neenah, WI Metro Area",
+    "19.4",
+    "36780"
+  ],
+  [
+    "Oskaloosa, IA Micro Area",
+    "18.0",
+    "36820"
+  ],
+  [
+    "Othello, WA Micro Area",
+    "22.2",
+    "36830"
+  ],
+  [
+    "Ottawa, IL Micro Area",
+    "24.9",
+    "36837"
+  ],
+  [
+    "Ottawa, KS Micro Area",
+    "23.4",
+    "36840"
+  ],
+  [
+    "Ottumwa, IA Micro Area",
+    "20.0",
+    "36900"
+  ],
+  [
+    "Owatonna, MN Micro Area",
+    "19.1",
+    "36940"
+  ],
+  [
+    "Owensboro, KY Metro Area",
+    "20.2",
+    "36980"
+  ],
+  [
+    "Owosso, MI Micro Area",
+    "27.8",
+    "37020"
+  ],
+  [
+    "Oxford, MS Micro Area",
+    "24.0",
+    "37060"
+  ],
+  [
+    "Oxnard-Thousand Oaks-Ventura, CA Metro Area",
+    "25.6",
+    "37100"
+  ],
+  [
+    "Ozark, AL Micro Area",
+    "22.5",
+    "37120"
+  ],
+  [
+    "Paducah, KY-IL Metro Area",
+    "20.0",
+    "37140"
+  ],
+  [
+    "Pahrump, NV Micro Area",
+    "29.0",
+    "37220"
+  ],
+  [
+    "Palatka, FL Micro Area",
+    "29.6",
+    "37260"
+  ],
+  [
+    "Palestine, TX Micro Area",
+    "24.1",
+    "37300"
+  ],
+  [
+    "Palm Bay-Melbourne-Titusville, FL Metro Area",
+    "25.4",
+    "37340"
+  ],
+  [
+    "Pampa, TX Micro Area",
+    "17.9",
+    "37420"
+  ],
+  [
+    "Panama City-Panama City Beach, FL Metro Area",
+    "25.1",
+    "37460"
+  ],
+  [
+    "Paragould, AR Micro Area",
+    "22.8",
+    "37500"
+  ],
+  [
+    "Paris, TN Micro Area",
+    "21.6",
+    "37540"
+  ],
+  [
+    "Paris, TX Micro Area",
+    "21.2",
+    "37580"
+  ],
+  [
+    "Parkersburg-Vienna, WV Metro Area",
+    "21.4",
+    "37620"
+  ],
+  [
+    "Payson, AZ Micro Area",
+    "21.9",
+    "37740"
+  ],
+  [
+    "Pella, IA Micro Area",
+    "21.0",
+    "37800"
+  ],
+  [
+    "Pensacola-Ferry Pass-Brent, FL Metro Area",
+    "26.2",
+    "37860"
+  ],
+  [
+    "Peoria, IL Metro Area",
+    "20.8",
+    "37900"
+  ],
+  [
+    "Peru, IN Micro Area",
+    "25.6",
+    "37940"
+  ],
+  [
+    "Petoskey, MI Micro Area",
+    "19.9",
+    "37950"
+  ],
+  [
+    "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD Metro Area",
+    "28.7",
+    "37980"
+  ],
+  [
+    "Phoenix-Mesa-Chandler, AZ Metro Area",
+    "26.4",
+    "38060"
+  ],
+  [
+    "Picayune, MS Micro Area",
+    "35.4",
+    "38100"
+  ],
+  [
+    "Pierre, SD Micro Area",
+    "15.2",
+    "38180"
+  ],
+  [
+    "Pikeville, KY Micro Area",
+    "26.0",
+    "38210"
+  ],
+  [
+    "Pine Bluff, AR Micro Area",
+    "23.2",
+    "38220"
+  ],
+  [
+    "Pinehurst-Southern Pines, NC Metro Area",
+    "26.6",
+    "38240"
+  ],
+  [
+    "Pittsburg, KS Micro Area",
+    "17.8",
+    "38260"
+  ],
+  [
+    "Pittsburgh, PA Metro Area",
+    "25.8",
+    "38300"
+  ],
+  [
+    "Pittsfield, MA Metro Area",
+    "21.2",
+    "38340"
+  ],
+  [
+    "Plainview, TX Micro Area",
+    "19.3",
+    "38380"
+  ],
+  [
+    "Platteville, WI Micro Area",
+    "21.1",
+    "38420"
+  ],
+  [
+    "Plattsburgh, NY Micro Area",
+    "20.4",
+    "38460"
+  ],
+  [
+    "Plymouth, IN Micro Area",
+    "22.3",
+    "38500"
+  ],
+  [
+    "Pocatello, ID Metro Area",
+    "17.6",
+    "38540"
+  ],
+  [
+    "Ponca City, OK Micro Area",
+    "18.9",
+    "38620"
+  ],
+  [
+    "Ponce, PR Metro Area",
+    "24.8",
+    "38660"
+  ],
+  [
+    "Pontiac, IL Micro Area",
+    "21.6",
+    "38700"
+  ],
+  [
+    "Poplar Bluff, MO Micro Area",
+    "21.0",
+    "38740"
+  ],
+  [
+    "Port Angeles, WA Micro Area",
+    "19.3",
+    "38820"
+  ],
+  [
+    "Portland-South Portland, ME Metro Area",
+    "25.1",
+    "38860"
+  ],
+  [
+    "Portland-Vancouver-Hillsboro, OR-WA Metro Area",
+    "25.0",
+    "38900"
+  ],
+  [
+    "Port Lavaca, TX Micro Area",
+    "19.4",
+    "38920"
+  ],
+  [
+    "Port St. Lucie, FL Metro Area",
+    "29.0",
+    "38940"
+  ],
+  [
+    "Portsmouth, OH Micro Area",
+    "27.9",
+    "39020"
+  ],
+  [
+    "Port Townsend, WA Micro Area",
+    "21.3",
+    "39040"
+  ],
+  [
+    "Pottsville, PA Micro Area",
+    "27.3",
+    "39060"
+  ],
+  [
+    "Prescott Valley-Prescott, AZ Metro Area",
+    "23.5",
+    "39150"
+  ],
+  [
+    "Price, UT Micro Area",
+    "19.5",
+    "39220"
+  ],
+  [
+    "Providence-Warwick, RI-MA Metro Area",
+    "26.6",
+    "39300"
+  ],
+  [
+    "Provo-Orem-Lehi, UT Metro Area",
+    "22.6",
+    "39340"
+  ],
+  [
+    "Pueblo, CO Metro Area",
+    "21.9",
+    "39380"
+  ],
+  [
+    "Pullman, WA Micro Area",
+    "16.5",
+    "39420"
+  ],
+  [
+    "Punta Gorda, FL Metro Area",
+    "26.9",
+    "39460"
+  ],
+  [
+    "Putnam, CT Micro Area",
+    "29.0",
+    "39480"
+  ],
+  [
+    "Quincy, IL-MO Micro Area",
+    "17.7",
+    "39500"
+  ],
+  [
+    "Racine-Mount Pleasant, WI Metro Area",
+    "23.9",
+    "39540"
+  ],
+  [
+    "Raleigh-Cary, NC Metro Area",
+    "26.8",
+    "39580"
+  ],
+  [
+    "Rapid City, SD Metro Area",
+    "20.0",
+    "39660"
+  ],
+  [
+    "Raymondville, TX Micro Area",
+    "19.7",
+    "39700"
+  ],
+  [
+    "Reading, PA Metro Area",
+    "25.4",
+    "39740"
+  ],
+  [
+    "Red Bluff, CA Micro Area",
+    "23.4",
+    "39780"
+  ],
+  [
+    "Redding, CA Metro Area",
+    "19.8",
+    "39820"
+  ],
+  [
+    "Red Wing, MN Micro Area",
+    "23.8",
+    "39860"
+  ],
+  [
+    "Reno, NV Metro Area",
+    "23.3",
+    "39900"
+  ],
+  [
+    "Rexburg, ID Micro Area",
+    "17.8",
+    "39940"
+  ],
+  [
+    "Rice Lake, WI Micro Area",
+    "20.9",
+    "39960"
+  ],
+  [
+    "Richmond, IN Micro Area",
+    "21.8",
+    "39980"
+  ],
+  [
+    "Richmond, VA Metro Area",
+    "25.4",
+    "40060"
+  ],
+  [
+    "Richmond-Berea, KY Micro Area",
+    "26.3",
+    "40080"
+  ],
+  [
+    "Rifle, CO Micro Area",
+    "29.0",
+    "40090"
+  ],
+  [
+    "Rio Grande City-Roma, TX Micro Area",
+    "22.6",
+    "40100"
+  ],
+  [
+    "Riverside-San Bernardino-Ontario, CA Metro Area",
+    "33.2",
+    "40140"
+  ],
+  [
+    "Riverton, WY Micro Area",
+    "17.2",
+    "40180"
+  ],
+  [
+    "Roanoke, VA Metro Area",
+    "22.5",
+    "40220"
+  ],
+  [
+    "Roanoke Rapids, NC Micro Area",
+    "26.8",
+    "40260"
+  ],
+  [
+    "Rochelle, IL Micro Area",
+    "26.0",
+    "40300"
+  ],
+  [
+    "Rochester, MN Metro Area",
+    "20.6",
+    "40340"
+  ],
+  [
+    "Rochester, NY Metro Area",
+    "21.0",
+    "40380"
+  ],
+  [
+    "Rockford, IL Metro Area",
+    "23.6",
+    "40420"
+  ],
+  [
+    "Rockingham, NC Micro Area",
+    "24.1",
+    "40460"
+  ],
+  [
+    "Rock Springs, WY Micro Area",
+    "23.8",
+    "40540"
+  ],
+  [
+    "Rocky Mount, NC Metro Area",
+    "23.3",
+    "40580"
+  ],
+  [
+    "Rolla, MO Micro Area",
+    "19.1",
+    "40620"
+  ],
+  [
+    "Rome, GA Metro Area",
+    "23.3",
+    "40660"
+  ],
+  [
+    "Roseburg, OR Micro Area",
+    "20.6",
+    "40700"
+  ],
+  [
+    "Roswell, NM Micro Area",
+    "19.3",
+    "40740"
+  ],
+  [
+    "Ruidoso, NM Micro Area",
+    "20.0",
+    "40760"
+  ],
+  [
+    "Russellville, AL Micro Area",
+    "26.0",
+    "40770"
+  ],
+  [
+    "Russellville, AR Micro Area",
+    "20.5",
+    "40780"
+  ],
+  [
+    "Ruston, LA Micro Area",
+    "19.2",
+    "40820"
+  ],
+  [
+    "Rutland, VT Micro Area",
+    "23.0",
+    "40860"
+  ],
+  [
+    "Sacramento-Roseville-Folsom, CA Metro Area",
+    "27.1",
+    "40900"
+  ],
+  [
+    "Safford, AZ Micro Area",
+    "22.8",
+    "40940"
+  ],
+  [
+    "Saginaw, MI Metro Area",
+    "22.4",
+    "40980"
+  ],
+  [
+    "St. Cloud, MN Metro Area",
+    "22.0",
+    "41060"
+  ],
+  [
+    "St. George, UT Metro Area",
+    "19.2",
+    "41100"
+  ],
+  [
+    "St. Joseph, MO-KS Metro Area",
+    "19.6",
+    "41140"
+  ],
+  [
+    "St. Louis, MO-IL Metro Area",
+    "24.9",
+    "41180"
+  ],
+  [
+    "St. Marys, PA Micro Area",
+    "18.3",
+    "41260"
+  ],
+  [
+    "Salem, OH Micro Area",
+    "24.6",
+    "41400"
+  ],
+  [
+    "Salem, OR Metro Area",
+    "24.3",
+    "41420"
+  ],
+  [
+    "Salina, KS Micro Area",
+    "16.6",
+    "41460"
+  ],
+  [
+    "Salinas, CA Metro Area",
+    "25.4",
+    "41500"
+  ],
+  [
+    "Salisbury, MD Metro Area",
+    "23.2",
+    "41540"
+  ],
+  [
+    "Salt Lake City-Murray, UT Metro Area",
+    "22.8",
+    "41620"
+  ],
+  [
+    "San Angelo, TX Metro Area",
+    "20.3",
+    "41660"
+  ],
+  [
+    "San Antonio-New Braunfels, TX Metro Area",
+    "26.8",
+    "41700"
+  ],
+  [
+    "San Diego-Chula Vista-Carlsbad, CA Metro Area",
+    "25.5",
+    "41740"
+  ],
+  [
+    "Sandpoint, ID Micro Area",
+    "24.2",
+    "41760"
+  ],
+  [
+    "Sandusky, OH Metro Area",
+    "22.7",
+    "41780"
+  ],
+  [
+    "Sanford, NC Micro Area",
+    "25.8",
+    "41820"
+  ],
+  [
+    "San Francisco-Oakland-Fremont, CA Metro Area",
+    "31.0",
+    "41860"
+  ],
+  [
+    "San Jose-Sunnyvale-Santa Clara, CA Metro Area",
+    "26.6",
+    "41940"
+  ],
+  [
+    "San Juan-Bayam\u00f3n-Caguas, PR Metro Area",
+    "29.4",
+    "41980"
+  ],
+  [
+    "San Luis Obispo-Paso Robles, CA Metro Area",
+    "22.3",
+    "42020"
+  ],
+  [
+    "Santa Cruz-Watsonville, CA Metro Area",
+    "25.7",
+    "42100"
+  ],
+  [
+    "Santa Fe, NM Metro Area",
+    "23.8",
+    "42140"
+  ],
+  [
+    "Santa Maria-Santa Barbara, CA Metro Area",
+    "20.8",
+    "42200"
+  ],
+  [
+    "Santa Rosa-Petaluma, CA Metro Area",
+    "25.1",
+    "42220"
+  ],
+  [
+    "Sault Ste. Marie, MI Micro Area",
+    "17.4",
+    "42300"
+  ],
+  [
+    "Savannah, GA Metro Area",
+    "25.6",
+    "42340"
+  ],
+  [
+    "Sayre, PA Micro Area",
+    "24.1",
+    "42380"
+  ],
+  [
+    "Scottsbluff, NE Micro Area",
+    "15.8",
+    "42420"
+  ],
+  [
+    "Scottsboro, AL Micro Area",
+    "27.3",
+    "42460"
+  ],
+  [
+    "Scranton--Wilkes-Barre, PA Metro Area",
+    "22.7",
+    "42540"
+  ],
+  [
+    "Seaford, DE Micro Area",
+    "27.3",
+    "42580"
+  ],
+  [
+    "Searcy, AR Micro Area",
+    "22.4",
+    "42620"
+  ],
+  [
+    "Seattle-Tacoma-Bellevue, WA Metro Area",
+    "29.2",
+    "42660"
+  ],
+  [
+    "Sebastian-Vero Beach-West Vero Corridor, FL Metro Area",
+    "23.8",
+    "42680"
+  ],
+  [
+    "Sebring, FL Metro Area",
+    "23.8",
+    "42700"
+  ],
+  [
+    "Sedalia, MO Micro Area",
+    "18.7",
+    "42740"
+  ],
+  [
+    "Selinsgrove, PA Micro Area",
+    "22.9",
+    "42780"
+  ],
+  [
+    "Selma, AL Micro Area",
+    "26.4",
+    "42820"
+  ],
+  [
+    "Seneca, SC Micro Area",
+    "23.9",
+    "42860"
+  ],
+  [
+    "Seneca Falls, NY Micro Area",
+    "21.3",
+    "42900"
+  ],
+  [
+    "Sevierville, TN Micro Area",
+    "26.6",
+    "42940"
+  ],
+  [
+    "Seymour, IN Micro Area",
+    "22.6",
+    "42980"
+  ],
+  [
+    "Shawano, WI Micro Area",
+    "22.8",
+    "43020"
+  ],
+  [
+    "Shawnee, OK Micro Area",
+    "24.2",
+    "43060"
+  ],
+  [
+    "Sheboygan, WI Metro Area",
+    "18.2",
+    "43100"
+  ],
+  [
+    "Shelby-Kings Mountain, NC Micro Area",
+    "25.3",
+    "43140"
+  ],
+  [
+    "Shelbyville, TN Micro Area",
+    "28.4",
+    "43180"
+  ],
+  [
+    "Shelton, WA Micro Area",
+    "36.1",
+    "43220"
+  ],
+  [
+    "Sheridan, WY Micro Area",
+    "15.8",
+    "43260"
+  ],
+  [
+    "Sherman-Denison, TX Metro Area",
+    "25.8",
+    "43300"
+  ],
+  [
+    "Show Low, AZ Micro Area",
+    "25.0",
+    "43320"
+  ],
+  [
+    "Shreveport-Bossier City, LA Metro Area",
+    "21.7",
+    "43340"
+  ],
+  [
+    "Sidney, OH Micro Area",
+    "19.0",
+    "43380"
+  ],
+  [
+    "Sierra Vista-Douglas, AZ Metro Area",
+    "23.4",
+    "43420"
+  ],
+  [
+    "Sikeston, MO Micro Area",
+    "19.1",
+    "43460"
+  ],
+  [
+    "Silver City, NM Micro Area",
+    "17.9",
+    "43500"
+  ],
+  [
+    "Sioux City, IA-NE-SD Metro Area",
+    "17.4",
+    "43580"
+  ],
+  [
+    "Sioux Falls, SD-MN Metro Area",
+    "18.6",
+    "43620"
+  ],
+  [
+    "Slidell-Mandeville-Covington, LA Metro Area",
+    "31.5",
+    "43640"
+  ],
+  [
+    "Snyder, TX Micro Area",
+    "20.3",
+    "43660"
+  ],
+  [
+    "Somerset, KY Micro Area",
+    "23.3",
+    "43700"
+  ],
+  [
+    "Somerset, PA Micro Area",
+    "24.9",
+    "43740"
+  ],
+  [
+    "Sonora, CA Micro Area",
+    "30.0",
+    "43760"
+  ],
+  [
+    "South Bend-Mishawaka, IN-MI Metro Area",
+    "21.7",
+    "43780"
+  ],
+  [
+    "Sparta, WI Micro Area",
+    "20.3",
+    "43890"
+  ],
+  [
+    "Spartanburg, SC Metro Area",
+    "25.3",
+    "43900"
+  ],
+  [
+    "Spearfish, SD Micro Area",
+    "19.1",
+    "43940"
+  ],
+  [
+    "Spencer, IA Micro Area",
+    "17.8",
+    "43980"
+  ],
+  [
+    "Spirit Lake, IA Micro Area",
+    "16.7",
+    "44020"
+  ],
+  [
+    "Spokane-Spokane Valley, WA Metro Area",
+    "22.9",
+    "44060"
+  ],
+  [
+    "Springfield, IL Metro Area",
+    "20.1",
+    "44100"
+  ],
+  [
+    "Springfield, MA Metro Area",
+    "22.7",
+    "44140"
+  ],
+  [
+    "Springfield, MO Metro Area",
+    "22.2",
+    "44180"
+  ],
+  [
+    "Springfield, OH Metro Area",
+    "23.1",
+    "44220"
+  ],
+  [
+    "Starkville, MS Micro Area",
+    "21.9",
+    "44260"
+  ],
+  [
+    "State College, PA Metro Area",
+    "20.2",
+    "44300"
+  ],
+  [
+    "Statesboro, GA Micro Area",
+    "25.5",
+    "44340"
+  ],
+  [
+    "Staunton-Stuarts Draft, VA Metro Area",
+    "22.7",
+    "44420"
+  ],
+  [
+    "Steamboat Springs, CO Micro Area",
+    "20.2",
+    "44460"
+  ],
+  [
+    "Stephenville, TX Micro Area",
+    "20.8",
+    "44500"
+  ],
+  [
+    "Sterling, CO Micro Area",
+    "17.4",
+    "44540"
+  ],
+  [
+    "Sterling, IL Micro Area",
+    "20.3",
+    "44580"
+  ],
+  [
+    "Stevens Point-Plover, WI Micro Area",
+    "19.5",
+    "44620"
+  ],
+  [
+    "Stillwater, OK Micro Area",
+    "18.4",
+    "44660"
+  ],
+  [
+    "Stockton-Lodi, CA Metro Area",
+    "34.1",
+    "44700"
+  ],
+  [
+    "Storm Lake, IA Micro Area",
+    "14.0",
+    "44740"
+  ],
+  [
+    "Sturgis, MI Micro Area",
+    "21.0",
+    "44780"
+  ],
+  [
+    "Sulphur Springs, TX Micro Area",
+    "22.6",
+    "44860"
+  ],
+  [
+    "Summerville, GA Micro Area",
+    "28.1",
+    "44900"
+  ],
+  [
+    "Sumter, SC Metro Area",
+    "23.0",
+    "44940"
+  ],
+  [
+    "Sunbury, PA Micro Area",
+    "24.2",
+    "44980"
+  ],
+  [
+    "Susanville, CA Micro Area",
+    "19.5",
+    "45000"
+  ],
+  [
+    "Sweetwater, TX Micro Area",
+    "18.3",
+    "45020"
+  ],
+  [
+    "Syracuse, NY Metro Area",
+    "21.4",
+    "45060"
+  ],
+  [
+    "Tahlequah, OK Micro Area",
+    "23.8",
+    "45140"
+  ],
+  [
+    "Talladega-Sylacauga, AL Micro Area",
+    "28.4",
+    "45180"
+  ],
+  [
+    "Tallahassee, FL Metro Area",
+    "23.2",
+    "45220"
+  ],
+  [
+    "Tampa-St. Petersburg-Clearwater, FL Metro Area",
+    "28.3",
+    "45300"
+  ],
+  [
+    "Taos, NM Micro Area",
+    "25.5",
+    "45340"
+  ],
+  [
+    "Taylorville, IL Micro Area",
+    "22.0",
+    "45380"
+  ],
+  [
+    "Terre Haute, IN Metro Area",
+    "22.7",
+    "45460"
+  ],
+  [
+    "Texarkana, TX-AR Metro Area",
+    "20.1",
+    "45500"
+  ],
+  [
+    "The Dalles, OR Micro Area",
+    "18.9",
+    "45520"
+  ],
+  [
+    "Thomaston, GA Micro Area",
+    "26.3",
+    "45580"
+  ],
+  [
+    "Thomasville, GA Micro Area",
+    "22.3",
+    "45620"
+  ],
+  [
+    "Tiffin, OH Micro Area",
+    "20.7",
+    "45660"
+  ],
+  [
+    "Tifton, GA Micro Area",
+    "22.0",
+    "45700"
+  ],
+  [
+    "Toccoa, GA Micro Area",
+    "23.8",
+    "45740"
+  ],
+  [
+    "Toledo, OH Metro Area",
+    "20.8",
+    "45780"
+  ],
+  [
+    "Topeka, KS Metro Area",
+    "20.6",
+    "45820"
+  ],
+  [
+    "Torrington, CT Micro Area",
+    "26.9",
+    "45860"
+  ],
+  [
+    "Town of Pecos, TX Micro Area",
+    "18.0",
+    "45880"
+  ],
+  [
+    "Traverse City, MI Metro Area",
+    "22.5",
+    "45900"
+  ],
+  [
+    "Trenton-Princeton, NJ Metro Area",
+    "27.1",
+    "45940"
+  ],
+  [
+    "Troy, AL Micro Area",
+    "20.3",
+    "45980"
+  ],
+  [
+    "Truckee-Grass Valley, CA Micro Area",
+    "23.6",
+    "46020"
+  ],
+  [
+    "Tucson, AZ Metro Area",
+    "24.3",
+    "46060"
+  ],
+  [
+    "Tullahoma-Manchester, TN Micro Area",
+    "25.5",
+    "46100"
+  ],
+  [
+    "Tulsa, OK Metro Area",
+    "22.1",
+    "46140"
+  ],
+  [
+    "Tupelo, MS Micro Area",
+    "22.4",
+    "46180"
+  ],
+  [
+    "Tuscaloosa, AL Metro Area",
+    "24.2",
+    "46220"
+  ],
+  [
+    "Twin Falls, ID Metro Area",
+    "18.6",
+    "46300"
+  ],
+  [
+    "Tyler, TX Metro Area",
+    "23.1",
+    "46340"
+  ],
+  [
+    "Ukiah, CA Micro Area",
+    "21.5",
+    "46380"
+  ],
+  [
+    "Union City, TN Micro Area",
+    "20.2",
+    "46460"
+  ],
+  [
+    "Urbana, OH Micro Area",
+    "27.1",
+    "46500"
+  ],
+  [
+    "Urban Honolulu, HI Metro Area",
+    "26.7",
+    "46520"
+  ],
+  [
+    "Utica-Rome, NY Metro Area",
+    "21.7",
+    "46540"
+  ],
+  [
+    "Utuado, PR Micro Area",
+    "32.4",
+    "46580"
+  ],
+  [
+    "Uvalde, TX Micro Area",
+    "19.7",
+    "46620"
+  ],
+  [
+    "Valdosta, GA Metro Area",
+    "20.6",
+    "46660"
+  ],
+  [
+    "Vallejo, CA Metro Area",
+    "31.0",
+    "46700"
+  ],
+  [
+    "Van Wert, OH Micro Area",
+    "19.7",
+    "46780"
+  ],
+  [
+    "Vermillion, SD Micro Area",
+    "19.5",
+    "46820"
+  ],
+  [
+    "Vernal, UT Micro Area",
+    "20.6",
+    "46860"
+  ],
+  [
+    "Vernon, TX Micro Area",
+    "14.0",
+    "46900"
+  ],
+  [
+    "Vicksburg, MS Micro Area",
+    "21.4",
+    "46980"
+  ],
+  [
+    "Victoria, TX Metro Area",
+    "22.4",
+    "47020"
+  ],
+  [
+    "Vidalia, GA Micro Area",
+    "22.2",
+    "47080"
+  ],
+  [
+    "Vincennes, IN Micro Area",
+    "19.7",
+    "47180"
+  ],
+  [
+    "Vineland, NJ Metro Area",
+    "25.5",
+    "47220"
+  ],
+  [
+    "Vineyard Haven, MA Micro Area",
+    "16.4",
+    "47240"
+  ],
+  [
+    "Virginia Beach-Chesapeake-Norfolk, VA-NC Metro Area",
+    "24.9",
+    "47260"
+  ],
+  [
+    "Visalia, CA Metro Area",
+    "23.7",
+    "47300"
+  ],
+  [
+    "Wabash, IN Micro Area",
+    "21.5",
+    "47340"
+  ],
+  [
+    "Waco, TX Metro Area",
+    "21.9",
+    "47380"
+  ],
+  [
+    "Wahpeton, ND-MN Micro Area",
+    "21.3",
+    "47420"
+  ],
+  [
+    "Walla Walla, WA Metro Area",
+    "15.1",
+    "47460"
+  ],
+  [
+    "Wapakoneta, OH Micro Area",
+    "18.8",
+    "47540"
+  ],
+  [
+    "Warner Robins, GA Metro Area",
+    "23.0",
+    "47580"
+  ],
+  [
+    "Warren, PA Micro Area",
+    "20.7",
+    "47620"
+  ],
+  [
+    "Warrensburg, MO Micro Area",
+    "23.7",
+    "47660"
+  ],
+  [
+    "Warsaw, IN Micro Area",
+    "20.3",
+    "47700"
+  ],
+  [
+    "Washington, IN Micro Area",
+    "21.4",
+    "47780"
+  ],
+  [
+    "Washington, NC Micro Area",
+    "24.8",
+    "47820"
+  ],
+  [
+    "Washington-Arlington-Alexandria, DC-VA-MD-WV Metro Area",
+    "32.4",
+    "47900"
+  ],
+  [
+    "Washington Court House, OH Micro Area",
+    "27.0",
+    "47920"
+  ],
+  [
+    "Waterbury-Shelton, CT Metro Area",
+    "28.3",
+    "47930"
+  ],
+  [
+    "Waterloo-Cedar Falls, IA Metro Area",
+    "17.0",
+    "47940"
+  ],
+  [
+    "Watertown, SD Micro Area",
+    "14.1",
+    "47980"
+  ],
+  [
+    "Watertown-Fort Atkinson, WI Micro Area",
+    "24.8",
+    "48020"
+  ],
+  [
+    "Watertown-Fort Drum, NY Metro Area",
+    "19.5",
+    "48060"
+  ],
+  [
+    "Wausau, WI Metro Area",
+    "19.1",
+    "48140"
+  ],
+  [
+    "Waycross, GA Micro Area",
+    "23.0",
+    "48180"
+  ],
+  [
+    "Waynesville, NC Micro Area",
+    "23.8",
+    "48200"
+  ],
+  [
+    "Weatherford, OK Micro Area",
+    "19.9",
+    "48220"
+  ],
+  [
+    "Weirton-Steubenville, WV-OH Metro Area",
+    "24.3",
+    "48260"
+  ],
+  [
+    "Wenatchee-East Wenatchee, WA Metro Area",
+    "20.2",
+    "48300"
+  ],
+  [
+    "West Plains, MO Micro Area",
+    "23.1",
+    "48460"
+  ],
+  [
+    "Wheeling, WV-OH Metro Area",
+    "23.7",
+    "48540"
+  ],
+  [
+    "Whitewater-Elkhorn, WI Micro Area",
+    "23.9",
+    "48580"
+  ],
+  [
+    "Wichita, KS Metro Area",
+    "20.0",
+    "48620"
+  ],
+  [
+    "Wichita Falls, TX Metro Area",
+    "16.4",
+    "48660"
+  ],
+  [
+    "Wildwood-The Villages, FL Metro Area",
+    "28.9",
+    "48680"
+  ],
+  [
+    "Williamsport, PA Metro Area",
+    "21.1",
+    "48700"
+  ],
+  [
+    "Williston, ND Micro Area",
+    "18.7",
+    "48780"
+  ],
+  [
+    "Willmar, MN Micro Area",
+    "17.5",
+    "48820"
+  ],
+  [
+    "Wilmington, NC Metro Area",
+    "23.5",
+    "48900"
+  ],
+  [
+    "Wilmington, OH Micro Area",
+    "24.6",
+    "48940"
+  ],
+  [
+    "Wilson, NC Micro Area",
+    "22.5",
+    "48980"
+  ],
+  [
+    "Winchester, TN Micro Area",
+    "25.1",
+    "49010"
+  ],
+  [
+    "Winchester, VA-WV Metro Area",
+    "31.2",
+    "49020"
+  ],
+  [
+    "Winnemucca, NV Micro Area",
+    "28.4",
+    "49080"
+  ],
+  [
+    "Winona, MN Micro Area",
+    "17.6",
+    "49100"
+  ],
+  [
+    "Winston-Salem, NC Metro Area",
+    "24.4",
+    "49180"
+  ],
+  [
+    "Wisconsin Rapids-Marshfield, WI Micro Area",
+    "20.7",
+    "49220"
+  ],
+  [
+    "Woodward, OK Micro Area",
+    "21.3",
+    "49260"
+  ],
+  [
+    "Wooster, OH Micro Area",
+    "20.6",
+    "49300"
+  ],
+  [
+    "Worcester, MA Metro Area",
+    "29.2",
+    "49340"
+  ],
+  [
+    "Worthington, MN Micro Area",
+    "19.6",
+    "49380"
+  ],
+  [
+    "Yakima, WA Metro Area",
+    "20.3",
+    "49420"
+  ],
+  [
+    "Yankton, SD Micro Area",
+    "15.3",
+    "49460"
+  ],
+  [
+    "York-Hanover, PA Metro Area",
+    "26.3",
+    "49620"
+  ],
+  [
+    "Youngstown-Warren, OH Metro Area",
+    "22.9",
+    "49660"
+  ],
+  [
+    "Yuba City, CA Metro Area",
+    "29.5",
+    "49700"
+  ],
+  [
+    "Yuma, AZ Metro Area",
+    "21.3",
+    "49740"
+  ],
+  [
+    "Zanesville, OH Micro Area",
+    "25.4",
+    "49780"
+  ],
+  [
+    "Zapata, TX Micro Area",
+    "23.6",
+    "49820"
+  ]
+]
