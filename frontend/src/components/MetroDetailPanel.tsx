@@ -13,6 +13,20 @@ export function MetroDetailPanel({ metro, onClose }: Props) {
   const [rentPoints, setRentPoints] = useState<MarketMetricPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // .detail-panel scrolls its own content now (see index.css), but
+  // without this the page behind the overlay was still the thing that
+  // actually scrolled on touch devices - a wheel/touch gesture over a
+  // fixed-position overlay doesn't inherently stop it reaching the body
+  // underneath. Locking body scroll while the panel's open, restoring it
+  // on close/unmount, is what actually confines scrolling to the panel.
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     Promise.all([
