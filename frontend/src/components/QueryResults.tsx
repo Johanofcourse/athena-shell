@@ -31,7 +31,7 @@ function renderCommentaryBlocks(text: string) {
 }
 
 export function QueryResults({ response, query }: Props) {
-  const { filters, explanation, results, commentary, narrative } = response;
+  const { filters, explanation, results, commentary, narrative, source_citation: sourceCitation } = response;
 
   if (commentary) {
     // The backend already prefers one chunk per distinct section, but if
@@ -85,23 +85,35 @@ export function QueryResults({ response, query }: Props) {
     );
   }
 
+  // Inverted pyramid, the same shape a news article uses (Johan: "most
+  // important info on top... important details, then general info and
+  // background/citations, and graphs numbers at the bottom"): the thesis
+  // leads, filter/caveat detail and the source citation follow as
+  // supporting context, and the chart - the raw evidence, for whoever
+  // wants to verify the thesis rather than just read it - comes last.
+  // Presenting it in that order is also the whole point of asking for a
+  // narrative at all: people read the facts and draw their own
+  // conclusions, the same as an article, rather than a graph being the
+  // first and only thing they see.
   return (
     <div className="query-results">
-      <p className="explanation">{explanation}</p>
       {results.length === 0 ? (
-        <p className="empty-state">No data to show for this query.</p>
+        <>
+          <p className="explanation">{explanation}</p>
+          <p className="empty-state">No data to show for this query.</p>
+        </>
       ) : (
         <>
-          {/* The thesis someone should be able to glance at and understand,
-              not a caption underneath the chart - same prominent treatment
-              as a commentary answer (.commentary-summary), reused here
-              rather than duplicated, so both response types read as "the
-              answer first, supporting visual/citations after." Falls back
-              to the deterministic analysis.ts sentence if the backend's
-              LLM synthesis didn't run or failed - never shows nothing. */}
+          {/* Falls back to the deterministic analysis.ts sentence if the
+              backend's LLM synthesis didn't run or failed - never shows
+              nothing. Same prominent treatment as a commentary answer
+              (.commentary-summary), reused rather than duplicated, so
+              both response types read as "the answer first." */}
           <p className="commentary-summary">
             {narrative ?? summarizeResults(results, filters.metric, filters.sort_by)}
           </p>
+          <p className="explanation">{explanation}</p>
+          {sourceCitation && <p className="commentary-citation">Source: {sourceCitation}</p>}
           {filters.sort_by === "value" ? (
             <RankingChart points={results} metric={filters.metric} />
           ) : (
