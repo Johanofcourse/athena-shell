@@ -11,6 +11,13 @@ const EXAMPLE_QUERY_POOL = [
   "How long do homes stay on the market in Seattle?",
   "Which metros have the highest rent-to-income ratio?",
   "How have 15-year mortgage rates changed since 2023?",
+  // Showcasing the newer metrics - each phrasing verified end-to-end
+  // against the real API before adding, same as every example above.
+  "How does the commute compare between Austin and Denver?",
+  "Which metros have the highest property taxes?",
+  "How has the population changed in Austin over the last decade?",
+  "Which metros have the highest natural disaster risk?",
+  "Why has rent been declining in Austin?",
 ];
 const EXAMPLE_COUNT = 4;
 
