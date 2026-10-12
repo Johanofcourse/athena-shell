@@ -1,0 +1,746 @@
+{
+  "2012": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "1265",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "1465",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "856",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1127",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1462",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "807",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1135",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1116",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "999",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1243",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2013": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "1335",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "1499",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "878",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1113",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1494",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "859",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1162",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1132",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1034",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1254",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2014": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "1391",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "1572",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "934",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1160",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1674",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "873",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1194",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1155",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1077",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1327",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2015": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "1513",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "1624",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "966",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1214",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1656",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "893",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1256",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1241",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1075",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1323",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2016": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "1622",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "1722",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "982",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1218",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1634",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "925",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1296",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1303",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1093",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1396",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2017": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "1745",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "1786",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "1047",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1246",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1698",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "919",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1328",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1349",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1143",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1450",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2018": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "1875",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "1872",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "1112",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1257",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1806",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "933",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1372",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1369",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1187",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1467",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2019": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "1982",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "1929",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "1147",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1324",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1790",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "972",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1448",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1498",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1233",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1527",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2021": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "2036",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "2090",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "1259",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1428",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "1960",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "1069",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1498",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1560",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1319",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1655",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2022": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "2183",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "2251",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "1389",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1560",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "2010",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "1117",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1766",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1749",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1376",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1669",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2023": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "2303",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "2382",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "1569",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1674",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "2228",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "1229",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "1961",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "1982",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1477",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1823",
+      "state": "34",
+      "county": "023"
+    }
+  },
+  "2024": {
+    "oakland-ca": {
+      "NAME": "Alameda County, California",
+      "B25064_001E": "2312",
+      "state": "06",
+      "county": "001"
+    },
+    "anaheim-ca": {
+      "NAME": "Orange County, California",
+      "B25064_001E": "2483",
+      "state": "06",
+      "county": "059"
+    },
+    "fort-worth-tx": {
+      "NAME": "Tarrant County, Texas",
+      "B25064_001E": "1669",
+      "state": "48",
+      "county": "439"
+    },
+    "montgomery-county-pa": {
+      "NAME": "Montgomery County, Pennsylvania",
+      "B25064_001E": "1732",
+      "state": "42",
+      "county": "091"
+    },
+    "nassau-county-ny": {
+      "NAME": "Nassau County, New York",
+      "B25064_001E": "2238",
+      "state": "36",
+      "county": "059"
+    },
+    "warren-mi": {
+      "NAME": "Macomb County, Michigan",
+      "B25064_001E": "1246",
+      "state": "26",
+      "county": "099"
+    },
+    "fort-lauderdale-fl": {
+      "NAME": "Broward County, Florida",
+      "B25064_001E": "2106",
+      "state": "12",
+      "county": "011"
+    },
+    "west-palm-beach-fl": {
+      "NAME": "Palm Beach County, Florida",
+      "B25064_001E": "2121",
+      "state": "12",
+      "county": "099"
+    },
+    "newark-nj": {
+      "NAME": "Essex County, New Jersey",
+      "B25064_001E": "1616",
+      "state": "34",
+      "county": "013"
+    },
+    "new-brunswick-nj": {
+      "NAME": "Middlesex County, New Jersey",
+      "B25064_001E": "1947",
+      "state": "34",
+      "county": "023"
+    }
+  }
+}
