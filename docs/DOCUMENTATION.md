@@ -368,17 +368,31 @@ construction-site caution tape - same bones, different tokens (`--accent`,
 `--danger` in `index.css`). One deliberate identity either way, not a
 theme that softens for `prefers-color-scheme: light`.
 
-**Metro browsing map** (`UsMetroMap.tsx`): an accurate US map
-(`react-simple-maps` + `d3-geo`, rendering `us-atlas`'s real Census
-TIGER/Line-derived state topology via `geoAlbersUsa`) with all 50 metros
-plotted as clickable markers, plus a synced list alongside - not an
-illustrated/isometric map, since that style is normally hand-drawn art,
-not something derivable from coordinate data. Coordinates come from
-`METRO_COORDINATES` (`market_crosswalk.py`), the one crosswalk in this
-project with zero gaps (see below). Uses `us-atlas`'s raw (non-Albers-
-pre-projected) topology specifically, so both the state outlines and the
-markers get projected through the same `geoAlbersUsa` call - the
-pre-projected variant would silently misalign the two.
+**Metro browsing map** (`UsMetroMap.tsx`): a real 1870s Colton's atlas
+engraving of the US (`src/assets/colton-us-map-1870s.jpg`, public domain,
+sourced from Wikimedia Commons/David Rumsey Map Collection) with all 50
+metros plotted as clickable pins on top, plus a synced list alongside -
+replaced the earlier `react-simple-maps`/`d3-geo`/`us-atlas` vector
+rendering (a stylized-to-look-antique Census TIGER outline) with an
+actual period engraving, at Johan's request, for a more genuinely
+antique look. Coordinates come from `METRO_COORDINATES`
+(`market_crosswalk.py`, real lat/long - the one crosswalk in this project
+with zero gaps, see below), but a historical map scan has no geodetic
+projection to plug those into directly. Pin positions
+(`src/mapCoordinates.ts`, percent-of-image-width/height per metro) were
+instead calibrated by hand: ~39 reference points read directly off the
+scan (clearly labeled cities, cross-checked against a handful of the
+map's own printed longitude/latitude ticks), fit with a thin-plate spline
+(exact at every reference point, smoothly interpolated between them -
+the standard GIS technique for georeferencing a non-uniformly-distorted
+historical map, used here instead of a single global polynomial after an
+early attempt at one produced large, uneven errors). The image wrapper is
+locked to the source image's own aspect ratio via CSS so the image never
+letterboxes inside it - a prerequisite for the percentage coordinates to
+land correctly. Verified by rendering all 50 pins back onto the full-
+resolution scan and checking every region (West Coast, Mountain West,
+Texas, Midwest, Northeast, Southeast, Florida) against real geography,
+not just spot-checked.
 
 **Value formatting** (`format.ts`): metrics aren't all the same *kind* of
 number - `median_sale_price`/`median_rent`/`median_price_per_sqft`/
