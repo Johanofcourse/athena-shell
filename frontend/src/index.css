@@ -732,7 +732,13 @@ header h1 {
 .metro-list {
   flex: none;
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(0, 1fr), not a bare 1fr: a plain 1fr track still won't
+     shrink below its content's natural min-content width, the grid-level
+     version of the same flex min-width: auto default that was also
+     fighting the "Income" fix below - with 50 rows sharing this one
+     column, the single longest name (Montgomery County, PA) was
+     setting the whole column's minimum width, not just that one row's. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   list-style: none;
   margin: 0;
@@ -789,6 +795,25 @@ header h1 {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
+}
+
+/* Johan: "Income" was getting chopped off the right edge on mobile.
+   Root cause, confirmed by measuring a real row: flex items default to
+   min-width: auto, which for a white-space: nowrap child means "never
+   shrink below the text's own full width" - so the longest metro name
+   in the list (Montgomery County, PA - 203px) was forcing every row in
+   the shared grid column to 397px, well past the ~350px actually
+   available, pushing the badges' right edge off-screen. Letting the
+   name truncate with an ellipsis instead - the only one of these
+   actually at risk of exceeding its allotted space - fixes it without
+   touching the badges (already a fixed, already-tight 56px/cell) or
+   shrinking the font to the point of hurting readability. */
+@media (max-width: 560px) {
+  .metro-list-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 @media (max-width: 720px) {
