@@ -7,7 +7,6 @@ import { MetroDetailPanel } from "./components/MetroDetailPanel";
 import { QueryResults } from "./components/QueryResults";
 import { SearchBar } from "./components/SearchBar";
 import { UsMetroMap } from "./components/UsMetroMap";
-import { resetPinchZoom } from "./resetPinchZoom";
 import type { ConversationTurn, MarketQueryResponse, Metro } from "./types";
 
 const MAX_HISTORY_TURNS = 5;
@@ -56,15 +55,6 @@ export default function App() {
     setQueryResponse(null);
     setError(null);
     setHistory([]);
-  }
-
-  function handleSelectMetro(metro: Metro) {
-    // Johan: zooming into the map on mobile then tapping a pin left the
-    // metro detail panel rendered at that same pinched-in zoom level -
-    // "the graph is gigantic." See resetPinchZoom's own comment for why
-    // this is the fix.
-    resetPinchZoom();
-    setSelectedMetro(metro);
   }
 
   return (
@@ -126,7 +116,7 @@ export default function App() {
           {metrosLoading ? (
             <p className="empty-state">Loading metros…</p>
           ) : (
-            <UsMetroMap metros={metros} onSelect={handleSelectMetro} />
+            <UsMetroMap metros={metros} onSelect={setSelectedMetro} />
           )}
         </section>
       )}
