@@ -73,25 +73,10 @@ CENSUS_INCOME_FILE = "ACSDT5Y2024.B19013-2026-09-28T020212.csv"
 # gross rent (a different table, B25064) gives a real, non-blended number
 # for exactly these 10 - ingested as its own metric (median_gross_rent),
 # never silently relabeled as median_rent. See run_market_query for how
-# it's surfaced (always as an explicitly flagged approximation).
-CENSUS_GROSS_RENT_GAP_FILES: list[tuple[str, dict[str, str]]] = [
-    (
-        "ACSDT5Y2024.B25064-2026-09-28T041101.csv",
-        {"Alameda County, California": "oakland-ca", "Orange County, California": "anaheim-ca"},
-    ),
-    ("ACSDT5Y2024.B25064-2026-09-28T041221.csv", {"Tarrant County, Texas": "fort-worth-tx"}),
-    ("ACSDT5Y2024.B25064-2026-09-28T041311.csv", {"Montgomery County, Pennsylvania": "montgomery-county-pa"}),
-    ("ACSDT5Y2024.B25064-2026-09-28T041414.csv", {"Nassau County, New York": "nassau-county-ny"}),
-    ("ACSDT5Y2024.B25064-2026-09-28T041458.csv", {"Macomb County, Michigan": "warren-mi"}),
-    (
-        "ACSDT5Y2024.B25064-2026-09-28T041653.csv",
-        {"Broward County, Florida": "fort-lauderdale-fl", "Palm Beach County, Florida": "west-palm-beach-fl"},
-    ),
-    (
-        "ACSDT5Y2024.B25064-2026-09-28T041749.csv",
-        {"Essex County, New Jersey": "newark-nj", "Middlesex County, New Jersey": "new-brunswick-nj"},
-    ),
-]
+# it's surfaced (always as an explicitly flagged approximation). See
+# ingest_census_rent_trend / fetch_census_rent_trend.py for the actual
+# multi-year ingest of this data.
+CENSUS_RENT_TREND_FILE = "census_rent_trend.json"
 
 # Both Census tables are single-snapshot ACS 5-Year 2024 estimates, not a
 # monthly series like Redfin/Apartment List - stored under one
@@ -543,30 +528,65 @@ def ingest_fema_nri_risk(db, income_to_id: dict[str, str]) -> int:
     return count
 
 
-def ingest_census_gross_rent_fallback(db) -> int:
+def ingest_census_rent_trend(db) -> int:
+    """Parses the raw multi-year response saved by
+    fetch_census_rent_trend.py into MarketMetric rows - one per
+    (metro, year), same shape as ingest_census_population. Replaces what
+    used to be a single ACS 5-Year 2024 snapshot per metro (one point,
+    no trend - an honest but not very useful fallback for these 10
+    metro-division gap metros) with a real ACS 1-Year series back to
+    2012. Still stored under the same median_gross_rent metric name
+    under the same MetricSource.CENSUS source, so nothing downstream
+    (the approximated_metros honesty flag, explain_filters' caveat text,
+    the sort_by "change" ranking mode, which now actually has something
+    to compute a rate from for these metros) needed to change - this is
+    purely a data improvement, not a schema or query-logic one.
+
+    Johan: "The medina [sic] rent for palm beach only shows 2023 no?
+    Might need to fix that in some way" - found while testing the
+    sort_by "change" ranking fix (this metro's single data point made a
+    rate-of-change query structurally impossible for it)."""
+    path = DATA_DIR / CENSUS_RENT_TREND_FILE
+    if not path.exists():
+        print(f"{CENSUS_RENT_TREND_FILE} not found - run `python -m app.fetch_census_rent_trend` first. Skipping.")
+        return 0
+
+    with open(path, encoding="utf-8") as f:
+        by_year = json.load(f)
+
     count = 0
-    for filename, county_to_metro in CENSUS_GROSS_RENT_GAP_FILES:
-        values = _parse_census_row(DATA_DIR / filename)
-        for county_name, metro_id in county_to_metro.items():
-            value = values.get(county_name)
+    # Recorded on the metro itself (not just derivable from this file),
+    # so the caveat shown to a user can name the specific county behind
+    # the number - "Orange County, California", not just a generic
+    # "Census data" gesture. The API's own NAME field for each county,
+    # not a hand-maintained label, so it can't drift out of sync with
+    # what was actually queried.
+    county_names: dict[str, str] = {}
+    for year_str, rows in by_year.items():
+        period = date(int(year_str), 1, 1)
+        for metro_id, row in rows.items():
+            value = _parse_float(row.get("B25064_001E"))
             if value is None:
                 continue
             db.add(
                 MarketMetric(
                     metro_id=metro_id,
-                    period=CENSUS_ACS_PERIOD,
+                    period=period,
                     source=MetricSource.CENSUS,
                     metric="median_gross_rent",
                     bed_size=None,
                     value=value,
                 )
             )
-            # Recorded on the metro itself (not just derivable from this
-            # function's file list) so the caveat shown to a user can name
-            # the specific county behind the number - "Orange County, CA",
-            # not just a generic "Census data" gesture.
-            db.get(Metro, metro_id).census_gross_rent_county = county_name
+            if row.get("NAME"):
+                county_names[metro_id] = row["NAME"]
             count += 1
+
+    for metro_id, county_name in county_names.items():
+        metro = db.get(Metro, metro_id)
+        if metro is not None:
+            metro.census_gross_rent_county = county_name
+
     return count
 
 
@@ -896,9 +916,9 @@ def ingest() -> None:
         db.commit()
         print(f"Ingested {nri_count} FEMA National Risk Index rows.")
 
-        gross_rent_count = ingest_census_gross_rent_fallback(db)
+        gross_rent_count = ingest_census_rent_trend(db)
         db.commit()
-        print(f"Ingested {gross_rent_count} Census median gross rent fallback rows.")
+        print(f"Ingested {gross_rent_count} Census median gross rent (metro-division gap) rows.")
 
         pmms_count = ingest_pmms(db)
         db.commit()

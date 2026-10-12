@@ -492,35 +492,82 @@ def test_ingest_fema_nri_risk_missing_delineation_file_returns_zero_without_erro
     assert ingest.ingest_fema_nri_risk(db_session, {}) == 0
 
 
-# --- ingest_census_gross_rent_fallback ---
+# --- ingest_census_rent_trend (live-API source, offline-parsed from a saved JSON) ---
+# Replaced the old single ACS 5-Year snapshot (ingest_census_gross_rent_
+# fallback) with a real multi-year ACS 1-Year series - Johan: "The medina
+# [sic] rent for palm beach only shows 2023 no? Might need to fix that."
 
 
-def test_ingest_census_gross_rent_fallback_sets_metric_and_county(db_session, monkeypatch, tmp_path):
+def test_ingest_census_rent_trend_multiple_years_and_county_name(db_session, monkeypatch, tmp_path):
     db_session.add(Metro(id="gapford-gf", canonical_name="Gapford, GF", state="GF"))
     db_session.commit()
 
-    path = tmp_path / "gross_rent.csv"
-    _write_census_csv(
-        path,
-        ["Label (Grouping)", "Gap County, GF!!Estimate", "Gap County, GF!!Margin of Error"],
-        ["Median gross rent", "1,800", "±15"],
+    path = tmp_path / "rent_trend.json"
+    path.write_text(
+        json.dumps(
+            {
+                "2012": {
+                    "gapford-gf": {"NAME": "Gap County, Gapfordia", "B25064_001E": "1200", "state": "99", "county": "001"},
+                },
+                "2024": {
+                    "gapford-gf": {"NAME": "Gap County, Gapfordia", "B25064_001E": "1800", "state": "99", "county": "001"},
+                },
+            }
+        )
     )
     monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(ingest, "CENSUS_GROSS_RENT_GAP_FILES", [("gross_rent.csv", {"Gap County, GF": "gapford-gf"})])
+    monkeypatch.setattr(ingest, "CENSUS_RENT_TREND_FILE", "rent_trend.json")
 
-    count = ingest.ingest_census_gross_rent_fallback(db_session)
+    count = ingest.ingest_census_rent_trend(db_session)
+    db_session.commit()
+    assert count == 2
+
+    rows = (
+        db_session.query(MarketMetric)
+        .filter_by(metro_id="gapford-gf", metric="median_gross_rent")
+        .order_by(MarketMetric.period)
+        .all()
+    )
+    assert [r.period for r in rows] == [date(2012, 1, 1), date(2024, 1, 1)]
+    assert [r.value for r in rows] == [1200.0, 1800.0]
+    assert all(r.source == MetricSource.CENSUS for r in rows)
+    assert all(r.bed_size is None for r in rows)
+
+    # The feature the caveat-specificity follow-up depends on: the metro
+    # itself gets tagged with which county backs the number, from the
+    # API's own NAME field rather than a hand-maintained label.
+    metro = db_session.get(Metro, "gapford-gf")
+    assert metro.census_gross_rent_county == "Gap County, Gapfordia"
+
+
+def test_ingest_census_rent_trend_skips_a_year_missing_a_value(db_session, monkeypatch, tmp_path):
+    db_session.add(Metro(id="gapford-gf", canonical_name="Gapford, GF", state="GF"))
+    db_session.commit()
+
+    path = tmp_path / "rent_trend.json"
+    path.write_text(
+        json.dumps(
+            {
+                "2012": {"gapford-gf": {"NAME": "Gap County, Gapfordia", "B25064_001E": ""}},
+                "2024": {"gapford-gf": {"NAME": "Gap County, Gapfordia", "B25064_001E": "1800"}},
+            }
+        )
+    )
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_RENT_TREND_FILE", "rent_trend.json")
+
+    count = ingest.ingest_census_rent_trend(db_session)
     db_session.commit()
     assert count == 1
 
-    row = db_session.query(MarketMetric).filter_by(metro_id="gapford-gf").one()
-    assert row.metric == "median_gross_rent"
-    assert row.source == MetricSource.CENSUS
-    assert row.value == 1800.0
+    rows = db_session.query(MarketMetric).filter_by(metro_id="gapford-gf").all()
+    assert [r.period for r in rows] == [date(2024, 1, 1)]
 
-    # The feature the caveat-specificity follow-up depends on: the metro
-    # itself gets tagged with which county backs the number.
-    metro = db_session.get(Metro, "gapford-gf")
-    assert metro.census_gross_rent_county == "Gap County, GF"
+
+def test_ingest_census_rent_trend_missing_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
+    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(ingest, "CENSUS_RENT_TREND_FILE", "does_not_exist.json")
+    assert ingest.ingest_census_rent_trend(db_session) == 0
 
 
 # --- ingest_national_data (Freddie Mac PMMS - no metro dimension) ---
