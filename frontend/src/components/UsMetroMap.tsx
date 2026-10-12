@@ -10,10 +10,6 @@ import type { Metro } from "../types";
 // right place, with no object-fit letterboxing to account for.
 const MAP_ASPECT_RATIO = "2400 / 1457";
 
-// Near the map's top edge, an "above the pin" callout would render
-// partly off-canvas - flip it below the pin instead past this point.
-const FLIP_CALLOUT_BELOW_ABOVE_Y_PCT = 15;
-
 interface Props {
   metros: Metro[];
   onSelect: (metro: Metro) => void;
@@ -53,7 +49,6 @@ export function UsMetroMap({ metros, onSelect }: Props) {
   }
 
   const confirmingMetro = metros.find((m) => m.id === confirmingId) ?? null;
-  const confirmingCoords = confirmingMetro ? METRO_MAP_COORDINATES[confirmingMetro.id] : null;
 
   return (
     <div className="metro-map-layout">
@@ -77,70 +72,86 @@ export function UsMetroMap({ metros, onSelect }: Props) {
             the page with a mouse over the map behaves normally;
             pinch/double-click/drag-to-pan still work for getting a
             closer look at a dense cluster before picking a pin. */}
-        <TransformWrapper
-          ref={transformRef}
-          initialScale={1}
-          minScale={1}
-          maxScale={6}
-          centerOnInit
-          wheel={{ disabled: true }}
-          doubleClick={{ mode: "zoomIn" }}
-        >
-          <TransformComponent wrapperStyle={{ width: "100%" }} contentStyle={{ width: "100%" }}>
-            <div
-              className="metro-map-image-wrap"
-              style={{ aspectRatio: MAP_ASPECT_RATIO }}
-              onClick={() => setConfirmingId(null)}
+        {/* The callout below is a sibling of TransformWrapper, inside
+            this relatively-positioned wrapper specifically (not
+            .metro-map-canvas as a whole) - anchoring it to the map area
+            alone, rather than the canvas including the title, is what
+            lets it sit right at the top of the map without overlapping
+            the title text above it. */}
+        <div className="metro-map-zoom-area">
+          <TransformWrapper
+            ref={transformRef}
+            initialScale={1}
+            minScale={1}
+            maxScale={6}
+            centerOnInit
+            wheel={{ disabled: true }}
+            doubleClick={{ mode: "zoomIn" }}
+          >
+            <TransformComponent wrapperStyle={{ width: "100%" }} contentStyle={{ width: "100%" }}>
+              <div
+                className="metro-map-image-wrap"
+                style={{ aspectRatio: MAP_ASPECT_RATIO }}
+                onClick={() => setConfirmingId(null)}
+              >
+                <img
+                  src={coltonMap}
+                  alt="An 1870s Colton's atlas map of the United States"
+                  className="metro-map-image"
+                  draggable={false}
+                />
+                {metros.map((metro) => {
+                  const coords = METRO_MAP_COORDINATES[metro.id];
+                  if (!coords) return null;
+                  const [xPct, yPct] = coords;
+                  return (
+                    <button
+                      key={metro.id}
+                      type="button"
+                      className="metro-map-pin"
+                      style={{ left: `${xPct}%`, top: `${yPct}%` }}
+                      data-hovered={hoveredId === metro.id}
+                      data-confirming={confirmingId === metro.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePinClick(metro);
+                      }}
+                      onMouseEnter={() => setHoveredId(metro.id)}
+                      onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
+                      aria-label={metro.canonical_name}
+                      title={metro.canonical_name}
+                    />
+                  );
+                })}
+              </div>
+            </TransformComponent>
+          </TransformWrapper>
+          {/* Deliberately rendered OUTSIDE TransformWrapper, not
+              anchored to the pin's own (zoomed/panned) position like
+              the first version of this was - Johan: zoomed into south
+              Florida and picked Orlando, and the callout naming it was
+              clipped by the map's own frame, since it inherited the
+              same pan/zoom transform and the same overflow:hidden
+              clipping as the pins do. A fixed banner over the top of
+              the map is never subject to either, regardless of how far
+              in someone has zoomed or where on the map the pin they
+              picked actually is. */}
+          {confirmingMetro && (
+            <button
+              type="button"
+              className="metro-map-callout"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(confirmingMetro);
+                setConfirmingId(null);
+                transformRef.current?.resetTransform();
+              }}
             >
-              <img
-                src={coltonMap}
-                alt="An 1870s Colton's atlas map of the United States"
-                className="metro-map-image"
-                draggable={false}
-              />
-              {metros.map((metro) => {
-                const coords = METRO_MAP_COORDINATES[metro.id];
-                if (!coords) return null;
-                const [xPct, yPct] = coords;
-                return (
-                  <button
-                    key={metro.id}
-                    type="button"
-                    className="metro-map-pin"
-                    style={{ left: `${xPct}%`, top: `${yPct}%` }}
-                    data-hovered={hoveredId === metro.id}
-                    data-confirming={confirmingId === metro.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePinClick(metro);
-                    }}
-                    onMouseEnter={() => setHoveredId(metro.id)}
-                    onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
-                    aria-label={metro.canonical_name}
-                    title={metro.canonical_name}
-                  />
-                );
-              })}
-              {confirmingMetro && confirmingCoords && (
-                <button
-                  type="button"
-                  className="metro-map-callout"
-                  data-flip={confirmingCoords[1] < FLIP_CALLOUT_BELOW_ABOVE_Y_PCT}
-                  style={{ left: `${confirmingCoords[0]}%`, top: `${confirmingCoords[1]}%` }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelect(confirmingMetro);
-                    setConfirmingId(null);
-                    transformRef.current?.resetTransform();
-                  }}
-                >
-                  <span className="metro-map-callout-name">{confirmingMetro.canonical_name}</span>
-                  <span className="metro-map-callout-hint">Tap again to view</span>
-                </button>
-              )}
-            </div>
-          </TransformComponent>
-        </TransformWrapper>
+              <span className="metro-map-callout-name">{confirmingMetro.canonical_name}</span>
+              <span className="metro-map-callout-hint">Tap again to view</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <details className="metro-list-toggle">

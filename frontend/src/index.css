@@ -620,6 +620,7 @@ header h1 {
 .metro-map-title {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 14px;
   margin: 0 0 8px;
   color: var(--map-ink);
@@ -628,6 +629,7 @@ header h1 {
   font-size: 15px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .metro-map-title-rule {
@@ -635,6 +637,33 @@ header h1 {
   height: 1px;
   background: var(--map-ink);
   opacity: 0.55;
+  flex: none;
+}
+
+/* Johan: "States" was wrapping onto its own line under "The United" -
+   the uppercase+letter-spacing combination (needed for the rest of
+   the title's engraved-plate look) just doesn't fit this comfortably
+   on a ~300px-wide mobile canvas at the desktop font size. Smaller
+   type and tighter spacing/gaps, not a layout change, is what gets it
+   back on one line. */
+@media (max-width: 560px) {
+  .metro-map-title {
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .metro-map-title-rule {
+    width: 20px;
+  }
+}
+
+/* The positioning context for .metro-map-callout below - deliberately
+   just the map area, not the whole canvas (which also includes the
+   title), so the callout's `top` offset is relative to the map image
+   alone regardless of how tall the title row renders. */
+.metro-map-zoom-area {
+  position: relative;
 }
 
 /* Locked to the source image's own aspect ratio (via the inline
@@ -771,13 +800,21 @@ header h1 {
    because pins in dense clusters (south Florida) sit close enough that
    an imprecise click can land on the wrong one - this makes that a
    one-tap-to-correct mistake instead of an immediate wrong navigation.
-   Positioned the same way as a pin (percentage left/top within
-   .metro-map-image-wrap, see UsMetroMap.tsx), translated above its
-   anchor point by default and flipped below it near the map's top
-   edge so it never renders off-canvas. */
+
+   A FIXED banner near the top of the canvas, not anchored to the
+   pin's own position the way the first version of this was - Johan,
+   after that shipped: zoomed into south Florida, picked Orlando, and
+   the callout naming it was clipped by the map's own frame, since it
+   was rendered inside the zoomed/panned content (see UsMetroMap.tsx)
+   and inherited the same overflow:hidden clipping the pins do. Sitting
+   outside that tree entirely means it's never zoomed, panned, or
+   clipped, regardless of where on the map the pin is or how far in
+   someone has zoomed. */
 .metro-map-callout {
   position: absolute;
-  transform: translate(-50%, calc(-100% - 10px));
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -790,11 +827,7 @@ header h1 {
   font-family: var(--font-display);
   white-space: nowrap;
   cursor: pointer;
-  z-index: 1;
-}
-
-.metro-map-callout[data-flip="true"] {
-  transform: translate(-50%, 10px);
+  z-index: 2;
 }
 
 .metro-map-callout-name {
