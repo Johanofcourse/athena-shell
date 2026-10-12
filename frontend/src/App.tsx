@@ -113,6 +113,7 @@ export default function App() {
       ) : (
         <section className="browse">
           <p className="explanation browse-explanation">Browse all 50 tracked metros, or search above.</p>
+          <p className="browse-hint">Pinch the map to zoom</p>
           {metrosLoading ? (
             <p className="empty-state">Loading metros…</p>
           ) : (

@@ -392,6 +392,19 @@ header h1 {
   text-align: center;
 }
 
+/* A quiet second line, not a second instruction competing with
+   .browse-explanation above it - smaller and more muted, same
+   "secondary caption" treatment the map's own callout hint text uses
+   (.metro-map-callout-hint). */
+.browse-hint {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  text-align: center;
+  opacity: 0.75;
+}
+
 /* The synthesized answer to the actual question asked - the lede, not a
    caption. Deliberately louder than .explanation: full-contrast text, a
    real type bump, and a tinted panel instead of a thin rule, so it reads
@@ -1033,6 +1046,10 @@ header h1 {
    without scrolling all the way back to the top first. float: right
    pulls it out of the heading's flow onto its own line in the same
    spot it always occupied, without needing a wrapping element. */
+/* Johan: "fairly dexterous and had a hard time clicking it... dont
+   want an old person to get mad" - 28px was under WCAG's 24px minimum
+   once the "×" glyph's own padding is accounted for. Sized well past
+   that now rather than right at the edge of it. */
 .close-button {
   position: sticky;
   top: 0;
@@ -1040,10 +1057,10 @@ header h1 {
   z-index: 1;
   background: var(--bg);
   border: none;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 24px;
   color: var(--text-muted);
   cursor: pointer;
   line-height: 1;
