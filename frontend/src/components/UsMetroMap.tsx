@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { TransformComponent, TransformWrapper, type ReactZoomPanPinchContentRef } from "react-zoom-pan-pinch";
 import coltonMap from "../assets/colton-us-map-1870s.jpg";
 import { METRO_MAP_COORDINATES } from "../mapCoordinates";
 import type { Metro } from "../types";
@@ -28,11 +29,24 @@ export function UsMetroMap({ metros, onSelect }: Props) {
   // pin is a one-tap-to-correct mistake instead of an immediate wrong
   // navigation.
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const transformRef = useRef<ReactZoomPanPinchContentRef>(null);
 
   function handlePinClick(metro: Metro) {
     if (confirmingId === metro.id) {
       onSelect(metro);
       setConfirmingId(null);
+      // Scoped to this component's own zoom/pan state (see the
+      // TransformWrapper below) - resetting it here is a real reset of
+      // something we actually control, unlike the native-pinch-zoom
+      // reset this replaced (see git history: toggling the viewport
+      // meta's max-scale, the standard trick for that, turned out not
+      // to work on a real iPhone - modern iOS Safari ignores JS-driven
+      // zoom changes, deliberately, for accessibility). Zooming the map
+      // itself instead of the whole page means the metro detail panel
+      // that opens next was never going to inherit a pinched-in zoom
+      // level in the first place; this just leaves the map ready to
+      // browse again at 1x next time someone opens it.
+      transformRef.current?.resetTransform();
     } else {
       setConfirmingId(metro.id);
     }
@@ -52,57 +66,81 @@ export function UsMetroMap({ metros, onSelect }: Props) {
           The United States
           <span className="metro-map-title-rule" aria-hidden="true" />
         </p>
-        <div
-          className="metro-map-image-wrap"
-          style={{ aspectRatio: MAP_ASPECT_RATIO }}
-          onClick={() => setConfirmingId(null)}
+        {/* Pinch/pan/zoom scoped to just this component, not the page -
+            Johan: zooming the whole page via native pinch-zoom then
+            tapping a pin left the metro detail panel rendered at that
+            same zoomed-in level ("the graph is gigantic"). A self-
+            contained zoom here means the rest of the page, including
+            whatever opens next, is never part of what's zoomed -
+            there's nothing to reset because nothing outside the map
+            itself was ever magnified. wheel zoom is off so scrolling
+            the page with a mouse over the map behaves normally;
+            pinch/double-click/drag-to-pan still work for getting a
+            closer look at a dense cluster before picking a pin. */}
+        <TransformWrapper
+          ref={transformRef}
+          initialScale={1}
+          minScale={1}
+          maxScale={6}
+          centerOnInit
+          wheel={{ disabled: true }}
+          doubleClick={{ mode: "zoomIn" }}
         >
-          <img
-            src={coltonMap}
-            alt="An 1870s Colton's atlas map of the United States"
-            className="metro-map-image"
-            draggable={false}
-          />
-          {metros.map((metro) => {
-            const coords = METRO_MAP_COORDINATES[metro.id];
-            if (!coords) return null;
-            const [xPct, yPct] = coords;
-            return (
-              <button
-                key={metro.id}
-                type="button"
-                className="metro-map-pin"
-                style={{ left: `${xPct}%`, top: `${yPct}%` }}
-                data-hovered={hoveredId === metro.id}
-                data-confirming={confirmingId === metro.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePinClick(metro);
-                }}
-                onMouseEnter={() => setHoveredId(metro.id)}
-                onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
-                aria-label={metro.canonical_name}
-                title={metro.canonical_name}
-              />
-            );
-          })}
-          {confirmingMetro && confirmingCoords && (
-            <button
-              type="button"
-              className="metro-map-callout"
-              data-flip={confirmingCoords[1] < FLIP_CALLOUT_BELOW_ABOVE_Y_PCT}
-              style={{ left: `${confirmingCoords[0]}%`, top: `${confirmingCoords[1]}%` }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(confirmingMetro);
-                setConfirmingId(null);
-              }}
+          <TransformComponent wrapperStyle={{ width: "100%" }} contentStyle={{ width: "100%" }}>
+            <div
+              className="metro-map-image-wrap"
+              style={{ aspectRatio: MAP_ASPECT_RATIO }}
+              onClick={() => setConfirmingId(null)}
             >
-              <span className="metro-map-callout-name">{confirmingMetro.canonical_name}</span>
-              <span className="metro-map-callout-hint">Tap again to view</span>
-            </button>
-          )}
-        </div>
+              <img
+                src={coltonMap}
+                alt="An 1870s Colton's atlas map of the United States"
+                className="metro-map-image"
+                draggable={false}
+              />
+              {metros.map((metro) => {
+                const coords = METRO_MAP_COORDINATES[metro.id];
+                if (!coords) return null;
+                const [xPct, yPct] = coords;
+                return (
+                  <button
+                    key={metro.id}
+                    type="button"
+                    className="metro-map-pin"
+                    style={{ left: `${xPct}%`, top: `${yPct}%` }}
+                    data-hovered={hoveredId === metro.id}
+                    data-confirming={confirmingId === metro.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePinClick(metro);
+                    }}
+                    onMouseEnter={() => setHoveredId(metro.id)}
+                    onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
+                    aria-label={metro.canonical_name}
+                    title={metro.canonical_name}
+                  />
+                );
+              })}
+              {confirmingMetro && confirmingCoords && (
+                <button
+                  type="button"
+                  className="metro-map-callout"
+                  data-flip={confirmingCoords[1] < FLIP_CALLOUT_BELOW_ABOVE_Y_PCT}
+                  style={{ left: `${confirmingCoords[0]}%`, top: `${confirmingCoords[1]}%` }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(confirmingMetro);
+                    setConfirmingId(null);
+                    transformRef.current?.resetTransform();
+                  }}
+                >
+                  <span className="metro-map-callout-name">{confirmingMetro.canonical_name}</span>
+                  <span className="metro-map-callout-hint">Tap again to view</span>
+                </button>
+              )}
+            </div>
+          </TransformComponent>
+        </TransformWrapper>
       </div>
 
       <details className="metro-list-toggle">

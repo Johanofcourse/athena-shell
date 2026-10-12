@@ -688,9 +688,15 @@ header h1 {
   aspect-ratio: 1;
   margin: 0;
   padding: 0;
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--accent-ink);
   border-radius: 50%;
-  background: var(--map-parchment);
+  /* Solid and saturated, not an outline in the map's own parchment
+     tone - Johan: "they dont stand out." A parchment-filled ring reads
+     as part of the engraving's own texture against a busy antique map;
+     --danger's brick red isn't a color this map's palette (cream,
+     muted pink/green state fills, grey linework) uses anywhere, so it
+     reads as a UI marker, not more map. */
+  background: var(--danger);
   cursor: pointer;
   transform: translate(-50%, -50%);
   transition: background-color 0.1s ease;
@@ -704,10 +710,15 @@ header h1 {
    bumped up here. Safe to size more generously now that a pin click
    shows a confirm callout rather than navigating immediately (see
    .metro-map-callout below) - an ambiguous click in a dense cluster
-   just names the wrong city once, it doesn't misnavigate. */
+   just names the wrong city once, it doesn't misnavigate.
+
+   Bumped again after Johan's next pass ("need to be bigger... they
+   dont stand out") - paired with the color change above rather than
+   sizing alone, since a bigger pin in the map's own parchment tone
+   would still have been hard to see. */
 @media (min-width: 561px) {
   .metro-map-pin {
-    width: clamp(7px, 0.85%, 13px);
+    width: clamp(10px, 1.1%, 17px);
   }
 }
 
