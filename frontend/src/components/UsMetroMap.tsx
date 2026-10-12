@@ -1,15 +1,14 @@
-import { geoAlbersUsa } from "d3-geo";
 import { useState } from "react";
-import { ComposableMap, Geographies, Geography, Graticule, Marker } from "react-simple-maps";
-// us-atlas ships real Census TIGER/Line-derived topology - the same
-// government-source instinct as every data source in this project,
-// applied to the map itself. Raw (non-Albers-pre-projected) file, so
-// react-simple-maps can project both the state outlines and the metro
-// markers through the same geoAlbersUsa projection - using the
-// pre-projected variant here would silently misalign the two.
-import usStatesTopology from "us-atlas/states-10m.json?url";
+import coltonMap from "../assets/colton-us-map-1870s.jpg";
+import { METRO_MAP_COORDINATES } from "../mapCoordinates";
 import { CompassRose } from "./CompassRose";
 import type { Metro } from "../types";
+
+// The map image's own aspect ratio (2400x1368) - the image wrapper is
+// locked to this via CSS so percentage pin coordinates (calibrated
+// against the image's pixels, see mapCoordinates.ts) always land in the
+// right place, with no object-fit letterboxing to account for.
+const MAP_ASPECT_RATIO = "2400 / 1368";
 
 interface Props {
   metros: Metro[];
@@ -31,33 +30,33 @@ export function UsMetroMap({ metros, onSelect }: Props) {
           <span className="metro-map-title-rule" aria-hidden="true" />
         </p>
         <CompassRose size={64} />
-        <ComposableMap width={800} height={440} projection={geoAlbersUsa().scale(858).translate([425, 217])}>
-          <Geographies geography={usStatesTopology}>
-            {({ geographies }) =>
-              geographies.map((geo) => (
-                <Geography key={geo.rsmKey} geography={geo} className="metro-map-state" tabIndex={-1} />
-              ))
-            }
-          </Geographies>
-          <Graticule step={[10, 10]} className="metro-map-graticule" />
-          {metros.map((metro) => (
-            <Marker
-              key={metro.id}
-              coordinates={[metro.longitude, metro.latitude]}
-              onClick={() => onSelect(metro)}
-              onMouseEnter={() => setHoveredId(metro.id)}
-              onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
-            >
-              <circle
-                r={hoveredId === metro.id ? 7 : 5}
+        <div className="metro-map-image-wrap" style={{ aspectRatio: MAP_ASPECT_RATIO }}>
+          <img
+            src={coltonMap}
+            alt="An 1870s Colton's atlas map of the United States"
+            className="metro-map-image"
+            draggable={false}
+          />
+          {metros.map((metro) => {
+            const coords = METRO_MAP_COORDINATES[metro.id];
+            if (!coords) return null;
+            const [xPct, yPct] = coords;
+            return (
+              <button
+                key={metro.id}
+                type="button"
                 className="metro-map-pin"
+                style={{ left: `${xPct}%`, top: `${yPct}%` }}
                 data-hovered={hoveredId === metro.id}
-              >
-                <title>{metro.canonical_name}</title>
-              </circle>
-            </Marker>
-          ))}
-        </ComposableMap>
+                onClick={() => onSelect(metro)}
+                onMouseEnter={() => setHoveredId(metro.id)}
+                onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
+                aria-label={metro.canonical_name}
+                title={metro.canonical_name}
+              />
+            );
+          })}
+        </div>
       </div>
 
       <details className="metro-list-toggle">

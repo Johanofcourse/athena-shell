@@ -255,7 +255,7 @@ thesis first, supporting evidence last.
       future change that silently reorders these back toward
       graph-first doesn't slip through unnoticed.
 
-### Mobile metro list overflow fix (PR #79, opened 2026-10-11)
+### Mobile metro list overflow fix (done, PR #79, 2026-10-11)
 Johan: "in mobile the list of top 50 metros is squeeze a bit and the
 word on the far right end 'income' is chopped in half."
 - [x] Root cause, confirmed by measuring a real row rather than guessing:
@@ -279,7 +279,58 @@ word on the far right end 'income' is chopped in half."
       `document.body.scrollWidth` now equals the viewport width (zero
       horizontal overflow, was 27px over before) - not just eyeballing a
       screenshot.
-- [ ] Awaiting merge.
+- [x] Merged and verified live.
+
+### Real antique map engraving replaces the vector topology map (done, 2026-10-12)
+Johan: "could we maybe use an old public domain USA map and then impose
+the pins of the 50 metros on top?" The prior map (Phase 2,
+2026-09-30) was already styled to *look* antique, but it was a Census
+TIGER/Line vector outline underneath, not an actual historical map -
+this replaces it with a real one.
+- [x] **Sourced, not generated or assumed**: evaluated five real,
+      verified-public-domain 19th-century US map scans (Wikimedia
+      Commons / David Rumsey / Library of Congress), shown to Johan
+      before picking one - two were ruled out for not covering the West
+      Coast at all (predating the Mexican-American War's territory
+      gains), one for reading as a railroad advertisement rather than a
+      reference map. Landed on an 1870s Colton's "United States of
+      America" atlas plate - full lower-48 coverage, soft hand-colored
+      engraving that fits the existing gold-frame/parchment design.
+- [x] **A real georeferencing problem, not glossed over.** A historical
+      engraving has no geodetic projection to plug real lat/long into
+      directly, and a first attempt at a single global 2nd-degree
+      polynomial fit (from ~28 reference points) produced large, uneven
+      pixel errors (mean 115px, worst case 380px) once plotted back onto
+      the scan. Switched to a thin-plate spline - the standard GIS
+      technique for georeferencing a non-uniformly-distorted scan, exact
+      at every reference point rather than forcing one global curve
+      through all of them - after expanding to ~39 reference points
+      (reading tick marks the map itself prints for a few, reading
+      labeled city positions for the rest, both cross-checked against
+      each other) for full regional coverage, including corrections
+      after a couple of reference points were first misread against the
+      wrong region of the scan.
+- [x] **Verified by rendering all 50 pins back onto the source scan**,
+      not just trusting the math - checked region by region (West Coast,
+      Mountain West, Texas, Midwest, Northeast, Southeast, Florida)
+      against real geography, not a spot check. Philadelphia, NYC,
+      Boston, Baltimore, and DC all land in their correct relative
+      positions in the dense Northeast cluster; Chicago lands exactly at
+      Lake Michigan's southern tip; the Florida peninsula (Tampa, Miami,
+      Key West) is correctly covered despite needing its own dedicated
+      reference points the first anchor set didn't include.
+- [x] `UsMetroMap.tsx` rewritten: the image is locked to its own aspect
+      ratio via CSS (`aspect-ratio`) so it can never letterbox inside its
+      wrapper, which the percentage-based pin coordinates
+      (`mapCoordinates.ts`) depend on to land correctly - pins are plain
+      positioned buttons now, not SVG markers, keeping the same
+      hover-pulse/click behavior as before. `react-simple-maps`,
+      `d3-geo`, and `us-atlas` are no longer used anywhere and were
+      removed from `package.json`.
+- [x] Verified in a real browser, not just by the math: desktop and
+      mobile screenshots (zero horizontal overflow on mobile, same as
+      the fix above), hover state correctly pulses and darkens a pin,
+      and a click correctly opens the metro detail panel.
 
 ## Phase 3 — Real data: aggregate market trends (done)
 

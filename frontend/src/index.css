@@ -582,11 +582,9 @@ header h1 {
    on the search bar. */
 .metro-map-canvas {
   width: 100%;
-  height: 360px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
   align-self: stretch;
   flex: none;
   background-color: var(--map-parchment);
@@ -651,44 +649,52 @@ header h1 {
   pointer-events: none;
 }
 
-.metro-map-canvas svg:not(.compass-rose) {
-  width: auto;
+/* Locked to the source image's own aspect ratio (via the inline
+   aspect-ratio style in UsMetroMap.tsx) so the image fills it exactly,
+   with no object-fit letterboxing - mapCoordinates.ts's percentages are
+   calibrated against the image's own pixels, so any gap between the
+   image's rendered box and this wrapper would throw every pin off. */
+.metro-map-image-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.metro-map-image {
+  display: block;
+  width: 100%;
   height: 100%;
-  max-width: 100%;
+  /* A real, non-uniformly-georeferenced 1870s engraving (see
+     mapCoordinates.ts) - sharpening keeps the fine engraved linework
+     legible at the sizes this renders at, rather than going soft the
+     way a plain scaled photo would. */
+  image-rendering: -webkit-optimize-contrast;
 }
 
-.metro-map-state {
-  fill: none;
-  stroke: var(--map-ink);
-  stroke-width: 0.75;
-  opacity: 0.75;
-  outline: none;
-}
-
+/* A pin is a plain positioned button, not an SVG marker - percentages
+   place it directly against the image's own coordinate space (see
+   .metro-map-image-wrap above), translate(-50%,-50%) centers the dot
+   itself on that point rather than its top-left corner. */
 .metro-map-pin {
-  fill: var(--map-parchment);
-  stroke: var(--accent);
-  stroke-width: 1.5;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: 0;
+  padding: 0;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  background: var(--map-parchment);
   cursor: pointer;
-  transition: fill 0.1s ease, r 0.1s ease;
-}
-
-.metro-map-graticule {
-  fill: none;
-  stroke: var(--map-ink);
-  stroke-width: 0.4;
-  opacity: 0.3;
-  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: background-color 0.1s ease, width 0.1s ease, height 0.1s ease;
 }
 
 @keyframes metro-pin-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.35); }
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.35); }
 }
 
 .metro-map-pin[data-hovered="true"] {
-  transform-box: fill-box;
-  transform-origin: center;
+  background: var(--accent);
   animation: metro-pin-pulse 1.4s ease-in-out infinite;
 }
 
@@ -698,26 +704,14 @@ header h1 {
   }
 }
 
-.metro-map-pin[data-hovered="true"] {
-  fill: var(--accent);
-}
-
 /* Johan: "the dots are barely clickable" on mobile - the map is
-   width-constrained at phone sizes (it scales to fit the viewport's
-   width, well under its 800x440 viewBox), so the pins, sized in the
-   same SVG user units as desktop, end up visually and physically
-   tiny. Bumping r here overrides the JS-set presentation attribute
-   (CSS always wins over a presentation attribute) with a bigger
-   mobile-only tap target - the hover-pulse radius barely matters on
-   touch (hover rarely fires from a tap), so the base radius is the
-   one that actually needs to grow. */
+   width-constrained at phone sizes, so pins sized for desktop end up
+   visually and physically tiny. Bigger mobile-only tap target, same
+   reasoning as the original SVG-pin version of this map. */
 @media (max-width: 560px) {
   .metro-map-pin {
-    r: 10;
-  }
-
-  .metro-map-pin[data-hovered="true"] {
-    r: 13;
+    width: 16px;
+    height: 16px;
   }
 }
 
