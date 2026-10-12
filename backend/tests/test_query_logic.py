@@ -177,6 +177,39 @@ def test_run_market_query_ranking_mode_all_metros_skips_gaps_silently(seeded_db)
     assert approximated == ["Gapford, GF"]
 
 
+def test_run_market_query_change_mode_ranks_by_pct_change_not_latest_value(seeded_db):
+    # The bug this mode exists to fix: "which metros are growing fastest"
+    # must rank by rate of change, not by whoever happens to have the
+    # highest latest value. Gapford's single gross-rent fallback point
+    # and Emptyburg's complete absence of rent data both have nothing to
+    # compute a change from, so only Testville (two real rent periods)
+    # qualifies for an unnamed-metros ranking.
+    # bed_size pinned to "overall" - left unset, Testville's 1br row
+    # would mix into the same series (see _query_metric_rows, which
+    # doesn't filter by bed_size when it's None), which is a real,
+    # separate behavior this test isn't about.
+    filters = MarketQueryFilters(
+        metros=[], metric=MetricName.MEDIAN_RENT, bed_size="overall", sort_by="change", sort_order="desc"
+    )
+    points, unmatched, no_data, approximated = run_market_query(seeded_db, filters)
+    assert [p.metro for p in points] == ["Testville, TS"]
+    expected_pct = (TESTVILLE_RENT_FEB - TESTVILLE_RENT_JAN) / TESTVILLE_RENT_JAN * 100
+    assert points[0].value == expected_pct
+    assert no_data == []
+    assert approximated == []
+
+
+def test_run_market_query_change_mode_no_data_for_single_snapshot_metric(seeded_db):
+    # median_household_income has exactly one row for Testville - there's
+    # no second point to compute a rate of change from, so an explicitly
+    # named metro must come back as a genuine no_data case, not a crash
+    # or a nonsense 0% change.
+    filters = MarketQueryFilters(metros=["Testville, TS"], metric=MetricName.MEDIAN_HOUSEHOLD_INCOME, sort_by="change")
+    points, unmatched, no_data, approximated = run_market_query(seeded_db, filters)
+    assert points == []
+    assert no_data == ["Testville, TS"]
+
+
 # --- run_market_query: median_household_income ---
 
 
@@ -255,6 +288,13 @@ def test_explain_filters_surfaces_unmatched():
     filters = MarketQueryFilters(metros=["Nowhereville"], metric=MetricName.MEDIAN_SALE_PRICE)
     text = explain_filters(filters, ["Nowhereville"], [], [], None)
     assert "Couldn't find a tracked metro matching: Nowhereville" in text
+
+
+def test_explain_filters_change_mode_names_percent_change_not_plain_ranking():
+    filters = MarketQueryFilters(metros=[], metric=MetricName.MEDIAN_RENT, sort_by="change", sort_order="desc")
+    text = explain_filters(filters, [], [], [], None)
+    assert "ranked by percent change, desc" in text
+    assert "across all metros" in text
 
 
 def test_explain_filters_surfaces_unsupported_aspects():
@@ -387,6 +427,20 @@ def test_summarize_metric_facts_ranking_multiple_points():
     ]
     text = summarize_metric_facts(points, MetricName.RENT_TO_INCOME_PCT, "value")
     assert text == "Miami, FL leads at 28.4%; Austin, TX is lowest at 20.1%."
+
+
+def test_summarize_metric_facts_change_single_point():
+    text = summarize_metric_facts([_point("Austin, TX", "2026-08-01", 27.3)], MetricName.MEDIAN_RENT, "change")
+    assert text == "Austin, TX: up 27.3%."
+
+
+def test_summarize_metric_facts_change_multiple_points():
+    points = [
+        _point("Austin, TX", "2026-08-01", 27.3),
+        _point("Miami, FL", "2026-08-01", -4.2),
+    ]
+    text = summarize_metric_facts(points, MetricName.MEDIAN_RENT, "change")
+    assert text == "Austin, TX has the biggest change at +27.3%; Miami, FL has the smallest change at -4.2%."
 
 
 def test_summarize_metric_facts_trend_single_period():

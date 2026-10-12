@@ -54,7 +54,7 @@ export interface MarketQueryFilters {
   bed_size: string | null;
   start_period: string | null;
   end_period: string | null;
-  sort_by: "period" | "value";
+  sort_by: "period" | "value" | "change";
   sort_order: "asc" | "desc";
   limit: number;
   unsupported_aspects: string[];

@@ -25,9 +25,13 @@ and search_market_commentary only when it explicitly asks why something is happe
 
 For query_market_metrics: pick ONE metric per call - the one the question is actually about. If the \
 question names specific metros (e.g. "Austin", "Denver vs Seattle"), list them in `metros`. If it's a \
-ranking/comparison question across all metros (e.g. "which metros have the biggest price drops right \
-now"), leave `metros` empty and set sort_by to "value". Otherwise (a trend question about named \
-metros), leave sort_by as "period".
+ranking/comparison question across all metros, leave `metros` empty and pick a sort_by: "value" for a \
+snapshot ranking ("which metros have the biggest price drops right now," "highest rent today" - current \
+standing, not trend direction), "change" for a rate-of-change ranking ("which metros are growing \
+fastest," "where are rents rising/falling the most," "biggest increase since 2020" - this needs the \
+metric to actually have history to compute a change from, so don't use it for a single-snapshot metric: \
+income, commute, property tax, or risk score). Otherwise (a trend question about named metros), leave \
+sort_by as "period".
 
 If part of a query_market_metrics question can't be answered by that schema - a specific address, \
 school quality, crime, anything not in the metric list - put a short phrase describing it in \
@@ -188,7 +192,7 @@ QUERY_MARKET_METRICS_TOOL = {
                 "bed_size": {"type": "string", "enum": ["overall", "1br", "2br"]},
                 "start_period": {"type": "string", "description": "YYYY-MM, inclusive"},
                 "end_period": {"type": "string", "description": "YYYY-MM, inclusive"},
-                "sort_by": {"type": "string", "enum": ["period", "value"]},
+                "sort_by": {"type": "string", "enum": ["period", "value", "change"]},
                 "sort_order": {"type": "string", "enum": ["asc", "desc"]},
                 "limit": {"type": "integer"},
                 "unsupported_aspects": {
@@ -305,6 +309,22 @@ def summarize_metric_facts(
         return (
             f"{top.metro} leads at {_format_metric_value(metric, top.value)}; "
             f"{bottom.metro} is lowest at {_format_metric_value(metric, bottom.value)}."
+        )
+
+    if mode == "change":
+        # Each point's value is already a computed percent change (see
+        # run_market_query's "change" branch), not a raw metric value -
+        # _format_metric_value would format it in the metric's own unit
+        # (e.g. population's pct_change shown as a population count),
+        # so this formats it as the percentage it actually is instead.
+        if len(points) == 1:
+            p = points[0]
+            direction = "up" if p.value > 0.05 else "down" if p.value < -0.05 else "flat"
+            return f"{p.metro}: {direction} {abs(p.value):.1f}%."
+        top, bottom = points[0], points[-1]
+        return (
+            f"{top.metro} has the biggest change at {top.value:+.1f}%; "
+            f"{bottom.metro} has the smallest change at {bottom.value:+.1f}%."
         )
 
     by_metro: dict[str, list[MarketMetricPoint]] = {}
@@ -694,6 +714,46 @@ def run_market_query(
         limit = max(1, min(filters.limit or 60, 200))
         return points[:limit], unmatched, no_data, approximated
 
+    if filters.sort_by == "change":
+        # Ranking mode, but by rate of change rather than latest value -
+        # the fix for a real bug: "which metros are growing/rising
+        # fastest" used to silently resolve to sort_by "value" (ranks by
+        # latest value - biggest metro, not fastest-growing one) because
+        # that was the only ranking mode that existed. Ranks each metro
+        # by percent change across its available history (within
+        # start/end, if given) instead of a single snapshot - needs at
+        # least two real points to compute a change from, so a metro
+        # with only one data point (any single-snapshot metric: income,
+        # commute, property tax, risk score) is a genuine no_data case
+        # here, not an error - there's nothing to compute a rate from.
+        target_metros = resolved if filters.metros else all_metros
+        no_data = []
+        approximated = []
+        points = []
+        for metro in target_metros:
+            if filters.metric == MetricName.MEDIAN_RENT:
+                rows, used_fallback = _fetch_rent_rows(db, metro, filters.bed_size, start, end)
+            else:
+                rows = _query_metric_rows(db, metro, filters.metric.value, filters.bed_size, start, end)
+                used_fallback = False
+            if len(rows) < 2:
+                if filters.metros:
+                    no_data.append(metro.canonical_name)
+                continue
+            if used_fallback:
+                approximated.append(metro.canonical_name)
+            first, last = rows[0], rows[-1]
+            if first.value == 0:
+                if filters.metros:
+                    no_data.append(metro.canonical_name)
+                continue
+            pct_change = (last.value - first.value) / first.value * 100
+            points.append(MarketMetricPoint(metro=metro.canonical_name, period=last.period, value=pct_change))
+
+        points.sort(key=lambda p: p.value, reverse=(filters.sort_order != "asc"))
+        limit = max(1, min(filters.limit or 60, 200))
+        return points[:limit], unmatched, no_data, approximated
+
     # Trend mode: full time series for the named metro(s). Deliberately
     # does not fall back to "all metros" when none are named - that would
     # silently dump up to 50 time series instead of prompting for a metro.
@@ -754,16 +814,20 @@ def explain_filters(
         parts.append(f"({filters.bed_size})")
 
     is_national = filters.metric in NATIONAL_METRICS
+    is_ranking = filters.sort_by in ("value", "change") and not is_national
     if filters.metros:
         parts.append("for " + ", ".join(filters.metros))
-    elif filters.sort_by == "value" and not is_national:
+    elif is_ranking:
         parts.append("across all metros")
 
     if filters.start_period or filters.end_period:
         parts.append(f"from {filters.start_period or 'earliest'} to {filters.end_period or 'latest'}")
 
-    if filters.sort_by == "value" and not is_national:
-        parts.append(f"ranked {filters.sort_order}")
+    if is_ranking:
+        if filters.sort_by == "change":
+            parts.append(f"ranked by percent change, {filters.sort_order}")
+        else:
+            parts.append(f"ranked {filters.sort_order}")
 
     summary = "Showing " + " ".join(parts) + "."
 

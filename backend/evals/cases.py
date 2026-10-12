@@ -317,4 +317,88 @@ CASES = [
         "expect_metros_contains": ["los angeles"],
         "expect_no_data_nonempty": True,
     },
+    # --- Newer metrics (commute, property tax, population, hazard risk) -
+    # added the same day as the "change" ranking mode below, previously
+    # with zero eval coverage despite shipping real tool-choice surface
+    # area (four new enum values DeepSeek has to pick correctly). ---
+    {
+        "id": "commute_single_metro",
+        "query": "What's the average commute time in Austin?",
+        "expect_metric": ["mean_commute_minutes"],
+        "expect_metros_contains": ["austin"],
+    },
+    {
+        "id": "commute_compare",
+        "query": "How does the commute compare between Austin and Denver?",
+        "expect_metric": ["mean_commute_minutes"],
+        "expect_metros_contains": ["austin", "denver"],
+    },
+    {
+        "id": "property_tax_ranking",
+        "query": "Which metros have the highest property taxes?",
+        "expect_metric": ["median_property_tax"],
+        "expect_metros_empty": True,
+        "expect_sort_by": "value",
+        "expect_sort_order": "desc",
+    },
+    {
+        "id": "population_single_metro",
+        "query": "What's the population of Phoenix?",
+        "expect_metric": ["total_population"],
+        "expect_metros_contains": ["phoenix"],
+    },
+    {
+        "id": "hazard_risk_ranking",
+        "query": "Which metros have the highest natural disaster risk?",
+        "expect_metric": ["natural_hazard_risk_score"],
+        "expect_metros_empty": True,
+        "expect_sort_by": "value",
+        "expect_sort_order": "desc",
+    },
+    # --- "change" ranking mode - the fix for a real bug where "growing/
+    # rising fastest" silently resolved to sort_by "value" (ranked by
+    # latest absolute value, not rate of change). These are the exact
+    # phrasings that originally exposed it. ---
+    {
+        "id": "change_ranking_rent_growth",
+        "query": "Which metros have rent prices rising the fastest?",
+        "expect_metric": ["median_rent"],
+        "expect_metros_empty": True,
+        "expect_sort_by": "change",
+        "expect_sort_order": "desc",
+    },
+    {
+        "id": "change_ranking_population_growth",
+        "query": "Which metros are growing the fastest in population?",
+        "expect_metric": ["total_population"],
+        "expect_metros_empty": True,
+        "expect_sort_by": "change",
+        "expect_sort_order": "desc",
+    },
+    {
+        "id": "change_ranking_not_used_for_single_snapshot_metric",
+        # income is a single-snapshot metric (one Census data point per
+        # metro) - there's no history to compute a rate of change from, so
+        # a ranking question about it should still resolve to sort_by
+        # "value", not "change" (which would come back structurally
+        # no_data for every metro).
+        "query": "Which metros have the highest median income?",
+        "expect_metric": ["median_household_income"],
+        "expect_metros_empty": True,
+        "expect_sort_by": "value",
+    },
+    # --- "why" questions: tool-choice between query_market_metrics and
+    # search_market_commentary, not a filter-field correctness check. ---
+    {
+        "id": "commentary_why_rent_declining",
+        "query": "Why has rent been declining in Austin?",
+        "expect_commentary": True,
+        "expect_commentary_metro_contains": "austin",
+    },
+    {
+        "id": "commentary_why_population_growing",
+        "query": "Why is population growing in Tampa?",
+        "expect_commentary": True,
+        "expect_commentary_metro_contains": "tampa",
+    },
 ]
