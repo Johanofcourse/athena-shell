@@ -570,16 +570,13 @@ header h1 {
 /* Antique cartography, not a flat UI panel: an aged-parchment ground,
    a double-ruled border (the two box-shadow rings below, a real
    convention on 18th/19th-century engraved maps, not an invented
-   flourish), a title cartouche, and a compass rose - see the reference
-   Johan sent. The map now looks like a real object placed on the page,
-   not another bordered box matching the rest of the UI. */
+   flourish), and a title cartouche - see the reference Johan sent. The
+   map now looks like a real object placed on the page, not another
+   bordered box matching the rest of the UI. */
 /* Same gold border-image as the search bar (Johan: "Lets match the
-   borders with the map as well") - the hand-drawn CompassRose/
-   OrnateCorners scroll was always the fallback for not having a real
-   asset; now that one exists, both ornate frames in the app use it,
-   not just one. The parchment interior (background-color/texture)
-   stays - that tone is the map's own, not the mismatch Johan flagged
-   on the search bar. */
+   borders with the map as well"). The parchment interior (background-
+   color/texture) stays - that tone is the map's own, not the mismatch
+   Johan flagged on the search bar. */
 .metro-map-canvas {
   width: 100%;
   display: flex;
@@ -638,15 +635,6 @@ header h1 {
   height: 1px;
   background: var(--map-ink);
   opacity: 0.55;
-}
-
-.compass-rose {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  color: var(--map-ink);
-  opacity: 0.8;
-  pointer-events: none;
 }
 
 /* Locked to the source image's own aspect ratio (via the inline

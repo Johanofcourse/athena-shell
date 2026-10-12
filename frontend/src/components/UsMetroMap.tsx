@@ -1,14 +1,13 @@
 import { useState } from "react";
 import coltonMap from "../assets/colton-us-map-1870s.jpg";
 import { METRO_MAP_COORDINATES } from "../mapCoordinates";
-import { CompassRose } from "./CompassRose";
 import type { Metro } from "../types";
 
-// The map image's own aspect ratio (2400x1368) - the image wrapper is
+// The map image's own aspect ratio (2400x1457) - the image wrapper is
 // locked to this via CSS so percentage pin coordinates (calibrated
 // against the image's pixels, see mapCoordinates.ts) always land in the
 // right place, with no object-fit letterboxing to account for.
-const MAP_ASPECT_RATIO = "2400 / 1368";
+const MAP_ASPECT_RATIO = "2400 / 1457";
 
 interface Props {
   metros: Metro[];
@@ -29,7 +28,6 @@ export function UsMetroMap({ metros, onSelect }: Props) {
           The United States
           <span className="metro-map-title-rule" aria-hidden="true" />
         </p>
-        <CompassRose size={64} />
         <div className="metro-map-image-wrap" style={{ aspectRatio: MAP_ASPECT_RATIO }}>
           <img
             src={coltonMap}
