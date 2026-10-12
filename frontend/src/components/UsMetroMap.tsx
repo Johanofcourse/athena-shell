@@ -9,6 +9,10 @@ import type { Metro } from "../types";
 // right place, with no object-fit letterboxing to account for.
 const MAP_ASPECT_RATIO = "2400 / 1457";
 
+// Near the map's top edge, an "above the pin" callout would render
+// partly off-canvas - flip it below the pin instead past this point.
+const FLIP_CALLOUT_BELOW_ABOVE_Y_PCT = 15;
+
 interface Props {
   metros: Metro[];
   onSelect: (metro: Metro) => void;
@@ -16,6 +20,26 @@ interface Props {
 
 export function UsMetroMap({ metros, onSelect }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  // A click selects a pin (shows its name in a callout) rather than
+  // navigating straight to the metro detail panel - a second click on
+  // the pin or the callout itself is what actually navigates. See the
+  // .metro-map-callout CSS for why: dense clusters (south Florida) sit
+  // close enough that an imprecise first click landing on the wrong
+  // pin is a one-tap-to-correct mistake instead of an immediate wrong
+  // navigation.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+  function handlePinClick(metro: Metro) {
+    if (confirmingId === metro.id) {
+      onSelect(metro);
+      setConfirmingId(null);
+    } else {
+      setConfirmingId(metro.id);
+    }
+  }
+
+  const confirmingMetro = metros.find((m) => m.id === confirmingId) ?? null;
+  const confirmingCoords = confirmingMetro ? METRO_MAP_COORDINATES[confirmingMetro.id] : null;
 
   return (
     <div className="metro-map-layout">
@@ -28,7 +52,11 @@ export function UsMetroMap({ metros, onSelect }: Props) {
           The United States
           <span className="metro-map-title-rule" aria-hidden="true" />
         </p>
-        <div className="metro-map-image-wrap" style={{ aspectRatio: MAP_ASPECT_RATIO }}>
+        <div
+          className="metro-map-image-wrap"
+          style={{ aspectRatio: MAP_ASPECT_RATIO }}
+          onClick={() => setConfirmingId(null)}
+        >
           <img
             src={coltonMap}
             alt="An 1870s Colton's atlas map of the United States"
@@ -46,7 +74,11 @@ export function UsMetroMap({ metros, onSelect }: Props) {
                 className="metro-map-pin"
                 style={{ left: `${xPct}%`, top: `${yPct}%` }}
                 data-hovered={hoveredId === metro.id}
-                onClick={() => onSelect(metro)}
+                data-confirming={confirmingId === metro.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePinClick(metro);
+                }}
                 onMouseEnter={() => setHoveredId(metro.id)}
                 onMouseLeave={() => setHoveredId((id) => (id === metro.id ? null : id))}
                 aria-label={metro.canonical_name}
@@ -54,6 +86,22 @@ export function UsMetroMap({ metros, onSelect }: Props) {
               />
             );
           })}
+          {confirmingMetro && confirmingCoords && (
+            <button
+              type="button"
+              className="metro-map-callout"
+              data-flip={confirmingCoords[1] < FLIP_CALLOUT_BELOW_ABOVE_Y_PCT}
+              style={{ left: `${confirmingCoords[0]}%`, top: `${confirmingCoords[1]}%` }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(confirmingMetro);
+                setConfirmingId(null);
+              }}
+            >
+              <span className="metro-map-callout-name">{confirmingMetro.canonical_name}</span>
+              <span className="metro-map-callout-hint">Tap again to view</span>
+            </button>
+          )}
         </div>
       </div>
 

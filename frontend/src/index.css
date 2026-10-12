@@ -696,6 +696,21 @@ header h1 {
   transition: background-color 0.1s ease;
 }
 
+/* Johan, after the above shipped: "the pins are now way too tiny for
+   web usage... looks fine on mobile though." The 0.6% figure above is
+   floor-clamped to 4px on a ~350px-wide phone map either way, so
+   mobile is untouched by this - only desktop (where the map renders
+   much wider, so 0.6% was actually computing a visible ~6px dot) gets
+   bumped up here. Safe to size more generously now that a pin click
+   shows a confirm callout rather than navigating immediately (see
+   .metro-map-callout below) - an ambiguous click in a dense cluster
+   just names the wrong city once, it doesn't misnavigate. */
+@media (min-width: 561px) {
+  .metro-map-pin {
+    width: clamp(7px, 0.85%, 13px);
+  }
+}
+
 /* The visible dot above is deliberately small (see why above) - this
    invisible pseudo-element gives every pin a somewhat larger tap/click
    target than the dot itself, without making the dot visually bigger
@@ -726,6 +741,61 @@ header h1 {
   .metro-map-pin[data-hovered="true"] {
     animation: none;
   }
+}
+
+/* A clicked pin stays solid (no pulse) while its callout is open - a
+   steady, not-animating marker reads as "this one is selected",
+   distinct from the hover pulse's "you're pointing at this one". */
+.metro-map-pin[data-confirming="true"] {
+  background: var(--accent);
+  animation: none;
+}
+
+/* The two-step confirm callout - Johan: "I want the pins to be double
+   clickable... you click them, they show the city... and then people
+   can click again so they go to it." A first click selects a pin
+   (.metro-map-pin[data-confirming]) and opens this instead of
+   navigating straight to the metro detail panel; a second click on
+   either the pin or this callout actually navigates. Mainly exists
+   because pins in dense clusters (south Florida) sit close enough that
+   an imprecise click can land on the wrong one - this makes that a
+   one-tap-to-correct mistake instead of an immediate wrong navigation.
+   Positioned the same way as a pin (percentage left/top within
+   .metro-map-image-wrap, see UsMetroMap.tsx), translated above its
+   anchor point by default and flipped below it near the map's top
+   edge so it never renders off-canvas. */
+.metro-map-callout {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 10px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  background: var(--map-parchment);
+  border: 1px solid var(--map-ink);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.18);
+  color: var(--map-ink);
+  font-family: var(--font-display);
+  white-space: nowrap;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.metro-map-callout[data-flip="true"] {
+  transform: translate(-50%, 10px);
+}
+
+.metro-map-callout-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.metro-map-callout-hint {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.65;
 }
 
 /* Collapsed by default - 50 rows was a lot of page to scroll past just
