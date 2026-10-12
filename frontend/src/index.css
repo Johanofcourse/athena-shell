@@ -403,6 +403,17 @@ header h1 {
   font-size: 12px;
   text-align: center;
   opacity: 0.75;
+  /* Johan: "pinch the map to zoom" is kinda useless in web - desktop
+     has no pinch gesture, so the hint only means anything on a touch
+     device. Mobile-only, same 560px breakpoint every other mobile-only
+     rule in this file uses. */
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .browse-hint {
+    display: block;
+  }
 }
 
 /* The synthesized answer to the actual question asked - the lede, not a
