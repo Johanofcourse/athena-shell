@@ -897,6 +897,17 @@ header h1 {
   border-bottom: 1px dashed var(--border);
 }
 
+/* Real data, just not from this metric's primary source (Census gross
+   rent standing in for Apartment List - see the Rent cell in
+   UsMetroMap.tsx) - visually distinct from both a solid "available"
+   cell and the dashed-out "unavailable" one above, same honesty
+   principle as approximated_metros elsewhere: never indistinguishable
+   from the real thing, never shown as if there's nothing there. */
+.metro-cell[data-available="approximated"] {
+  color: var(--accent);
+  border-bottom: 1px dotted var(--accent);
+}
+
 .metro-list-item {
   width: 100%;
   display: flex;
