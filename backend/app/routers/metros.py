@@ -20,7 +20,15 @@ def list_metros(db: Session = Depends(get_db)) -> list[dict]:
             "canonical_name": m.canonical_name,
             "state": m.state,
             "has_sale_data": m.redfin_name is not None,
-            "has_rent_data": m.aptlist_name is not None,
+            # True for a metro-division gap metro too (Anaheim, West Palm
+            # Beach, etc.) - it has real rent data, just via the Census
+            # gross-rent fallback (see census_gross_rent_county below)
+            # rather than Apartment List directly. A metro with real,
+            # approximated data showing as "no rent data" in the browse
+            # list was never honest - the NL layer already answers these
+            # with real numbers (always flagged as an approximation), the
+            # badge just hadn't been taught about that fallback.
+            "has_rent_data": m.aptlist_name is not None or m.census_gross_rent_county is not None,
             "has_income_data": m.census_income_name is not None,
             "census_gross_rent_county": m.census_gross_rent_county,
             "latitude": METRO_COORDINATES[m.id][0],

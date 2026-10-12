@@ -69,9 +69,22 @@ def test_list_metros_shape_and_flags(seeded_db, monkeypatch):
         assert testville["longitude"] == -97.0
 
         gapford = by_id["gapford-gf"]
-        assert gapford["has_rent_data"] is False
+        # Real rent data exists here, just via the Census gross-rent
+        # fallback (census_gross_rent_county below) rather than Apartment
+        # List directly - the badge used to say "no rent data" for this
+        # case, which was never honest (Johan caught this live: "it has
+        # rent data but the list has its rent data as lacking").
+        assert gapford["has_rent_data"] is True
         assert gapford["has_income_data"] is False
         assert gapford["census_gross_rent_county"] == "Gap County, GF"
+
+        # The genuinely-no-data case (neither Apartment List nor the
+        # Census fallback) must still correctly read as unavailable -
+        # the fix above shouldn't make every metro look like it has rent
+        # data regardless of whether it actually does.
+        emptyburg = by_id["emptyburg-eb"]
+        assert emptyburg["has_rent_data"] is False
+        assert emptyburg["census_gross_rent_county"] is None
     finally:
         app.dependency_overrides.clear()
 

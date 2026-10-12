@@ -169,7 +169,27 @@ export function UsMetroMap({ metros, onSelect }: Props) {
                 <span className="metro-list-name">{metro.canonical_name}</span>
                 <span className="metro-list-badges">
                   <span className="metro-cell" data-available={metro.has_sale_data} title={metro.has_sale_data ? "Sale data" : "No sale data"}>Sale</span>
-                  <span className="metro-cell" data-available={metro.has_rent_data} title={metro.has_rent_data ? "Rent data" : "No rent data"}>Rent</span>
+                  {/* A metro-division gap metro (Anaheim, West Palm Beach,
+                      etc.) genuinely has rent data - just via the Census
+                      gross-rent fallback, not Apartment List directly -
+                      so it's neither plain "available" nor "unavailable"
+                      here. A metro with real, flagged-as-approximate data
+                      showing as flat-out missing was never honest (Johan,
+                      live: "it has rent data but the list has its rent
+                      data as lacking/whited out"). */}
+                  <span
+                    className="metro-cell"
+                    data-available={metro.census_gross_rent_county ? "approximated" : metro.has_rent_data}
+                    title={
+                      metro.census_gross_rent_county
+                        ? `Rent data (Census estimate for ${metro.census_gross_rent_county}, not Apartment List)`
+                        : metro.has_rent_data
+                          ? "Rent data"
+                          : "No rent data"
+                    }
+                  >
+                    Rent
+                  </span>
                   <span className="metro-cell" data-available={metro.has_income_data} title={metro.has_income_data ? "Income data" : "No income data"}>Income</span>
                 </span>
               </button>
