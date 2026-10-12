@@ -6,10 +6,27 @@ what's actually landed since this was last written. Rewritten clean at
 this update rather than patched again - the previous version had
 accumulated enough resolved history to obscure what's actually still open.
 
-**Last updated:** 2026-10-09 (Phase 5 - deployment - closed: live at
-`athenarealestate.app` on a second Oracle Cloud VM, real TLS, two genuine
-SELinux bugs hit and fixed rather than configured around; see
-`ROADMAP.md` Phase 5 for the full technical account. Previous update,
+**Last updated:** 2026-10-11 (four new metrics shipped in one session -
+commute time, property tax, and population from Census ACS, plus natural
+hazard risk from FEMA's National Risk Index as a seventh independent data
+source - each with its own real complication (an Austin CBSA-rename bug
+that silently dropped 10 of 12 years of population history, a
+population-weighted county-to-metro aggregation for hazard risk, an
+Akamai 403 that only `curl` gets past). Also closed a real, previously-
+flagged-and-deliberately-deferred bug: ranking queries ("which metros are
+growing/rising fastest") were silently ranking by latest absolute value,
+not rate of change - fixed with a genuine third `sort_by` mode across the
+whole query system, verified live against the exact phrasing that exposed
+it. Restructured the answer layout as an inverted pyramid (narrative ->
+caveats -> source citation -> chart) per direct feedback, and added
+source citations to metric queries for the first time. Fixed a mobile
+layout bug (two stacked CSS `min-width: auto` defaults clipping the
+Income column) - open as PR #79, not yet merged. Eval suite grew from 37
+to 47 cases covering all of the above; backend/frontend test totals now
+125/38. Previous update, 2026-10-09: Phase 5 - deployment - closed: live
+at `athenarealestate.app` on a second Oracle Cloud VM, real TLS, two
+genuine SELinux bugs hit and fixed rather than configured around; see
+`ROADMAP.md` Phase 5 for the full technical account. Before that,
 2026-09-30: visual redesign done, three AI-capability extensions
 shipped, a real multi-turn bug found/fixed/regression-tested, the eval
 caught a second real issue on re-run, Census income + a median-rent
@@ -34,7 +51,7 @@ review holds the project to both, not just "does it run."
 
 ## Where it actually stands
 
-- **Data** - real, not synthetic, now from six independent sources.
+- **Data** - real, not synthetic, now from seven independent sources.
   Redfin (50 metros, monthly sale-side data, 2012-2026) and Apartment
   List (rent/vacancy/time-on-market, 2017/2019-2026), both independently
   spot-checked against known real-world market history (Austin's 2012
@@ -69,7 +86,20 @@ review holds the project to both, not just "does it run."
   Philadelphia, Dallas, or Detroit) - surfaced and discussed with Johan
   *before* building it, not discovered and quietly worked around after.
   38/50 real metros, honestly labeled, no fudged substitutes for the 12
-  gaps.
+  gaps. FEMA's National Risk Index joined as a seventh source this
+  session, for natural hazard risk - the one with the most genuine design
+  work behind it, since NRI publishes at county level and getting one
+  number per metro meant a deliberate population-weighted aggregation (a
+  simple average would let a sparsely-populated outlying county pull a
+  metro's score around as much as its dense urban core), not a reused
+  crosswalk pattern. Three more Census ACS pulls (commute time, property
+  tax, total population) joined the same session, reusing the existing
+  income crosswalk - population is the only one of the three that's a
+  real multi-year trend, and ingesting it caught a real bug first: OMB
+  renamed Austin's CBSA three times across 2012-2024, and a first,
+  name-matching version of the ingest silently dropped 10 of Austin's 12
+  years, producing a genuinely wrong "grew modestly" narrative. Fixed by
+  matching on the CBSA's stable numeric code instead of its name.
 - **NL query layer** - verified live against DeepSeek, not just
   architected. Getting a working integration required two real,
   undocumented fixes (stale model name, a "thinking mode" incompatibility
@@ -93,18 +123,41 @@ review holds the project to both, not just "does it run."
   come back as `no_data_metros` for this metric even where the rent
   fallback above would otherwise have data, rather than silently omitting
   the income term or guessing at it.
-- **Eval set: 31 cases now, and it's still finding real distinctions, not
+- **A real ranking-correctness bug, flagged and deliberately left open,
+  now actually fixed.** "Which metros are growing/rising fastest" used
+  to silently rank by latest absolute value, not rate of change, because
+  that was the only ranking mode that existed - found while building
+  `total_population`, confirmed not population-specific (`median_rent`
+  had the identical problem), and deliberately scoped out of that PR as
+  too large a change to bundle in. Fixed this session with a genuine
+  third `sort_by` mode (`"change"`) threaded through the query engine,
+  both narrative-grounding functions, and the ranking chart's
+  formatting - not a point patch, the scope the original finding called
+  for. Verified against the exact phrasings that exposed the bug, live,
+  with a Playwright screenshot confirming the chart renders percent
+  values, not the metric's native unit.
+- **Eval set: 47 cases now, and it's still finding real distinctions, not
   just passing.** One case (Anaheim rent) flipped from a genuine
   `no_data` case to a genuine `approximated` one *because the underlying
   behavior actually changed* - the eval caught that correctly rather than
   needing a hand update to "just pass." A sibling case (Anaheim household
   income) deliberately stayed a `no_data` case, checking the two related
-  features don't get conflated. Full suite: **31/31 cases, 73/73 checks**.
-  The repeatability check on this run again reproduced the metric-choice
-  non-determinism first seen several updates ago (2 different metrics
-  across 5 runs) - still real, still not something a code fix should be
-  expected to eliminate, since it's the model's judgment call, not a
-  structural bug.
+  features don't get conflated. This update added 10 more: one per new
+  metric's single-metro and ranking/compare phrasing, three for the
+  `sort_by: "change"` fix (two for the exact phrasings that exposed the
+  original bug, one confirming a single-snapshot metric still correctly
+  resolves to `"value"` instead), and the suite's first cases that check
+  *tool choice itself* rather than filter correctness - two "why"
+  questions now assert `interpret_query` actually routes to
+  `search_market_commentary` (a `CommentaryQuery`), not just that the
+  right metro came back. Full suite: **46/47 cases, 117/118 checks** - the
+  one failure is `adversarial_relative_time`, a pre-existing, deliberately
+  adversarial case ("5 years ago") unrelated to this session's work and
+  already documented as one that may legitimately fail. The repeatability
+  check on this run again reproduced the metric-choice non-determinism
+  first seen several updates ago - still real, still not something a code
+  fix should be expected to eliminate, since it's the model's judgment
+  call, not a structural bug.
 - **Frontend** - redesigned (industrial/hazard-signage direction, per
   `PREFERENCES.md`) and verified in a real browser at every step, not
   just typed correctly - a genuine readability bug (overlapping chart date
@@ -112,7 +165,13 @@ review holds the project to both, not just "does it run."
   grid) were both caught this way, not by assumption. This was the
   standing risk this document flagged repeatedly ("deprioritized again");
   it's resolved now, which matters as much as the fix itself given how
-  many times it got pushed.
+  many times it got pushed. Restructured this session into a genuine
+  inverted-pyramid layout (thesis first, chart last) with real source
+  citations on metric queries for the first time, both per direct
+  feedback rather than internal judgment call. A mobile layout bug
+  (the Income column clipped on the 50-metro list, root-caused to two
+  independent, stacked instances of the same CSS `min-width: auto`
+  default) is fixed and verified but open as PR #79, not yet merged.
 - **Three AI-capability extensions, all verified live**: a transparency
   panel exposing the exact tool-call arguments DeepSeek produced (the
   audit story this whole architecture was built around, made visible
@@ -123,10 +182,12 @@ review holds the project to both, not just "does it run."
   finding described above - not a coincidence. Harder features surface
   more real problems, which is the point of building them before a
   portfolio review does it for you.
-- **Automated tests now exist and run in CI** (Phase 4, closed out this
-  session after seven deferrals - see below): 60 backend pytest tests
-  (query logic, crosswalk invariants, ETL, API contracts) and 26 frontend
-  Vitest tests, both wired into GitHub Actions on every push/PR. Worth
+- **Automated tests now exist and run in CI** (Phase 4, closed out a
+  previous session after seven deferrals - see below): 125 backend pytest
+  tests (query logic, crosswalk invariants, ETL, API contracts) and 38
+  frontend Vitest tests as of this update, up from 60/26 at Phase 4's
+  close - grown steadily alongside every feature since, not left static.
+  Both wired into GitHub Actions on every push/PR. Worth
   saying plainly: the very first frontend test run found a real,
   previously-unnoticed bug (a timezone issue in `analysis.ts` that named
   the wrong month in every peak/trough callout for any US-timezone
@@ -162,24 +223,21 @@ above, not any single screen.
 
 ## Biggest risk to the job goal specifically
 
-**Phase 4 is closed out** (this update) - the pattern named here across
-the last seven updates (engineering rigor deprioritized behind every new
-feature) finally broke. Worth being just as honest about the resolution
-as the previous versions of this document were about the pattern: it took
-seven deferrals and an explicit ask from Johan ("I like tests... so what
-is phase 4 exactly?") to get here, not proactive prioritization. That's
-still worth naming, not smoothing over.
-
-The risk that replaces it: **Phase 7 (real user accounts, multi-tenancy,
-payments) has zero progress**, and it's a stated co-equal pillar of this
-project's purpose, not an optional add-on - the whole point of choosing
-this over Apollo Shell again was to demonstrate real SaaS patterns Apollo
-Shell never had. Six things have now shipped ahead of it (real data, the
-NL layer, the visual redesign, three feature rounds, a third data source,
-and now Phase 4) with legitimate reasons each time - but the same
-pattern-recognition problem applies here as it did to testing: at some
-point the reasons for going elsewhere first stop being sequencing
-decisions and start being the actual answer to "why no accounts."
+**Phase 7 (real user accounts, multi-tenancy, payments) still has zero
+progress**, and it's a stated co-equal pillar of this project's purpose,
+not an optional add-on - the whole point of choosing this over Apollo
+Shell again was to demonstrate real SaaS patterns Apollo Shell never had.
+Phase 4 (engineering rigor) and Phase 5 (deployment) both closed out in
+the updates before this one, which was real progress - but this update
+added yet another full round on top (four new metrics, a real
+ranking-correctness fix, a layout restructure, a mobile bug fix) with the
+same legitimate-reason-each-time pattern this document named on the
+testing side for seven straight updates before it finally broke. The app
+has been live on the public internet, with zero auth, for two days now -
+that's no longer a hypothetical gap. At some point the reasons for going
+elsewhere first stop being sequencing decisions and start being the
+actual answer to "why no accounts," and this project is closer to that
+point than it was at the last update, not further from it.
 
 ## Recommendation
 

@@ -114,8 +114,8 @@ export function QueryResults({ response, query }: Props) {
           </p>
           <p className="explanation">{explanation}</p>
           {sourceCitation && <p className="commentary-citation">Source: {sourceCitation}</p>}
-          {filters.sort_by === "value" ? (
-            <RankingChart points={results} metric={filters.metric} />
+          {filters.sort_by === "value" || filters.sort_by === "change" ? (
+            <RankingChart points={results} metric={filters.metric} isChangeRanking={filters.sort_by === "change"} />
           ) : (
             <TrendChart points={results} metric={filters.metric} />
           )}

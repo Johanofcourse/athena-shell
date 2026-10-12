@@ -120,6 +120,48 @@ probed hardest in an interview.
       one-off anecdote, and not something a prompt fix should be expected
       to eliminate the way the bed_size fix structurally did.
 
+### Ranking by rate of change, not just latest value (done, 2026-10-11)
+- [x] **Real bug, flagged and deliberately left open rather than patched
+      inline, now fixed properly.** First noticed while building
+      `total_population` (see Phase 3): "which metros are growing/rising
+      fastest" silently resolved to `sort_by: "value"` - ranks by latest
+      *absolute* value, not rate of change - because `"value"` was the
+      only ranking mode that existed. Confirmed not population-specific
+      at the time: `median_rent` had the identical problem (ranked by
+      current rent level, called it "fastest-rising"). Fixed now with a
+      third ranking mode, `sort_by: "change"`, across the whole query
+      system - the scope the original finding called for, not a
+      population-specific patch.
+- [x] `run_market_query` computes percent change over each metro's
+      available history (respecting `start`/`end`) rather than a single
+      snapshot value, needing at least two real points to compute a rate
+      from - a metro with only one data point (every single-snapshot
+      metric: income, commute, property tax, hazard risk score) correctly
+      comes back as `no_data_metros` when explicitly named, not a crash
+      or a nonsense 0% change.
+- [x] The returned value for `"change"` mode is the computed percent
+      change itself, not a raw metric value - `RankingChart.tsx`'s axis
+      and tooltip, and both narrative-grounding functions
+      (`summarize_metric_facts` / `summarizeResults`), needed their own
+      percent-only formatting rather than the metric's normal unit
+      formatter, which would otherwise render e.g. a population's percent
+      change as if it were a population count.
+- [x] **Verified live against the exact phrasing that originally exposed
+      the bug.** "Which metros have rent prices rising the fastest" and
+      "which metros are growing the fastest in population" both now
+      correctly resolve to `sort_by: "change"` and rank by percent change
+      (Providence, RI +113.0% leading rent growth; Charlotte, NC +57.5%
+      leading population growth) - confirmed via the real API response
+      and a Playwright screenshot of the rendered chart showing
+      percent-formatted axis/tooltip (`+0.0%` … `+120.0%`, `+113.0%` in
+      the tooltip), not dollar or population-count formatting. Also
+      confirmed a single-snapshot ranking question ("which metros have
+      the highest median income?") still correctly resolves to
+      `sort_by: "value"`, not `"change"`.
+- [x] 5 new backend tests, 2 new frontend tests, 3 new eval cases (two for
+      the exact phrasings that exposed the bug, one confirming `"value"`
+      mode is still chosen for a single-snapshot metric).
+
 ## Phase 2 — Visual redesign (done)
 - [x] Replaced the generic/flat UI with the industrial, hazard-signage
       direction from `PREFERENCES.md` - dark theme, stencil display type,
@@ -180,6 +222,65 @@ construction site"), fighting a real-estate app's positioning.
       SVG/topology rendering is real-browser-verification territory,
       not jsdom's.
 
+### Inverted-pyramid answer layout + source citations (done, 2026-10-11)
+Johan: "a nice summary as a header... followed by backing data and
+graphs... most important info on top, then important details, then
+general info and background/citations and graphs numbers at the bottom...
+present facts and data and people can interpret it, how they see fit,
+like in articles." The inverted-pyramid structure journalism uses -
+thesis first, supporting evidence last.
+- [x] Reordered `QueryResults.tsx`'s metric-query path to match:
+      narrative (the thesis - already existed, just wasn't actually
+      first) -> the filter-echo/caveat line (`explanation`) -> a new
+      source citation -> chart, with the chart now the last thing someone
+      sees, not the second. The synthesis prompt already enforced
+      "describe what happened, not why" (no editorializing), so the
+      facts-first framing Johan asked for didn't need a prompt change -
+      only the layout was working against it.
+- [x] **Added the citation line itself, which didn't exist for metric
+      queries before this.** A metric's real source (Redfin, Apartment
+      List, Census ACS, BLS, FHFA/FRED, Freddie Mac PMMS, FEMA NRI)
+      previously only lived inside `METRIC_DESCRIPTIONS` - tool-schema
+      hint text for the model, never shown to the person reading the
+      answer. New `METRIC_SOURCES` dict + `source_citation()` mirror the
+      commentary path's own "Source: HUD Comprehensive Housing Market
+      Analysis..." line, which metric queries never had an equivalent
+      of. Handles the one real dual-source case correctly: a rent query
+      that fell back to Census gross rent for some metros cites both
+      sources, not just Apartment List, which would misattribute the
+      number.
+- [x] Verified: 3 new backend tests for `source_citation`, 3 new frontend
+      tests - one specifically asserting DOM order (narrative before
+      explanation before citation before chart), not just presence, so a
+      future change that silently reorders these back toward
+      graph-first doesn't slip through unnoticed.
+
+### Mobile metro list overflow fix (PR #79, opened 2026-10-11)
+Johan: "in mobile the list of top 50 metros is squeeze a bit and the
+word on the far right end 'income' is chopped in half."
+- [x] Root cause, confirmed by measuring a real row rather than guessing:
+      two separate, stacked instances of the same CSS default fighting
+      the layout. `.metro-list-name` is a flex child with
+      `white-space: nowrap`, and flex items default to
+      `min-width: auto` ("never shrink below the text's own full
+      width") - the single longest name among all 50 metros (Montgomery
+      County, PA, 203px) was forcing every row to need 397px total on a
+      ~350px grid column. Fixing just that wasn't enough: `.metro-list`'s
+      `grid-template-columns: 1fr` has the identical default at the
+      grid-track level, so the column itself stayed locked to 397px
+      regardless of the flex-level fix - confirmed via `getComputedStyle`
+      showing the first fix correctly applied but having zero effect on
+      the actual rendered width until the second, grid-level fix was also
+      added.
+- [x] Fixed both: `minmax(0, 1fr)` on the grid track, `min-width: 0` +
+      `overflow: hidden` + `text-overflow: ellipsis` on
+      `.metro-list-name`. Verified by measuring the actual Montgomery
+      County row before/after (397px -> 350px) and confirming
+      `document.body.scrollWidth` now equals the viewport width (zero
+      horizontal overflow, was 27px over before) - not just eyeballing a
+      screenshot.
+- [ ] Awaiting merge.
+
 ## Phase 3 — Real data: aggregate market trends (done)
 
 **Decision (2026-09-22):** per-listing history (this exact address's price
@@ -197,7 +298,7 @@ metro** instead - a genuine scope change ("any address's history" becomes
 |---|---|---|
 | Redfin Data Center | **In production** | Price Drops, Home Delistings & Relistings, Housing Market Tracker. Metro-level, top 50 metros, monthly, Jan 2012 - Aug 2026 (176 months). Downloads page is bot-gated for automation (403, confirmed via headless browser) but works in a real browser. |
 | Apartment List | **In production (rent side)** | Rent Estimates (split by bed size), Vacancy Index, Time on Market. Jan 2017/2019 - Aug 2026. Pulled as direct CDN links, no bot-gate. Metro naming doesn't match Redfin's, and isn't even consistent across Apartment List's own files (one file suffixes " Metro Area", others don't) - see the crosswalk bug below. |
-| Census ACS | **In production (income + gross-rent fallback)** | The `api.census.gov` API key signup never worked (multiple attempts, two different emails, validation link consistently broken/unreceived - a known, documented issue with institutional email scanners rewriting the one-time link). **Worked around entirely** by using `data.census.gov`'s own table browser to download CSVs directly - no API key needed at all, same "manual browser download" pattern that worked for Redfin/Apartment List. Table `B19013` (median household income), 5-Year 2024 estimate, all 50 metros crosswalked (40 direct, 10 genuine gaps) - spot-checked (Austin $100,431). Table `B25064` (median gross rent), 5-Year 2024, county-level, for the 10 metro-division metros only - a deliberately narrower fallback used to fill the `median_rent` gap, always flagged as an approximation. `S0801` (commute time) not pursued this round - see Still open. |
+| Census ACS | **In production (income + gross-rent fallback)** | The `api.census.gov` API key signup never worked (multiple attempts, two different emails, validation link consistently broken/unreceived - a known, documented issue with institutional email scanners rewriting the one-time link). **Worked around entirely** by using `data.census.gov`'s own table browser to download CSVs directly - no API key needed at all, same "manual browser download" pattern that worked for Redfin/Apartment List. Table `B19013` (median household income), 5-Year 2024 estimate, all 50 metros crosswalked (40 direct, 10 genuine gaps) - spot-checked (Austin $100,431). Table `B25064` (median gross rent), 5-Year 2024, county-level, for the 10 metro-division metros only - a deliberately narrower fallback used to fill the `median_rent` gap, always flagged as an approximation. `S0801` (mean commute time), `B25103` (median property tax), and `B01003` (total population) added later - see the "Four new metrics" section below. |
 | Freddie Mac PMMS | **In production (national mortgage rates)** | `www.freddiemac.com/pmms/docs/PMMS_history.csv` - a plain, directly-linked public CSV with zero bot-gating (confirmed: a clean 200, not a 403/challenge), unlike every other source above. Pulled directly rather than through a manual browser step, since there's no protection being routed around - the same distinction this project has drawn throughout (avoiding bot-gate evasion, not avoiding `curl` categorically). Weekly, 1971-present, 30-year fixed/15-year fixed/5-year ARM. |
 | Zillow Research (ZHVI/ZORI) | **Deprioritized** | 403 on every attempt (3 tries). Apartment List covers the same need. |
 | HUD Fair Market Rents | **Unverified, low priority** | Annual cadence, same "benchmark not trend" role as Census. |
@@ -315,9 +416,6 @@ metro** instead - a genuine scope change ("any address's history" becomes
       chart, explanation, and analysis summary.
 
 ### Still open
-- [ ] Census `S0801` (commute time) - the API key signup issue from
-      before is unresolved; not pursued further this round since Johan
-      deferred pulling more Census tables for now.
 - [ ] Re-verify Zillow Research / HUD FMR via a real browser - low
       priority, not blocking anything.
 
@@ -402,6 +500,96 @@ metro** instead - a genuine scope change ("any address's history" becomes
       substituted division number), a live `curl` check, and a real
       browser screenshot showing Austin's well-documented 2022 price
       peak in the actual rendered chart.
+
+### Four new metrics: commute, property tax, population, hazard risk (done, 2026-10-11)
+Picked up from the disclaimer Johan noticed: "This system can't evaluate:
+... non-market quality-of-life factors (lifestyle, safety, commute,
+amenities)." Looked into real, verifiable sources for commute and safety
+both - safety (crime) turned out to have a serious coverage gap (California,
+New York, Pennsylvania, and Florida essentially don't participate in the
+FBI's NIBRS program as of 2025, which would mean no data for NYC, LA, SF,
+Miami, Philadelphia - exactly the metros people ask about most), so Johan
+chose to skip that for now. The other three Census/FEMA pulls below had no
+such problem.
+- [x] **`mean_commute_minutes`** (Census ACS 5-Year 2024, Table S0801):
+      mean travel time to work in minutes, per metro - same CBSA geography
+      and metro-name format `median_household_income` already uses,
+      reusing the existing `census_income_name` crosswalk, no new one
+      needed.
+- [x] **`median_property_tax`** (Census ACS 5-Year 2024, Table B25103):
+      median annual real estate taxes paid by owner-occupied households,
+      per metro - same pipeline and crosswalk as commute. Added to the
+      currency-formatting set (`frontend/src/format.ts` and
+      `nl_query.py`'s `_CURRENCY_METRICS`).
+- [x] **`total_population`** (Census ACS **1-Year** Table B01003, not the
+      Population Estimates Program originally assumed - confirmed by
+      testing directly against the API that PEP's metro-area geography
+      support is inconsistent across vintages, present in 2019, silently
+      dropped from 2021). The first of these four that's a genuine
+      multi-year trend (2012-2024, except 2020 - ACS 1-Year wasn't fielded
+      normally that year because of COVID-19, left as a real gap rather
+      than interpolated), not a single snapshot.
+    - **Real correctness bug caught before shipping, not after:** OMB
+      revises CBSA names periodically, and Austin alone was named three
+      different ways across this date range ("Austin-Round Rock-San
+      Marcos" in 2012, "Austin-Round Rock" in 2013, "...-Georgetown"
+      2019-2022, back to "...-San Marcos" 2023-2024) - all the same
+      metro. A first version of the ingest matched purely by name (like
+      income/commute/property-tax reasonably do, since those only ever
+      use one year), which silently dropped 10 of Austin's 12 years and
+      surfaced as a genuinely wrong narrative: "how has population
+      changed in Austin over the last decade" returned only 2023-2024 and
+      claimed "grew modestly" based on a single year's difference. Fixed
+      by matching on the CBSA's stable numeric code instead of its name.
+      Verified against the exact query that exposed the bug: Austin now
+      correctly shows all 12 years and a narrative reading "grew by about
+      39%... from roughly 1.83 million to 2.55 million."
+    - This is also the metric whose ranking question ("which metros are
+      growing fastest") first surfaced the `sort_by` rate-of-change bug
+      fixed above in Phase 1 - confirmed at the time not to be
+      population-specific (median_rent had the identical problem) and
+      deliberately scoped out of this change as a separate, later fix.
+- [x] **`natural_hazard_risk_score`** (FEMA National Risk Index, December
+      2025 release): a composite 0-100 national-percentile score per
+      county across 18 natural hazards (flood, wildfire, hurricane,
+      earthquake, and others). No live API exists for this source
+      (FEMA's own OpenFEMA listing: "OpenFEMA API: N/A. Files Only.") -
+      `fetch_fema_nri.py` downloads the bulk county CSV instead.
+    - **A real methodology choice, stated plainly in the metric's own
+      description so the model doesn't misrepresent it.** NRI publishes
+      at county level, not metro level, so one number per metro means
+      aggregating a CBSA's constituent counties - done as a
+      **population-weighted** average (via the official OMB July 2023
+      CBSA-to-county delineation file), not a simple average, so a
+      sparsely-populated outlying county can't pull a metro's score
+      around as much as its dense urban core. The difference is directly
+      exercised by a test (50 and 90 across two counties averages to 70
+      unweighted, but weights to 80 once one county has 3x the other's
+      population).
+    - Two real things found and fixed while building this: FEMA's CDN
+      (Akamai) returns a 403 to every `urllib` request regardless of
+      headers while `curl` succeeds unconditionally (TLS/HTTP-stack
+      fingerprinting, not a header `fetch_fema_nri.py` could set around) -
+      worked around by shelling out to `curl` for this one download. The
+      CBSA delineation file is only published as `.xlsx` - extracted to a
+      plain CSV once rather than adding `openpyxl` as a new runtime
+      dependency for a reference file this static.
+    - Verified against the real, fully-aggregated data: "which metros
+      have the highest natural disaster risk?" ranked California metros
+      at the top and Virginia Beach lowest, matching real-world hazard
+      geography.
+- [x] All four flow through the existing generic per-metro query path and
+      the existing trend-chart/ranking-chart/narrative machinery with
+      zero metric-specific special-casing (`total_population`) or close
+      to it (the other three are single-snapshot, same shape as
+      `median_household_income`).
+- [x] Verified end to end for all four: 9 new eval cases (one single-metro
+      and one ranking/compare case per metric, covering the new tool-
+      choice surface area), and the running backend/frontend test totals
+      climbed from 113/34 (commute) to 114/34 (hazard risk) across the
+      four commits, each with its own metric-specific correctness tests
+      (the Austin rename regression, the population-weighting
+      discrimination test).
 
 ## Phase 4 — Engineering rigor (done, 2026-09-28)
 Deferred seven times before this (see `PRODUCT_REVIEW.md`) - done now, not
@@ -612,11 +800,15 @@ angle, not by wanting RAG for its own sake.
       if that second call itself fails, rather than failing the request.
 - [x] Deployed to the live VM - the PDFs `scp`'d there manually (see
       `DOCUMENTATION.md` Deployment), not pulled by `git pull`.
-- [ ] **Eval suite cases** for the new tool-choice behavior (does the
-      model pick the right tool across a range of "why" vs "what"
-      phrasings, not just the two hand-tested examples above) and for
-      the synthesized-answer's grounding (does it ever state something
-      not actually in the retrieved chunks).
+- [x] **Eval suite cases for the tool-choice behavior** (2026-10-11): two
+      cases (`commentary_why_rent_declining`, `commentary_why_population_growing`)
+      now assert `interpret_query` actually routes to
+      `search_market_commentary`, not just that the right metric/metro
+      came back - a genuinely different outcome type (`CommentaryQuery`
+      vs. `MarketQueryFilters`), checked by `isinstance` in
+      `run_eval.py`. Still just two phrasings, not a wide range -
+      growing this further, and the synthesized-answer's grounding,
+      stays open.
 - [ ] Grow coverage beyond the current 23 metros (same manual,
       bot-gated-browser process).
 - **Deliberately considered and rejected: a live web-search tool

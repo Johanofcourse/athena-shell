@@ -8,7 +8,7 @@ Costs real (small) DeepSeek API usage - 18 queries at deepseek-flash rates.
 
 from app.database import SessionLocal
 from app.nl_query import interpret_query, run_market_query
-from app.schemas import ConversationTurn
+from app.schemas import CommentaryQuery, ConversationTurn
 from evals.cases import CASES
 
 
@@ -24,6 +24,21 @@ def check_case(db, case: dict) -> tuple[list[str], list[str]]:
         history.append(ConversationTurn(query=prior_query, filters=interpret_query(prior_query, history)))
 
     filters = interpret_query(case["query"], history)
+
+    # "why" questions should route to search_market_commentary rather than
+    # query_market_metrics - a genuinely different tool-choice outcome, not
+    # just a different filter value, so it's checked before anything below
+    # assumes filters is a MarketQueryFilters (which it structurally isn't
+    # for these cases - it's a CommentaryQuery instead).
+    if case.get("expect_commentary"):
+        ok = isinstance(filters, CommentaryQuery)
+        (passed if ok else failed).append(f"routed to search_market_commentary (got {type(filters).__name__})")
+        if ok and "expect_commentary_metro_contains" in case:
+            metro_ok = case["expect_commentary_metro_contains"] in filters.metro.lower()
+            (passed if metro_ok else failed).append(
+                f"commentary metro contains '{case['expect_commentary_metro_contains']}' (got {filters.metro!r})"
+            )
+        return passed, failed
 
     if "expect_metric" in case:
         ok = filters.metric.value in case["expect_metric"]

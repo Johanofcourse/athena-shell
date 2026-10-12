@@ -89,7 +89,12 @@ class MarketQueryFilters(BaseModel):
     end_period: str | None = Field(default=None, description="YYYY-MM, inclusive")
     sort_by: str = Field(
         default="period",
-        description="'period' for a time trend of specific metro(s), 'value' to rank metros by the metric's latest value",
+        description=(
+            "'period' for a time trend of specific metro(s), 'value' to rank metros by the metric's "
+            "latest/current value, 'change' to rank metros by percent change over time (e.g. 'which "
+            "metros are growing/rising/falling fastest') - needs real history to compute from, so it "
+            "doesn't apply to a single-snapshot metric (income, commute, property tax, risk score)"
+        ),
     )
     sort_order: str = Field(default="desc", description="asc or desc")
     limit: int = 60

@@ -29,6 +29,17 @@ describe("summarizeResults", () => {
     expect(text).toBe("Miami, FL leads at 28.4%; Austin, TX is lowest at 20.1%.");
   });
 
+  it("change mode with a single point states direction and percent change", () => {
+    const text = summarizeResults([point("Austin, TX", "2026-08-01", 27.3)], "median_rent", "change");
+    expect(text).toBe("Austin, TX: up 27.3%.");
+  });
+
+  it("change mode with multiple points names the biggest and smallest change (assumes caller pre-sorted)", () => {
+    const points = [point("Austin, TX", "2026-08-01", 27.3), point("Miami, FL", "2026-08-01", -4.2)];
+    const text = summarizeResults(points, "median_rent", "change");
+    expect(text).toBe("Austin, TX has the biggest change at +27.3%; Miami, FL has the smallest change at -4.2%.");
+  });
+
   it("trend mode with a single period just states the value", () => {
     const text = summarizeResults([point("Denver, CO", "2026-08-01", 2000)], "median_rent", "period");
     expect(text).toBe("Denver, CO: $2,000.");

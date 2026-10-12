@@ -14,7 +14,7 @@ const monthYearFormatter = new Intl.DateTimeFormat("en-US", { month: "short", ye
 export function summarizeResults(
   points: MarketMetricPoint[],
   metric: MetricName,
-  mode: "period" | "value",
+  mode: "period" | "value" | "change",
 ): string {
   if (points.length === 0) return "";
 
@@ -25,6 +25,23 @@ export function summarizeResults(
     const top = points[0];
     const bottom = points[points.length - 1];
     return `${top.metro} leads at ${formatMetricValue(metric, top.value)}; ${bottom.metro} is lowest at ${formatMetricValue(metric, bottom.value)}.`;
+  }
+
+  if (mode === "change") {
+    // Each point's value is already a computed percent change (see
+    // backend run_market_query's "change" branch), not a raw metric
+    // value - formatMetricValue would show it in the metric's own unit
+    // (e.g. population's pct change rendered as a population count), so
+    // this formats it as the percentage it actually is instead.
+    if (points.length === 1) {
+      const p = points[0];
+      const direction = p.value > 0.05 ? "up" : p.value < -0.05 ? "down" : "flat";
+      return `${p.metro}: ${direction} ${Math.abs(p.value).toFixed(1)}%.`;
+    }
+    const top = points[0];
+    const bottom = points[points.length - 1];
+    const sign = (v: number) => (v >= 0 ? "+" : "");
+    return `${top.metro} has the biggest change at ${sign(top.value)}${top.value.toFixed(1)}%; ${bottom.metro} has the smallest change at ${sign(bottom.value)}${bottom.value.toFixed(1)}%.`;
   }
 
   const byMetro = new Map<string, MarketMetricPoint[]>();
