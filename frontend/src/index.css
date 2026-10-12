@@ -661,11 +661,31 @@ header h1 {
 /* A pin is a plain positioned button, not an SVG marker - percentages
    place it directly against the image's own coordinate space (see
    .metro-map-image-wrap above), translate(-50%,-50%) centers the dot
-   itself on that point rather than its top-left corner. */
+   itself on that point rather than its top-left corner.
+
+   Sized as a PERCENTAGE of the map's own rendered width, not a fixed
+   px value - Johan: "make the pins relative to the map so they stay
+   the same size relative to the zoom, but spread out relative to the
+   map." A fixed px size (the original version of this: 10px desktop,
+   16px mobile via the override below) is a wildly different fraction
+   of the map depending on how wide it's actually rendered - 10px is
+   ~1% of a ~1000px desktop map but the old 16px mobile override was
+   ~4.5% of a ~350px phone-width map, over 4x as large relative to the
+   map itself. That's exactly backwards: south Florida's closest real
+   metro pair (Miami/Fort Lauderdale) is only ~0.76% of the map's width
+   apart - oversized pins there were bound to overlap and look
+   "bunched up" regardless of zoom, since native pinch-zoom magnifies
+   pins and the real gaps between them by the same factor, so a bad
+   size-to-gap ratio never improves no matter how far in you zoom.
+   `aspect-ratio: 1` keeps the dot circular off just the width,
+   independent of the map's own (non-square) aspect ratio - height: N%
+   would resolve against a different pixel value than width: N% here
+   and draw an oval. `clamp()` keeps it from disappearing on very
+   narrow screens or ballooning on very wide ones. */
 .metro-map-pin {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: clamp(4px, 0.6%, 11px);
+  aspect-ratio: 1;
   margin: 0;
   padding: 0;
   border: 1.5px solid var(--accent);
@@ -673,12 +693,28 @@ header h1 {
   background: var(--map-parchment);
   cursor: pointer;
   transform: translate(-50%, -50%);
-  transition: background-color 0.1s ease, width 0.1s ease, height 0.1s ease;
+  transition: background-color 0.1s ease;
+}
+
+/* The visible dot above is deliberately small (see why above) - this
+   invisible pseudo-element gives every pin a somewhat larger tap/click
+   target than the dot itself, without making the dot visually bigger
+   (which is what caused the overlap problem in the first place). Kept
+   modest rather than chasing WCAG's 24px minimum: south Florida's
+   closest real pair (Miami/Fort Lauderdale) is only ~18px apart even
+   at this map's largest desktop rendering, so a generously expanded
+   hit area here just steals clicks from its own neighbor instead of
+   helping - confirmed by testing a larger value and watching exactly
+   that happen. */
+.metro-map-pin::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
 }
 
 @keyframes metro-pin-pulse {
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.35); }
+  50% { transform: translate(-50%, -50%) scale(1.8); }
 }
 
 .metro-map-pin[data-hovered="true"] {
@@ -689,17 +725,6 @@ header h1 {
 @media (prefers-reduced-motion: reduce) {
   .metro-map-pin[data-hovered="true"] {
     animation: none;
-  }
-}
-
-/* Johan: "the dots are barely clickable" on mobile - the map is
-   width-constrained at phone sizes, so pins sized for desktop end up
-   visually and physically tiny. Bigger mobile-only tap target, same
-   reasoning as the original SVG-pin version of this map. */
-@media (max-width: 560px) {
-  .metro-map-pin {
-    width: 16px;
-    height: 16px;
   }
 }
 
