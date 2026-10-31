@@ -25,3 +25,11 @@ Classified/
 # that needs to run `python -m app.ingest_market_data` for real - see
 # DOCUMENTATION.md's Deployment section.
 data/samples/hud_chma/
+
+# dbt build artifacts - the warehouse file is a regenerable build
+# output (rebuilt by every pipeline.yml run), not source, same category
+# as athena.db above.
+pipeline/warehouse.duckdb
+pipeline/target/
+pipeline/logs/
+pipeline/.user.yml

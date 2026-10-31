@@ -1,5 +1,8 @@
-"""Loads the real Redfin + Apartment List market data (see
-docs/ROADMAP.md Phase 3) into the Metro/MarketMetric tables.
+"""Loads the real Apartment List + Census + BLS + FHFA + Freddie Mac
+market data (see docs/ROADMAP.md Phase 3) into the Metro/MarketMetric
+tables. Redfin and FEMA NRI moved to the dbt pipeline under pipeline/ -
+see docs/ROADMAP.md's pipeline phase and pipeline/scripts/publish_to_sqlite.py
+for how those two sources now reach this same database.
 
 Run with: python -m app.ingest_market_data
 """
@@ -18,43 +21,6 @@ from app.market_crosswalk import BLS_AREA_CODES, FHFA_HPI_SERIES_IDS, HUD_CHMA_F
 from app.models import MarketCommentaryChunk, MarketMetric, MetricSource, Metro
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "samples"
-
-# Only the direct measured columns - not the precomputed YOY columns.
-# Trend/comparison math is the query layer's job, computed on demand from
-# these raw values, not baked in twice (same reasoning we used to skip
-# Apartment List's separate Rent Growth files).
-REDFIN_FILES = [
-    (
-        "redfin_price_drops_monthly_top_50_metros_2012_Jan_to_2026_Aug.csv",
-        {
-            "PRICE DROPS": "price_drop_count",
-            "AVERAGE SIZE OF PRICE DROP (%)": "price_drop_pct_avg",
-            "PERCENT ACTIVE WITH PRICE DROPS (%)": "pct_active_with_price_drop",
-            "HOMES SOLD WITH PRICE DROPS": "homes_sold_with_price_drop",
-        },
-    ),
-    (
-        "redfin_delistings_relistings_monthly_top_50_metros_2012_Jan_to_2026_Aug.csv",
-        {
-            "TOTAL DELISTINGS": "total_delistings",
-            "TOTAL RELISTINGS": "total_relistings",
-            "SHARE OF LISTINGS DELISTED (%)": "share_delisted_pct",
-            "SHARE OF LISTINGS RELISTED (%)": "share_relisted_pct",
-        },
-    ),
-    (
-        "redfin_housing_market_monthly_top_50_metros_key_metrics_2012_Jan_to_2026_Aug.csv",
-        {
-            "HOMES SOLD": "homes_sold",
-            "MEDIAN SALE PRICE NSA ($)": "median_sale_price",
-            "MEDIAN DAYS ON MARKET (DAYS)": "median_days_on_market",
-            "NEW LISTINGS": "new_listings",
-            "ACTIVE LISTINGS": "active_listings",
-            "PENDING SALES": "pending_sales",
-            "MEDIAN NEW LISTING PRICE PER SQ.FT. ($)": "median_price_per_sqft",
-        },
-    ),
-]
 
 APARTMENT_LIST_FILES = [
     ("apartmentlist_rent_estimates_2017_to_2026_08.csv", "median_rent", True),
@@ -104,10 +70,12 @@ def _parse_float(raw: str) -> float | None:
         return None
 
 
-def load_metros(db) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
-    """Returns {redfin_name: metro_id}, {aptlist_name: metro_id}, and
-    {census_income_name: metro_id} for the ingest loops below."""
-    redfin_to_id = {}
+def load_metros(db) -> tuple[dict[str, str], dict[str, str]]:
+    """Returns {aptlist_name: metro_id} and {census_income_name: metro_id}
+    for the ingest loops below. (redfin_name no longer needs its own
+    lookup dict here - the dbt pipeline under pipeline/ joins against it
+    directly via the metro_crosswalk seed, now that Redfin itself is
+    ingested there instead of by ingest_redfin.)"""
     aptlist_to_id = {}
     income_to_id = {}
     for metro_id, canonical_name, state, redfin_name, aptlist_name, census_income_name in METRO_CROSSWALK:
@@ -122,44 +90,12 @@ def load_metros(db) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
                     census_income_name=census_income_name,
                 )
             )
-        redfin_to_id[redfin_name] = metro_id
         if aptlist_name:
             aptlist_to_id[aptlist_name] = metro_id
         if census_income_name:
             income_to_id[census_income_name] = metro_id
     db.commit()
-    return redfin_to_id, aptlist_to_id, income_to_id
-
-
-def ingest_redfin(db, redfin_to_id: dict[str, str]) -> int:
-    count = 0
-    for filename, column_map in REDFIN_FILES:
-        path = DATA_DIR / filename
-        with open(path, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row["REGION TYPE"] != "Metro":
-                    continue
-                metro_id = redfin_to_id.get(row["REGION NAME"])
-                if metro_id is None:
-                    continue
-                period = date.fromisoformat(row["PERIOD BEGIN"])
-                for column, metric_name in column_map.items():
-                    value = _parse_float(row.get(column))
-                    if value is None:
-                        continue
-                    db.add(
-                        MarketMetric(
-                            metro_id=metro_id,
-                            period=period,
-                            source=MetricSource.REDFIN,
-                            metric=metric_name,
-                            bed_size=None,
-                            value=value,
-                        )
-                    )
-                    count += 1
-    return count
+    return aptlist_to_id, income_to_id
 
 
 def ingest_apartment_list(db, aptlist_to_id: dict[str, str]) -> int:
@@ -424,107 +360,6 @@ def ingest_census_population(db, income_to_id: dict[str, str]) -> int:
                 )
             )
             count += 1
-    return count
-
-
-FEMA_NRI_COUNTY_FILE = "fema_nri_county_risk.csv"
-# NRI's own stated release - v1.20, December 2025 - a different vintage
-# from CENSUS_ACS_PERIOD, and a different source agency, so it gets its
-# own period rather than reusing that constant.
-FEMA_NRI_PERIOD = date(2025, 12, 1)
-
-# OMB's July 2023 CBSA delineation - which counties belong to which
-# metro area. Static reference data, not something to re-fetch on every
-# run: OMB only revises these every few years, same category as
-# METRO_CROSSWALK itself (also hand-maintained, also only needs
-# updating when the underlying geography actually changes). Source:
-# https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2023/delineation-files/list1_2023.xlsx
-# - extracted to plain CSV once rather than adding a new xlsx-parsing
-# dependency (openpyxl) for a file this static.
-CENSUS_CBSA_DELINEATION_FILE = "census_cbsa_county_delineation.csv"
-
-
-def ingest_fema_nri_risk(db, income_to_id: dict[str, str]) -> int:
-    """Aggregates FEMA's county-level National Risk Index composite score
-    (fetch_fema_nri.py's output) up to one score per metro - a
-    population-weighted average across a CBSA's constituent counties
-    (via CENSUS_CBSA_DELINEATION_FILE), since NRI itself doesn't publish
-    a metro-level figure. A real methodology choice, not an arbitrary
-    one: a simple unweighted average would let a sparsely-populated
-    outlying county (e.g. a few thousand people) pull a metro's score
-    around just as much as its dense urban core, misrepresenting where
-    the metro's actual risk exposure sits.
-
-    Can't reuse income_to_id's names directly against county data (that
-    needs the metro's CBSA code, not its name) - builds its own
-    metro_id -> cbsa_code map by matching income_to_id's names against
-    the delineation file's own (title, area-type) columns, reconstructed
-    into the same "X, ST Metro Area" shape income_to_id's names already
-    use. Self-contained: doesn't depend on commute/population's data
-    existing or having been ingested first.
-
-    Optional, same skip-cleanly pattern as every other newer source
-    here - and needs BOTH files present, not just one, since a risk
-    score with no delineation to aggregate it (or vice versa) isn't a
-    real result."""
-    county_path = DATA_DIR / FEMA_NRI_COUNTY_FILE
-    delineation_path = DATA_DIR / CENSUS_CBSA_DELINEATION_FILE
-    if not county_path.exists():
-        print(f"{FEMA_NRI_COUNTY_FILE} not found - run `python -m app.fetch_fema_nri` first. Skipping.")
-        return 0
-    if not delineation_path.exists():
-        print(f"{CENSUS_CBSA_DELINEATION_FILE} not found - skipping FEMA NRI ingest.")
-        return 0
-
-    with open(delineation_path, encoding="utf-8") as f:
-        delineation_rows = list(csv.DictReader(f))
-
-    name_to_cbsa_code = {}
-    cbsa_code_to_counties: dict[str, list[str]] = {}
-    for row in delineation_rows:
-        code = row["cbsa_code"]
-        suffix = "Metro Area" if row["area_type"] == "Metropolitan Statistical Area" else "Micro Area"
-        name_to_cbsa_code[f"{row['cbsa_title']} {suffix}"] = code
-        cbsa_code_to_counties.setdefault(code, []).append(row["stcofips"])
-
-    metro_id_to_cbsa_code = {
-        metro_id: name_to_cbsa_code[geography]
-        for geography, metro_id in income_to_id.items()
-        if geography in name_to_cbsa_code
-    }
-
-    with open(county_path, encoding="utf-8") as f:
-        county_risk = {}
-        for row in csv.DictReader(f):
-            risk = _parse_float(row["RISK_SCORE"])
-            pop = _parse_float(row["POPULATION"])
-            if risk is not None and pop is not None:
-                county_risk[row["STCOFIPS"]] = (risk, pop)
-
-    count = 0
-    for metro_id, cbsa_code in metro_id_to_cbsa_code.items():
-        counties = cbsa_code_to_counties.get(cbsa_code, [])
-        weighted_sum = 0.0
-        total_population = 0.0
-        for stcofips in counties:
-            if stcofips not in county_risk:
-                continue
-            risk, pop = county_risk[stcofips]
-            weighted_sum += risk * pop
-            total_population += pop
-        if total_population == 0:
-            continue
-        db.add(
-            MarketMetric(
-                metro_id=metro_id,
-                period=FEMA_NRI_PERIOD,
-                source=MetricSource.FEMA,
-                metric="natural_hazard_risk_score",
-                bed_size=None,
-                value=weighted_sum / total_population,
-            )
-        )
-        count += 1
     return count
 
 
@@ -867,6 +702,13 @@ def ingest_hud_chma(db) -> int:
 
 
 def ingest() -> None:
+    """Ingests every source this project still loads directly in Python.
+
+    Redfin and FEMA NRI are no longer ingested here - see pipeline/ (a
+    dbt + DuckDB pipeline, scheduled via .github/workflows/pipeline.yml)
+    for those two. This function still creates/seeds the Metro rows
+    those sources' crosswalk join depends on (via load_metros), but no
+    longer writes their MarketMetric rows itself."""
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
@@ -885,12 +727,8 @@ def ingest() -> None:
             print("Market metrics already ingested, skipping.")
             return
 
-        redfin_to_id, aptlist_to_id, income_to_id = load_metros(db)
+        aptlist_to_id, income_to_id = load_metros(db)
         print(f"Loaded {len(METRO_CROSSWALK)} metros.")
-
-        redfin_count = ingest_redfin(db, redfin_to_id)
-        db.commit()
-        print(f"Ingested {redfin_count} Redfin metric rows.")
 
         aptlist_count = ingest_apartment_list(db, aptlist_to_id)
         db.commit()
@@ -911,10 +749,6 @@ def ingest() -> None:
         population_count = ingest_census_population(db, income_to_id)
         db.commit()
         print(f"Ingested {population_count} Census total population rows.")
-
-        nri_count = ingest_fema_nri_risk(db, income_to_id)
-        db.commit()
-        print(f"Ingested {nri_count} FEMA National Risk Index rows.")
 
         gross_rent_count = ingest_census_rent_trend(db)
         db.commit()

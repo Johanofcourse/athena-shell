@@ -872,5 +872,55 @@ angle, not by wanting RAG for its own sake.
   hit the same live bot-gating unpredictably in production, and add real
   per-query cost/latency a pre-indexed corpus doesn't.
 
+## Phase 9 — Real data pipeline (dbt + DuckDB + scheduled tests)
+
+Portfolio-motivated, same reasoning as picking React/TS over Flask: the
+goal is to be able to say "I run scheduled pipelines with tests," not
+"I wrote ETL scripts." Everything so far (`ingest_market_data.py`) is a
+one-time, by-hand process - fetch, parse with plain Python, `scp` the
+resulting `athena.db` to prod once, never touched again by CI. This
+phase adds a real ELT layer *alongside* that, not a rewrite of it: the
+production FastAPI app keeps serving from the exact same SQLite file.
+
+- [x] **Stage 1, live** (2026-10-31): a `pipeline/` dbt + DuckDB project,
+      scheduled via `.github/workflows/pipeline.yml` (weekly cron +
+      manual `workflow_dispatch`), covering two sources end-to-end -
+      Redfin (simple reshape, proves the plumbing) and FEMA NRI (a real
+      population-weighted aggregation, proves dbt is doing actual
+      transformation work). dbt and DuckDB only ever run in the GitHub
+      Actions runner, never installed on the production VM - it only
+      ever receives a refreshed `athena.db` over `scp`, same
+      scp-not-git convention the DB already used. `pipeline/scripts/
+      publish_to_sqlite.py` does a scoped delete+insert (`source IN
+      ('REDFIN', 'FEMA')` only) against the *downloaded* production
+      file, never a fresh/empty one - every other source's rows, and
+      the live `QueryUsage`/`QueryFeedback` tables, are never touched.
+      Verified against the real data before shipping: dbt's build
+      reproduces the exact same row counts and values (121,218 Redfin
+      rows, 40 FEMA rows, byte-for-byte identical) as the Python ingest
+      it replaces for these two sources.
+- [x] **Data quality tests, not just schema checks**: dbt schema tests
+      (`not_null`/`unique`/`relationships`/`accepted_values`) plus three
+      custom singular tests - one asserting every raw Redfin region name
+      resolves to a real metro (catches the exact silent-mismatch class
+      of bug this project has hit before), one bounding the FEMA hazard
+      score to NRI's documented 0-100 scale, and one regression test
+      recreating the real avg-vs-weighted bug caught during Phase 3's
+      FEMA NRI work - fails if the weighted and plain-average scores
+      ever collapse to the same number for a metro with genuinely
+      unequal county populations *and* genuinely different county risk
+      scores (the first version of this test had a false positive on
+      Riverside-CA, whose two counties happen to have very similar risk
+      scores despite a large population gap - fixed by also requiring a
+      meaningful score spread, not just a population spread).
+- [ ] Migrate the remaining sources (Apartment List, Census income/
+      commute/property-tax/population/rent-trend, BLS, FHFA, Freddie
+      Mac PMMS) the same way, one at a time, each its own small PR.
+      Sources needing real Python preprocessing (Census's interleaved
+      Estimate/MOE CSV layout) will need a thin `pipeline/scripts/
+      load_raw_sources.py` pre-pass to a clean flat file dbt can read as
+      a source. HUD CHMA (a text/RAG corpus, not tabular metrics) stays
+      out of dbt entirely, forever.
+
 See `PRODUCT_REVIEW.md` for an honest read on where this currently stands
 against these phases, and `DOCUMENTATION.md` for the technical reference.

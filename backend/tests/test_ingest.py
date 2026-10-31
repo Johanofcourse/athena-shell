@@ -5,6 +5,11 @@ crosswalk-driven joins are checked in isolation, fast, and deterministically.
 Uses monkeypatch to point the module's DATA_DIR and file-list constants at
 fixture files instead of the real data/samples/ directory - the ingest
 functions themselves are exercised unmodified.
+
+Redfin and FEMA NRI no longer have Python ingest functions here - the
+dbt pipeline under pipeline/ owns those two sources now (see
+pipeline/models/ and pipeline/tests/), and its own test suite
+(dbt build/dbt test) is the equivalent coverage for them, not this file.
 """
 
 import csv
@@ -83,9 +88,8 @@ def test_parse_census_row(tmp_path):
 
 
 def test_load_metros_creates_all_fifty_and_matches_crosswalk_fields(db_session):
-    redfin_to_id, aptlist_to_id, income_to_id = ingest.load_metros(db_session)
+    aptlist_to_id, income_to_id = ingest.load_metros(db_session)
     assert db_session.query(Metro).count() == 50
-    assert len(redfin_to_id) == 50
     assert len(aptlist_to_id) == 40  # 10 metro-division gaps excluded
     assert len(income_to_id) == 40
 
@@ -102,43 +106,6 @@ def test_load_metros_is_idempotent(db_session):
     ingest.load_metros(db_session)
     ingest.load_metros(db_session)
     assert db_session.query(Metro).count() == 50
-
-
-# --- ingest_redfin ---
-
-
-def test_ingest_redfin_filters_by_region_type_and_known_metro(db_session, monkeypatch, tmp_path):
-    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
-    db_session.commit()
-
-    path = tmp_path / "redfin.csv"
-    _write_csv(
-        path,
-        ["REGION TYPE", "REGION NAME", "PERIOD BEGIN", "MEDIAN SALE PRICE NSA ($)", "HOMES SOLD"],
-        [
-            ("Metro", "Testville, TS metro area", "2024-01-01", "300000", "120"),
-            ("State", "Testville, TS metro area", "2024-01-01", "111111", "10"),  # wrong region type
-            ("Metro", "Unknown Place metro area", "2024-01-01", "222222", "20"),  # unmatched metro
-            ("Metro", "Testville, TS metro area", "2024-02-01", "", "130"),  # blank price, real homes_sold
-        ],
-    )
-    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(
-        ingest,
-        "REDFIN_FILES",
-        [("redfin.csv", {"MEDIAN SALE PRICE NSA ($)": "median_sale_price", "HOMES SOLD": "homes_sold"})],
-    )
-
-    count = ingest.ingest_redfin(db_session, {"Testville, TS metro area": "testville-ts"})
-    db_session.commit()
-    assert count == 3  # Jan: 2 metrics, Feb: 1 metric (blank price skipped)
-
-    rows = db_session.query(MarketMetric).filter_by(metro_id="testville-ts").all()
-    by_metric_period = {(r.metric, r.period): r.value for r in rows}
-    assert by_metric_period[("median_sale_price", date(2024, 1, 1))] == 300000.0
-    assert by_metric_period[("homes_sold", date(2024, 1, 1))] == 120.0
-    assert by_metric_period[("homes_sold", date(2024, 2, 1))] == 130.0
-    assert ("median_sale_price", date(2024, 2, 1)) not in by_metric_period
 
 
 # --- ingest_apartment_list ---
@@ -389,107 +356,6 @@ def test_ingest_census_population_missing_file_returns_zero_without_erroring(db_
     monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
     monkeypatch.setattr(ingest, "CENSUS_POPULATION_FILE", "does_not_exist.json")
     assert ingest.ingest_census_population(db_session, {}) == 0
-
-
-# --- ingest_fema_nri_risk ---
-
-
-def _write_delineation_csv(path, rows):
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["cbsa_code", "cbsa_title", "area_type", "stcofips"])
-        writer.writerows(rows)
-
-
-def _write_nri_csv(path, rows):
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["STCOFIPS", "COUNTY", "STATEABBRV", "RISK_SCORE", "POPULATION"])
-        writer.writerows(rows)
-
-
-def test_ingest_fema_nri_risk_is_population_weighted_not_a_plain_average(db_session, monkeypatch, tmp_path):
-    # The real reason this is weighted, not averaged: a sparsely-populated
-    # outlying county (here, 100 people) shouldn't pull a metro's score
-    # around as much as its dense urban core (300 people) - a plain
-    # average of 50 and 90 would give 70; population-weighted gives 80,
-    # correctly closer to the county where most residents actually are.
-    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
-    db_session.commit()
-
-    delineation_path = tmp_path / "delineation.csv"
-    _write_delineation_csv(
-        delineation_path,
-        [
-            ["99999", "Testville, TS", "Metropolitan Statistical Area", "11111"],
-            ["99999", "Testville, TS", "Metropolitan Statistical Area", "22222"],
-        ],
-    )
-    nri_path = tmp_path / "nri.csv"
-    _write_nri_csv(
-        nri_path,
-        [
-            ["11111", "Outlying", "TS", "50", "100"],
-            ["22222", "Urban Core", "TS", "90", "300"],
-        ],
-    )
-    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(ingest, "CENSUS_CBSA_DELINEATION_FILE", "delineation.csv")
-    monkeypatch.setattr(ingest, "FEMA_NRI_COUNTY_FILE", "nri.csv")
-
-    count = ingest.ingest_fema_nri_risk(db_session, {"Testville, TS Metro Area": "testville-ts"})
-    db_session.commit()
-    assert count == 1
-
-    row = db_session.query(MarketMetric).filter_by(metro_id="testville-ts", metric="natural_hazard_risk_score").one()
-    assert row.value == pytest.approx(80.0)
-    assert row.source == MetricSource.FEMA
-    assert row.period == ingest.FEMA_NRI_PERIOD
-    assert row.bed_size is None
-
-
-def test_ingest_fema_nri_risk_skips_a_county_with_no_risk_data(db_session, monkeypatch, tmp_path):
-    db_session.add(Metro(id="testville-ts", canonical_name="Testville, TS", state="TS"))
-    db_session.commit()
-
-    delineation_path = tmp_path / "delineation.csv"
-    _write_delineation_csv(
-        delineation_path,
-        [
-            ["99999", "Testville, TS", "Metropolitan Statistical Area", "11111"],
-            # 22222 belongs to the CBSA but never appears in the NRI file -
-            # must be skipped, not crash, and must not count as zero risk.
-            ["99999", "Testville, TS", "Metropolitan Statistical Area", "22222"],
-        ],
-    )
-    nri_path = tmp_path / "nri.csv"
-    _write_nri_csv(nri_path, [["11111", "Only County", "TS", "60", "500"]])
-    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(ingest, "CENSUS_CBSA_DELINEATION_FILE", "delineation.csv")
-    monkeypatch.setattr(ingest, "FEMA_NRI_COUNTY_FILE", "nri.csv")
-
-    count = ingest.ingest_fema_nri_risk(db_session, {"Testville, TS Metro Area": "testville-ts"})
-    db_session.commit()
-    assert count == 1
-
-    row = db_session.query(MarketMetric).filter_by(metro_id="testville-ts", metric="natural_hazard_risk_score").one()
-    assert row.value == pytest.approx(60.0)
-
-
-def test_ingest_fema_nri_risk_missing_county_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
-    _write_delineation_csv(tmp_path / "delineation.csv", [])
-    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(ingest, "CENSUS_CBSA_DELINEATION_FILE", "delineation.csv")
-    monkeypatch.setattr(ingest, "FEMA_NRI_COUNTY_FILE", "does_not_exist.csv")
-    assert ingest.ingest_fema_nri_risk(db_session, {}) == 0
-
-
-def test_ingest_fema_nri_risk_missing_delineation_file_returns_zero_without_erroring(db_session, monkeypatch, tmp_path):
-    _write_nri_csv(tmp_path / "nri.csv", [])
-    monkeypatch.setattr(ingest, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(ingest, "CENSUS_CBSA_DELINEATION_FILE", "does_not_exist.csv")
-    monkeypatch.setattr(ingest, "FEMA_NRI_COUNTY_FILE", "nri.csv")
-    assert ingest.ingest_fema_nri_risk(db_session, {}) == 0
 
 
 # --- ingest_census_rent_trend (live-API source, offline-parsed from a saved JSON) ---

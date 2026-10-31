@@ -1,0 +1,34 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      The already-committed raw files under data/samples/ - the same
+      files backend/app/ingest_market_data.py reads today. Paths are
+      relative to this project's own directory (CI runs dbt from inside
+      pipeline/), not the repo root.
+    tables:
+      - name: redfin_key_metrics
+        description: Redfin's monthly key-metrics export (homes sold, median sale price, days on market, etc.) for the top 50 metros.
+        config:
+          external_location: "../data/samples/redfin_housing_market_monthly_top_50_metros_key_metrics_2012_Jan_to_2026_Aug.csv"
+
+      - name: redfin_price_drops
+        description: Redfin's monthly price-drop export.
+        config:
+          external_location: "../data/samples/redfin_price_drops_monthly_top_50_metros_2012_Jan_to_2026_Aug.csv"
+
+      - name: redfin_delistings_relistings
+        description: Redfin's monthly delistings/relistings export.
+        config:
+          external_location: "../data/samples/redfin_delistings_relistings_monthly_top_50_metros_2012_Jan_to_2026_Aug.csv"
+
+      - name: fema_nri_county_risk
+        description: FEMA National Risk Index composite score per county.
+        config:
+          external_location: "../data/samples/fema_nri_county_risk.csv"
+
+      - name: census_cbsa_delineation
+        description: OMB's county-to-CBSA delineation (which counties belong to which metro area).
+        config:
+          external_location: "../data/samples/census_cbsa_county_delineation.csv"

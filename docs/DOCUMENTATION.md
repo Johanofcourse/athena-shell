@@ -537,13 +537,83 @@ free-tier budget split). Oracle Linux 9.
   one-time manual `scp` per environment (see above) - the deploy workflow
   doesn't copy them, since they're not in git for it to pull.
 
+## Data pipeline (`pipeline/`, Phase 9)
+
+A dbt + DuckDB ELT layer, added *alongside* the existing Python ingest,
+not a rewrite of it - the production FastAPI app keeps serving from the
+exact same `athena.db` SQLite file it always has.
+
+- **Why a separate layer, not a rewrite of serving**: SQLite is fine for
+  a single-process read-heavy API; swapping the serving layer to
+  Postgres/DuckDB would be real risk for no real benefit here. What was
+  actually missing was a transform step with real tests and a schedule
+  - dbt + DuckDB provide that without touching `app/database.py` or any
+  router at all.
+- **Why dbt and DuckDB never run on the production VM**: that VM is a
+  small, free-tier Oracle box already sharing its resource pool with a
+  second project's VM, running gunicorn + nginx for the live API. A
+  self-hosted orchestrator daemon (Prefect, Dagster, Airflow) would
+  compete with that process for RAM for no real benefit, since nothing
+  about this pipeline needs to run *on* the serving box - it only needs
+  to *produce a file* the serving box can load. `pipeline/requirements.txt`
+  (`dbt-core`, `dbt-duckdb`, `duckdb`) is therefore deliberately separate
+  from `backend/requirements.txt` and is never installed there.
+- **Why GitHub Actions cron over a self-hosted scheduler**: the same
+  reasoning - GitHub's runners are free compute that costs the VM
+  nothing, and `.github/workflows/pipeline.yml` already has everywhere
+  it needs to SSH/scp to the VM (reusing `secrets.ATHENA_VM_SSH_KEY`,
+  the same secret `deploy.yml` uses). A scheduled workflow *is* a real
+  scheduled pipeline - it doesn't need a dashboard product bolted on to
+  count as one.
+- **How a run actually works**: `pipeline.yml` downloads the *current*
+  production `athena.db` via `scp` (never starts from an empty one -
+  that file holds live `QueryUsage`/`QueryFeedback` data and every
+  not-yet-migrated source's rows), runs `dbt build` (models + tests
+  together - any test failure stops the run before anything touches the
+  real file), runs `pipeline/scripts/publish_to_sqlite.py` to do a
+  scoped delete+insert (only rows where `source IN ('REDFIN', 'FEMA')` -
+  the two sources Stage 1 owns), uploads the result under a staging
+  filename, then a final SSH step backs up the live file, atomically
+  swaps the new one in, and restarts `athena-backend`.
+- **DuckDB reads the raw files directly**: `data/samples/*.csv` are
+  already committed to git and clean enough for `read_csv_auto` to query
+  straight from a dbt `source` (via the `external_location` meta key) -
+  no separate Python "load" step for Redfin or FEMA NRI. See
+  `pipeline/models/staging/sources.yml`.
+- **Seeds, not Python dicts, for reference data**: `pipeline/seeds/
+  metro_crosswalk.csv` is `backend/app/market_crosswalk.py`'s
+  `METRO_CROSSWALK` ported to a dbt seed, so pipeline models can join
+  against it in SQL.
+- **Data quality tests**: dbt schema tests
+  (`not_null`/`unique`/`relationships`/`accepted_values`) on every mart
+  column, plus custom singular tests in `pipeline/tests/` - including a
+  regression test recreating the real population-weighted-vs-plain-
+  average bug from Phase 3's original FEMA NRI work, and a test
+  asserting every raw Redfin region name resolves to a real metro. See
+  `ROADMAP.md` Phase 9 for the full list and the false positive one of
+  them had to be fixed for before shipping.
+- **Verified before shipping, against real data**: a local `dbt build`
+  against the real committed `data/samples/` files reproduces the exact
+  same row counts and values (121,218 Redfin rows, 40 FEMA rows,
+  byte-for-byte identical) as the Python `ingest_redfin`/
+  `ingest_fema_nri_risk` functions it replaces for those two sources.
+- **Still manual, by design, for now**: every other source (Apartment
+  List, Census, BLS, FHFA, Freddie Mac PMMS, HUD commentary) keeps
+  flowing through `python -m app.ingest_market_data` exactly as before -
+  Stage 1 deliberately proves the pattern on two sources rather than
+  rewriting all eleven in one PR. See `ROADMAP.md` Phase 9 for the
+  planned migration order.
+
 ## Current limitations
 
 - No auth - every endpoint is open to the public internet now that this
   is deployed. Acceptable for a demo someone is deliberately pointed to,
   not for anything that needs real access control.
 - No CD pipeline yet - deploys are manual SSH, not automated on merge
-  (CI exists; CD doesn't - see `ROADMAP.md` Phase 5).
+  (CI exists; CD doesn't - see `ROADMAP.md` Phase 5). The data pipeline
+  (Phase 9) *is* scheduled, though - a deliberate split: code deploys
+  stay manual (a human should look at what's shipping), data refreshes
+  don't need the same gate once they're covered by real tests.
 - Census `S0801` (commute time) not pulled - the `api.census.gov` API key
   signup issue is unresolved, and this wasn't pursued further via manual
   table-browser downloads this round. See `ROADMAP.md` Phase 3.

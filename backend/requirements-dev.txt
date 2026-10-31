@@ -3,3 +3,9 @@
 -r requirements.txt
 pytest>=8.0
 httpx>=0.27
+
+# Lightweight embedded library, not the dbt transform engine itself
+# (that only ever runs in CI - see pipeline/requirements.txt) - needed
+# here only so test_pipeline_publish.py can build a tiny fixture
+# warehouse.duckdb to exercise pipeline/scripts/publish_to_sqlite.py.
+duckdb>=1.0

@@ -1,0 +1,82 @@
+name: Data pipeline
+
+# Stage 1 of the dbt + DuckDB pipeline (see pipeline/ and docs/ROADMAP.md) -
+# owns exactly two sources today (Redfin, FEMA NRI). dbt and duckdb only
+# ever run here, on GitHub's free runners - the production VM never
+# installs them, it only ever receives the refreshed athena.db file over
+# scp, same convention the existing manual ingest process already uses.
+#
+# Runs weekly, plus workflow_dispatch for manual/on-demand runs (useful
+# for the first few runs, to verify against prod by hand before trusting
+# the schedule unattended - see docs/ROADMAP.md's verification notes).
+on:
+  schedule:
+    - cron: "0 13 * * 1"
+  workflow_dispatch:
+
+env:
+  VM_HOST: 132.145.150.226
+  VM_USER: opc
+  REMOTE_DB_PATH: ~/athena-shell/backend/athena.db
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r pipeline/requirements.txt
+
+      - name: Set up SSH access to the VM
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ATHENA_VM_SSH_KEY }}" > ~/.ssh/athena_vm_key
+          chmod 600 ~/.ssh/athena_vm_key
+          ssh-keyscan -H "$VM_HOST" >> ~/.ssh/known_hosts
+
+      - name: Download the current production database
+        # Never build against an empty/local DB: this file already holds
+        # live QueryUsage/QueryFeedback data and every not-yet-migrated
+        # source's rows - publish_to_sqlite.py only ever replaces the
+        # rows it owns (source IN redfin, fema), so it needs the real
+        # file to start from.
+        run: scp -i ~/.ssh/athena_vm_key "$VM_USER@$VM_HOST:$REMOTE_DB_PATH" "$RUNNER_TEMP/athena.db"
+
+      - name: dbt build (models + tests)
+        working-directory: pipeline
+        run: dbt build --profiles-dir .
+
+      - name: Publish to the downloaded database
+        run: python pipeline/scripts/publish_to_sqlite.py pipeline/warehouse.duckdb "$RUNNER_TEMP/athena.db"
+
+      - name: Upload the refreshed database
+        # Uploaded under a staging name, not over the live file directly -
+        # the SSH step below does the actual swap, atomically, only after
+        # the full upload has succeeded.
+        run: scp -i ~/.ssh/athena_vm_key "$RUNNER_TEMP/athena.db" "$VM_USER@$VM_HOST:~/athena-shell/backend/athena.db.new"
+
+      - name: Back up, swap in the refreshed database, and restart
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 132.145.150.226
+          username: opc
+          key: ${{ secrets.ATHENA_VM_SSH_KEY }}
+          script_stop: true
+          script: |
+            cd ~/athena-shell/backend
+            cp athena.db "athena.db.bak-pipeline-$(date +%F)"
+            mv athena.db.new athena.db
+
+            sudo systemctl restart athena-backend
+            sleep 3
+            sudo systemctl is-active athena-backend
+
+            curl -sf -o /dev/null http://127.0.0.1:8001/health
+            curl -sf -o /dev/null https://athenarealestate.app/
+            curl -sf -o /dev/null https://api.athenarealestate.app/health
+
+            echo "Pipeline publish verified: backend active, API responding."

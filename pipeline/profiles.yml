@@ -1,0 +1,12 @@
+# Checked in (unlike a normal dbt profiles.yml, which usually lives in
+# ~/.dbt/ and holds real credentials) because there's nothing secret
+# here: DuckDB is an embedded, file-based engine, not a server with a
+# password. CI runs `dbt --profiles-dir .` from inside this directory so
+# this file is found without needing a secret.
+athena_pipeline:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: warehouse.duckdb
+      threads: 4
