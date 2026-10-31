@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: metros
+    description: Same shape as the serving layer's Metro table, built from the metro_crosswalk seed.
+    columns:
+      - name: id
+        data_tests:
+          - unique
+          - not_null
+      - name: canonical_name
+        data_tests:
+          - not_null
+      - name: state
+        data_tests:
+          - not_null
+
+  - name: market_metrics
+    description: Stage 1's slice of the serving layer's market_metrics fact table - redfin and fema rows only.
+    columns:
+      - name: metro_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('metros')
+                field: id
+      - name: period
+        data_tests:
+          - not_null
+      - name: source
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["redfin", "fema"]
+      - name: metric
+        data_tests:
+          - not_null
+      - name: value
+        data_tests:
+          - not_null

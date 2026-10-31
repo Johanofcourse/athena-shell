@@ -1,0 +1,9 @@
+# The ELT pipeline's own dependencies - deliberately separate from
+# backend/requirements.txt. dbt and duckdb only ever run inside the
+# GitHub Actions runner that builds pipeline.yml; the production VM never
+# installs them and never runs dbt - it only receives the athena.db file
+# the publish script produces, same scp-not-git convention as the DB
+# already uses. See docs/ROADMAP.md for the full reasoning.
+dbt-core>=1.9,<1.12
+dbt-duckdb>=1.9,<1.12
+duckdb>=1.0

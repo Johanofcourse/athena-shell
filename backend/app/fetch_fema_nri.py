@@ -15,7 +15,8 @@ needed (STCOFIPS, COUNTY, STATEABBRV, RISK_SCORE, POPULATION) out of
 its real 465, and saves that trimmed CSV to data/samples/ - no reason
 to commit 460 unused columns (building value, every individual hazard's
 own frequency/severity/loss breakdown, social vulnerability, community
-resilience, etc.) when ingest_fema_nri_risk only ever needs these five.
+resilience, etc.) when the metro-level aggregation only ever needs
+these five.
 
 RISK_SCORE is NRI's own flagship composite ("National Risk Index -
 Score - Composite" per its data dictionary) - worth knowing it reflects
@@ -27,9 +28,10 @@ is FEMA's own headline number, not a cherry-picked alternative.
 
 County-to-metro aggregation (population-weighted average across a
 CBSA's constituent counties, via data/samples/
-census_cbsa_county_delineation.csv) happens in ingest_fema_nri_risk,
+census_cbsa_county_delineation.csv) happens in the dbt pipeline under
+pipeline/ (see pipeline/models/intermediate/int_fema_nri__metro_weighted.sql),
 not here - this script only fetches and trims, consistent with the
-fetch/ingest split everywhere else in this project.
+fetch/load split everywhere else in this project.
 
 Run with: python -m app.fetch_fema_nri
 """
