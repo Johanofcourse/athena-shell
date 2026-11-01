@@ -1349,6 +1349,18 @@ details[open] > .intro-label::after {
   display: flex;
   gap: 18px;
   margin: 16px 0 20px;
+  /* Same horizontal clearance as .main-tabs - this row sits just below
+     it, still within the portrait watermark's vertical extent, so the
+     z-index:1 .dashboard already carries only stops the picture from
+     hiding it (painting-order fix) - it doesn't stop the two visually
+     overlapping (geometry fix), which still needs this. */
+  margin-left: 240px;
+}
+
+@media (max-width: 560px) {
+  .dashboard-tabs {
+    margin-left: 0;
+  }
 }
 
 .dashboard-tabs button {
