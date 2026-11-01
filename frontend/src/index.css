@@ -1302,10 +1302,19 @@ details[open] > .intro-label::after {
    reads as part of this page's hairline-and-serif vocabulary instead of
    a bolted-on app shell control. */
 .main-tabs {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 24px;
   margin-top: 28px;
+  margin-left: 240px;
   border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 560px) {
+  .main-tabs {
+    margin-left: 0;
+  }
 }
 
 .main-tabs button {
