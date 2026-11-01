@@ -5,6 +5,7 @@ import type {
   MarketQueryResponse,
   Metro,
   MetricName,
+  MetroSnapshot,
 } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
@@ -24,6 +25,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function fetchMetros(): Promise<Metro[]> {
   return request("/metros");
+}
+
+export function fetchSnapshot(): Promise<MetroSnapshot[]> {
+  return request("/analytics/snapshot");
 }
 
 export function fetchMetroSeries(

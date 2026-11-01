@@ -99,3 +99,12 @@ export interface ConversationTurn {
   query: string;
   filters: MarketQueryFilters;
 }
+
+export interface MetroSnapshot {
+  metro: string;
+  state: string;
+  // Metric name -> latest value. A metric missing here means this metro
+  // has no data for it (same honesty convention as no_data_metros above),
+  // not a zero - see backend/app/routers/analytics.py.
+  values: Partial<Record<MetricName, number>>;
+}

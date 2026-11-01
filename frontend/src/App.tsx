@@ -3,6 +3,7 @@ import { fetchMetros, runQuery } from "./api";
 import athenaIcon from "./assets/pallas-athena-icon.jpg";
 import athenaPainting from "./assets/pallas-athena.jpg";
 import { ConversationHistory } from "./components/ConversationHistory";
+import { Dashboard } from "./components/Dashboard";
 import { MetroDetailPanel } from "./components/MetroDetailPanel";
 import { QueryResults } from "./components/QueryResults";
 import { SearchBar } from "./components/SearchBar";
@@ -21,6 +22,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedMetro, setSelectedMetro] = useState<Metro | null>(null);
+  const [activeTab, setActiveTab] = useState<"ask" | "insights">("ask");
 
   useEffect(() => {
     fetchMetros()
@@ -55,6 +57,7 @@ export default function App() {
     setQueryResponse(null);
     setError(null);
     setHistory([]);
+    setActiveTab("ask");
   }
 
   return (
@@ -93,34 +96,54 @@ export default function App() {
         </div>
       </header>
 
-      <section className="ask">
-        <SearchBar onSearch={handleSearch} loading={loading} />
-      </section>
+      <div className="main-tabs" role="tablist">
+        <button role="tab" aria-selected={activeTab === "ask"} className={activeTab === "ask" ? "active" : ""} onClick={() => setActiveTab("ask")}>
+          Ask
+        </button>
+        <button
+          role="tab"
+          aria-selected={activeTab === "insights"}
+          className={activeTab === "insights" ? "active" : ""}
+          onClick={() => setActiveTab("insights")}
+        >
+          Insights
+        </button>
+      </div>
 
-      {error && <p className="error-banner">{error}</p>}
-
-      {queryResponse ? (
+      {activeTab === "ask" ? (
         <>
-          <button className="back-link" onClick={handleReset}>
-            ← Back to browse
-          </button>
-          <ConversationHistory history={history.slice(0, -1)} />
-          <QueryResults key={queryId} response={queryResponse} query={lastQuery} />
+          <section className="ask">
+            <SearchBar onSearch={handleSearch} loading={loading} />
+          </section>
+
+          {error && <p className="error-banner">{error}</p>}
+
+          {queryResponse ? (
+            <>
+              <button className="back-link" onClick={handleReset}>
+                ← Back to browse
+              </button>
+              <ConversationHistory history={history.slice(0, -1)} />
+              <QueryResults key={queryId} response={queryResponse} query={lastQuery} />
+            </>
+          ) : (
+            <section className="browse">
+              <p className="explanation browse-explanation">Browse all 50 tracked metros, or search above.</p>
+              <p className="browse-hint">Pinch the map to zoom</p>
+              {metrosLoading ? (
+                <p className="empty-state">Loading metros…</p>
+              ) : (
+                <UsMetroMap metros={metros} onSelect={setSelectedMetro} />
+              )}
+            </section>
+          )}
+
+          {selectedMetro && (
+            <MetroDetailPanel metro={selectedMetro} onClose={() => setSelectedMetro(null)} />
+          )}
         </>
       ) : (
-        <section className="browse">
-          <p className="explanation browse-explanation">Browse all 50 tracked metros, or search above.</p>
-          <p className="browse-hint">Pinch the map to zoom</p>
-          {metrosLoading ? (
-            <p className="empty-state">Loading metros…</p>
-          ) : (
-            <UsMetroMap metros={metros} onSelect={setSelectedMetro} />
-          )}
-        </section>
-      )}
-
-      {selectedMetro && (
-        <MetroDetailPanel metro={selectedMetro} onClose={() => setSelectedMetro(null)} />
+        <Dashboard />
       )}
 
       <footer className="footnote">

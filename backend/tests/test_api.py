@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 from app.database import get_db
 from app.main import app
 from app.models import QueryFeedback
+from tests.conftest import GAPFORD_GROSS_RENT, TESTVILLE_INCOME, TESTVILLE_RENT_FEB
 
 
 def _client_for(db_session):
@@ -164,5 +165,36 @@ def test_submit_feedback_rejects_invalid_rating(seeded_db):
         }
         resp = client.post("/query/feedback", json=payload)
         assert resp.status_code == 422
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_analytics_snapshot_includes_all_metros_and_omits_missing_metrics(seeded_db):
+    client = _client_for(seeded_db)
+    try:
+        resp = client.get("/analytics/snapshot")
+        assert resp.status_code == 200
+        by_metro = {row["metro"]: row for row in resp.json()}
+        assert set(by_metro) == {"Testville, TS", "Gapford, GF", "Emptyburg, EB"}
+
+        testville = by_metro["Testville, TS"]
+        assert testville["state"] == "TS"
+        assert testville["values"]["median_sale_price"] == 300000
+        # Latest of the two seeded rent periods, not the first.
+        assert testville["values"]["median_rent"] == TESTVILLE_RENT_FEB
+        assert testville["values"]["median_household_income"] == TESTVILLE_INCOME
+
+        # Gapford has no direct median_rent row, only the Census gross-rent
+        # fallback - the snapshot should still surface it under
+        # median_rent (same fallback as the NL query layer), not omit it.
+        gapford = by_metro["Gapford, GF"]
+        assert gapford["values"]["median_rent"] == GAPFORD_GROSS_RENT
+        assert "median_household_income" not in gapford["values"]
+
+        # Emptyburg genuinely has no rent/income data - missing key, not
+        # a zero or null.
+        emptyburg = by_metro["Emptyburg, EB"]
+        assert "median_rent" not in emptyburg["values"]
+        assert "median_household_income" not in emptyburg["values"]
     finally:
         app.dependency_overrides.clear()
