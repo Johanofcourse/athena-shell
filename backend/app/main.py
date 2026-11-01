@@ -8,7 +8,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.config import settings
 from app.database import Base, engine
 from app.rate_limit import limiter
-from app.routers import metros, query
+from app.routers import analytics, metros, query
 
 app = FastAPI(title="Athena Shell API", version="0.1.0")
 
@@ -31,6 +31,7 @@ def on_startup() -> None:
 
 app.include_router(metros.router)
 app.include_router(query.router)
+app.include_router(analytics.router)
 
 
 @app.get("/health")

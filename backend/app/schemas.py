@@ -70,6 +70,18 @@ class MarketMetricPoint(BaseModel):
     value: float
 
 
+class MetroSnapshot(BaseModel):
+    """One metro's latest value for each of the curated snapshot metrics -
+    the payload the Insights dashboard builds its comparison table,
+    correlation scatter, and distribution view from. A metric missing from
+    `values` means this metro has no data for it (same honesty convention
+    as the NL query layer's no_data_metros), not a zero."""
+
+    metro: str
+    state: str
+    values: dict[str, float]
+
+
 class MarketQueryFilters(BaseModel):
     """Structured shape every NL query must resolve into. Metros are
     plain strings as the model understands them (e.g. "Austin") -

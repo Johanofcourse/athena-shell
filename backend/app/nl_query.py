@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from typing import NamedTuple
 
 from openai import OpenAI
 from sqlalchemy import select
@@ -652,6 +653,30 @@ def _run_national_query(
     return points, [], no_data, []
 
 
+class LatestMetricValue(NamedTuple):
+    value: float
+    period: date
+    used_fallback: bool
+
+
+def latest_metric_value(
+    db: Session, metro: Metro, metric: MetricName, bed_size: str | None = None, end: date | None = None
+) -> LatestMetricValue | None:
+    """The single most recent value for one metro/metric, or None if there
+    isn't one. Shared by run_market_query's "value" ranking mode and the
+    /analytics/snapshot endpoint, so both agree on what "latest" means -
+    including median_rent's Census gross-rent fallback - instead of
+    maintaining two copies of this lookup."""
+    if metric == MetricName.MEDIAN_RENT:
+        rows, used_fallback = _fetch_rent_rows(db, metro, bed_size, None, end, latest_only=True)
+    else:
+        rows = _query_metric_rows(db, metro, metric.value, bed_size, None, end, latest_only=True)
+        used_fallback = False
+    if not rows:
+        return None
+    return LatestMetricValue(value=rows[0].value, period=rows[0].period, used_fallback=used_fallback)
+
+
 def run_market_query(
     db: Session, filters: MarketQueryFilters
 ) -> tuple[list[MarketMetricPoint], list[str], list[str], list[str]]:
@@ -696,19 +721,14 @@ def run_market_query(
         approximated: list[str] = []
         points: list[MarketMetricPoint] = []
         for metro in target_metros:
-            if filters.metric == MetricName.MEDIAN_RENT:
-                rows, used_fallback = _fetch_rent_rows(db, metro, filters.bed_size, None, end, latest_only=True)
-            else:
-                rows = _query_metric_rows(db, metro, filters.metric.value, filters.bed_size, None, end, latest_only=True)
-                used_fallback = False
-            if not rows:
+            latest = latest_metric_value(db, metro, filters.metric, filters.bed_size, end)
+            if latest is None:
                 if filters.metros:
                     no_data.append(metro.canonical_name)
                 continue
-            if used_fallback:
+            if latest.used_fallback:
                 approximated.append(metro.canonical_name)
-            row = rows[0]
-            points.append(MarketMetricPoint(metro=metro.canonical_name, period=row.period, value=row.value))
+            points.append(MarketMetricPoint(metro=metro.canonical_name, period=latest.period, value=latest.value))
 
         points.sort(key=lambda p: p.value, reverse=(filters.sort_order != "asc"))
         limit = max(1, min(filters.limit or 60, 200))
